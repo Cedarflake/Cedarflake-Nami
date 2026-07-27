@@ -65,7 +65,7 @@ jobs:
       # Build-only placeholders; these are not valid credentials.
       GITHUB_CLIENT_ID: ci-client-id
       GITHUB_CLIENT_SECRET: ci-client-secret
-      NEXTAUTH_SECRET: ci-nextauth-secret-not-for-production
+      I0C_SECRET: ci-instance-secret-not-for-production
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

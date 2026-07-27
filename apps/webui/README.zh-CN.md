@@ -1,6 +1,6 @@
 ## 项目简介
 
-i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OAuth 登录后在线编辑 `config.json` 与 `redirects.json`。保存操作会交给构建期选择的 Data Repository。GitHub Contents 仍是默认实现并保留 commit 历史；PostgreSQL 可用于带乐观并发的数据库保存与原子快照。
+i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OAuth 登录后在线编辑 `config.json` 与 `redirects.json`。仓库当前默认使用 PostgreSQL，实现即时乐观保存、原子快照、不可变版本历史与回滚。原有 GitHub Contents 流程保留为归档的构建期替代方案，默认不启用。
 
 这个 WebUI 服务于个人 [i0c.cc](https://github.com/Revaea/i0c.cc) 工作流，作为可选的管理界面维护，不定位为通用的企业级链接管理产品。
 
@@ -11,6 +11,7 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
 - 可视化规则编辑（分组树 + 表单）
 - 规则 JSON 编辑（右侧面板，可直接编辑 `redirects.json`）
 - 位于侧边栏底部的可视化实例设置（`config.json`，使用共享契约校验）
+- 数据库备份导入导出与不可变版本历史
 
 ## 快速开始
 
@@ -25,21 +26,17 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
      Copy-Item .env.example .env.local
      ```
 
-2. 在 GitHub 创建 OAuth App，回调地址填写 `http(s)://<localhost:3000 或 你的域名>/api/auth/callback/github`，然后将 `Client ID`、`Client Secret` 写入 `.env.local` 的 `GITHUB_CLIENT_ID`、`GITHUB_CLIENT_SECRET`。如果是部署在 ▲ Vercel，将配置写到环境变量便好。
+2. 创建 PostgreSQL 数据库，为 WebUI 配置 `DATABASE_URL`。Data Repository 的显式迁移命令使用同一个连接。随后在仓库根目录执行迁移：
 
-   OAuth scope 配置在 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts)。公开目标仓库使用
-   `read:user user:email public_repo`，私有目标仓库则将 `public_repo` 改为 `repo`。
-   访问模式和管理者 GitHub 数字用户 ID 配置在 `data/config.json` 的 `webui.access` 中。
-   可以使用 `gh api user --jq .id` 查询自己的数字 ID。`access.mode` 可设为 `authenticated`、`allowlist`
-   或 `public-readonly`；`allowlist` 必须配置管理者 ID，`public-readonly` 可按需配置。
-   `blockedGitHubUserIds` 可在 `authenticated` 和 `public-readonly` 模式中按 GitHub 数字账号 ID 拒绝登录；
-   `allowlist` 模式会忽略该名单，同一 ID 不能同时属于管理者和黑名单。选择 GitHub Contents 时，`public-readonly` 会为只读账号通过 GitHub 未认证 API 加载指定规则，
-   因此目标仓库必须公开；任意 GitHub 用户登录后都可以查看规则和统计，名单内用户可以编辑配置、
-   生成渠道链接并手动刷新统计。如果未配置名单，则任何人都不能管理。
+   ```bash
+   pnpm --filter @i0c/plugin-data-repository-postgres migrate
+   ```
 
-3. 构建期 Repository 与 Runtime Source 选择配置在 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts)，可执行 Repository 工厂由 [../../i0c.webui.config.ts](../../i0c.webui.config.ts) 安装。默认 GitHub 方案从 `Revaea/i0c.cc` 的 `data` 分支读取 `config.json` 与 `redirects.json`；二维码使用的 Runtime 规范地址来自 `config.json`。
+   迁移属于明确的外部写入，不会在构建、启动、健康检查或普通请求中自动执行。
 
-4. 生成 `NEXTAUTH_SECRET` 并写入 `.env.local`。生产环境将 `NEXTAUTH_URL` 设为 `https://你的域名`，开发环境可将 `NEXTAUTH_URL` 设为 `http://localhost:3000`。
+3. 在 GitHub 创建 OAuth App，回调地址填写 `http(s)://<localhost:3000 或你的域名>/api/auth/callback/github`，并配置 `GITHUB_CLIENT_ID`、`GITHUB_CLIENT_SECRET`。默认 scope 为 `read:user user:email`；PostgreSQL 控制面不需要 Repository 权限。
+
+4. 生成一个至少 32 个随机字节的 `I0C_SECRET`，并在 WebUI 与每个平台的 Runtime 中配置相同值。NextAuth 通常会自动推断请求地址；仅当自托管代理未正确转发地址时，才设置可选的 `NEXTAUTH_URL` 覆盖值。
 
    - 使用 OpenSSL：
      ```bash
@@ -57,22 +54,25 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
    pnpm webui:dev
    ```
 
-6. 打开 [http://localhost:3000](http://localhost:3000) 或 **你的域名**并登录。已配置的管理者可以编辑两份数据文档，其他获准用户则获得所选访问模式定义的权限。
+6. 打开 [http://localhost:3000](http://localhost:3000) 或部署域名。数据库为空时，WebUI 会进入初始化页面。登录 GitHub、输入共享的 `I0C_SECRET`、选择已部署的 Runtime 适配器与公开地址，然后原子创建初始 `config.json` 和空的 `redirects.json`。当前 GitHub 账号会成为首位管理者。
+
+7. 初始化完成后继续保留 `I0C_SECRET`，它还用于签名 WebUI 会话和 Runtime 统计事件。
 
 ## Data Repository
 
-GitHub Contents 仍然可用。它把分支 commit 作为快照 revision，并在同一个 commit 上读取两份文档供 Runtime 发布。
+仓库当前通过 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 选择 PostgreSQL，并使用 `DATABASE_URL`。
 
-仓库当前通过 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 选择 PostgreSQL，并复用 `DATABASE_URL`；其他安装可以改用 `DATA_REPOSITORY_DATABASE_URL` 等独立 binding。选择新的 Repository 前需要明确执行迁移和初始化：
+首次初始化会在一个事务中创建两份文档，并拒绝只存在其中一份文档的半初始化数据库。每次保存都会创建不可变版本；导入会先校验两份 JSON，再原子替换；恢复则把旧内容复制为新的活动版本，不会改写历史。管理者可以在 **设置 → 数据与历史** 中导出、导入、查看和恢复版本。
+
+`seed` 命令继续用于受控的非交互迁移，但不再属于正常部署流程：
 
 ```bash
-pnpm --filter @i0c/plugin-data-repository-postgres migrate
 pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
 ```
 
-两个命令都会修改所配置的数据库，构建、应用启动、健康检查和普通请求都不会自动运行。初始化会校验两份文件，在同一个事务中只创建缺失文档，并且不会覆盖已有内容。初始化前，需要在 `config.json` 中把 GitHub Repository 与 Raw Source 声明替换为已启用的 `@i0c/data-repository-postgres` 和 `@i0c/http-snapshot-source`，使文档与构建期所选安装保持一致。
-
 使用数据库文档时，还要在同一份启动配置中选择 HTTP Runtime Source，并指向 `https://<webui-domain>/api/runtime/snapshot`。这个公开端点会返回一份带 ETag、经过校验的配置与规则 revision，且不包含 Secret 值。边缘 Runtime 只读取该端点，不会获得 PostgreSQL 连接串。
+
+GitHub Contents 与 GitHub Raw 继续保留在 workspace 中，作为归档的构建期替代方案。重新启用时，需要主动修改启动 Repository 与 Runtime Source 选择、恢复对应的 OAuth Repository scope，并重新构建两个应用；它们不属于默认首次初始化流程。
 
 ## 短链接统计
 
@@ -84,8 +84,7 @@ pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json
 
    ```dotenv
    DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
-   ANALYTICS_INGEST_SECRET="replace-with-a-separate-strong-secret"
-   CRON_SECRET="replace-with-an-independent-strong-secret"
+   I0C_SECRET="replace-with-the-shared-instance-secret"
    ```
 
 2. 在仓库根目录执行 PostgreSQL 插件迁移：
@@ -97,7 +96,7 @@ pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json
 3. 配置每个 Runtime 部署，将签名后的事件发送到 WebUI：
 
    ```dotenv
-   ANALYTICS_WRITE_KEY="the-same-value-as-ANALYTICS_INGEST_SECRET"
+   I0C_SECRET="the-same-value-as-the-WebUI-I0C_SECRET"
    ```
 
 收集端地址和统计 source ID 来自 `data/config.json`。source ID 必须是共享的基础域名，而不是平台名称。使用 `i0c.cc` 时，`i0c.cc`、`www.i0c.cc`、`api.i0c.cc`、`vc.i0c.cc`、`nf.i0c.cc` 可以分别统计，无需再维护一份域名列表。命名空间之外的域名会存为 `unknown`。
@@ -112,7 +111,7 @@ Runtime 会发送匹配流量对应的配置规则路径、入口域名、平台
 
 需要生成渠道链接时，已登录的客户端可以调用 `POST /api/analytics/campaigns`，传入 Runtime 地址、统计 ID、渠道 ID 和 1–365 天有效期。返回的签名 `_i0c_via` 参数会绑定精确域名和归一化路径，并由 Runtime 在规则处理前删除。
 
-数据库地址和签名密钥必须仅保存在服务端。Vercel 每天调用受保护的保留端点：原始事件、幂等收据和上游声明在 181 天后过期，小时与天级聚合继续保留。免费方案的额度和休眠策略可能变化，生产使用前请检查服务商的最新限制。
+数据库地址和实例密钥必须仅保存在服务端。统计事件写入后，WebUI 会在后台低频安排数据保留，不再暴露维护端点，也不需要另一项部署密钥。原始事件、幂等收据和上游声明在 181 天后过期，小时与天级聚合继续保留。免费方案的额度和休眠策略可能变化，生产使用前请检查服务商的最新限制。
 
 完整事件契约、归因行为、数据库迁移顺序、隐私限制、投递保证和验收场景详见 [统计架构文档](../../docs/analytics.zh-CN.md)。每个 Store 插件自己实现迁移 `status`、`plan` 与 `apply`；迁移属于明确的外部写入，WebUI 构建、启动和健康检查都不会自动执行迁移。
 
@@ -127,7 +126,7 @@ Runtime 会发送匹配流量对应的配置规则路径、入口域名、平台
 | Build Command | `pnpm build` |
 | Output Directory | Next.js default |
 
-保持开启 Vercel 的 **Include source files outside of the Root Directory in the Build Step**，让构建能够包含共享 workspace 包。将 [.env.example](.env.example) 中的部署绑定与密钥配置到 Vercel。生产环境的 `NEXTAUTH_URL` 必须和部署域名一致，并配置 `CRON_SECRET` 供每日保留请求使用；GitHub OAuth callback URL 必须是 `https://<你的域名>/api/auth/callback/github`。
+保持开启 Vercel 的 **Include source files outside of the Root Directory in the Build Step**，让构建能够包含共享 workspace 包。将 [.env.example](.env.example) 中的必填部署绑定配置到 Vercel。GitHub OAuth callback URL 必须是 `https://<你的域名>/api/auth/callback/github`；仅当部署地址无法正确自动推断时才配置 `NEXTAUTH_URL`。
 
 WebUI 不会把原有非敏感环境变量作为覆盖值或回退值读取。Vercel 中遗留的旧值会被忽略，确认版本化配置部署正常后即可删除。
 
@@ -137,15 +136,15 @@ WebUI 不会把原有非敏感环境变量作为覆盖值或回退值读取。Ve
 - 可视化编辑 `redirects.json`：分组树管理 + 规则表单编辑。
 - 规则 JSON 编辑器：行号、当前行高亮、JSON 语法校验（格式错误提示）。
 - 可视化并校验 `config.json`；只有当前文档无法安全转换为表单时，才显示原始内容恢复编辑器。
+- 数据库首次初始化，无需手写 JSON 或执行 seed。
+- 不可变文档历史、非破坏性回滚，以及原子 JSON 备份导入导出。
 - 通过认证后查看已安装 Manifest、配置状态、能力、缺失绑定和所选 Store 健康状态。
 - 表单行为对齐 Schema（规范来源：[https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json](https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json)）。
 - 支持撤销/重做，便于快速回退编辑。
 - 通过所选版本化 Repository 保存；revision 过期时拒绝覆盖较新的内容。
-- 所选 Repository 提供链接时，保存成功通知会显示 GitHub commit 链接。
+- 所选 Repository 提供结果链接时，保存成功通知会显示该链接。
 
 ## 注意事项
 
-- OAuth 应用需要 `repo` 权限才能写入私有仓库。
-- 若目标仓库为私有，请确认登录账号具备相应写权限。
-- 使用 GitHub Repository 时，`public-readonly` 仅支持公开目标，并受 GitHub 未认证 API 请求限额约束。
+- 只有主动重新启用归档的 GitHub Repository 时，才需要 Repository OAuth 权限并受到公开目标限制。
 - 生产环境部署时务必将 `.env.local` 中的凭据配置到对应平台的环境变量管理中。

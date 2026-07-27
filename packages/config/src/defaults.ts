@@ -25,7 +25,7 @@ export const bootstrapConfig: BootstrapConfig = {
     },
   },
   webui: {
-    githubOAuthScope: "read:user user:email public_repo",
+    githubOAuthScope: "read:user user:email",
   },
 }
 
@@ -82,7 +82,7 @@ export const defaultDataConfig: DataConfig = {
         requestTimeoutMs: 5_000,
       },
       secrets: {
-        writeKey: "ANALYTICS_WRITE_KEY",
+        writeKey: "I0C_SECRET",
       },
     },
     "@i0c/feature-bot-classifier": {

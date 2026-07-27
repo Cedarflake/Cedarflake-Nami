@@ -105,7 +105,10 @@ export async function PUT(request: NextRequest) {
   try {
     const result = await updateRedirectsDocument(
       authorization.accessToken,
-      parsed.data,
+      {
+        ...parsed.data,
+        actorGitHubUserId: authorization.githubUserId,
+      },
     );
     revalidateTag(APP_DATA_SNAPSHOT_CACHE_TAG, { expire: 0 });
     return NextResponse.json(result);

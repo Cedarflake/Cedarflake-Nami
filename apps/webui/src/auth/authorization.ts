@@ -5,12 +5,15 @@ import { getToken } from "next-auth/jwt";
 import { getServerSession } from "next-auth/next";
 import type { NextRequest } from "next/server";
 
+import { readInstanceSecret } from "@/lib/configuration/instance-secret";
+
 import {
   getWebUiTokenAuthorization,
   hasWebUiAccessToken,
   isWebUiPublicReadOnly,
 } from "./access-policy";
 import { authOptions } from "./config";
+import { resolveTokenGitHubUserId } from "./token-authorization";
 
 export type WebUiAuthorizationDenial = "unauthenticated" | "forbidden";
 
@@ -36,6 +39,7 @@ type WebUiReadRequestAuthorization =
       status: "authorized";
       isReadOnly: false;
       accessToken: string;
+      githubUserId: string;
     };
 
 type WebUiManagementRequestAuthorization =
@@ -43,6 +47,7 @@ type WebUiManagementRequestAuthorization =
   | {
       status: "authorized";
       accessToken: string;
+      githubUserId: string;
     };
 
 async function getAuthenticatedSessionAuthorization(): Promise<WebUiManagementSessionAuthorization> {
@@ -86,7 +91,7 @@ export async function getWebUiManagementSessionAuthorization(): Promise<WebUiMan
 async function getAuthenticatedRequestAuthorization(
   request: NextRequest,
 ): Promise<WebUiManagementRequestAuthorization> {
-  const secret = process.env.NEXTAUTH_SECRET?.trim();
+  const secret = readInstanceSecret();
   if (!secret) {
     return { status: "unauthenticated" };
   }
@@ -112,10 +117,18 @@ async function getAuthenticatedRequestAuthorization(
       isBlocked: tokenAuthorization.isBlocked,
     };
   }
+  const githubUserId = resolveTokenGitHubUserId(token);
+  if (!githubUserId) {
+    return {
+      status: "forbidden",
+      isBlocked: false,
+    };
+  }
 
   return {
     status: "authorized",
     accessToken: token.accessToken,
+    githubUserId,
   };
 }
 
@@ -128,6 +141,7 @@ export async function getWebUiReadRequestAuthorization(
       status: "authorized",
       isReadOnly: false,
       accessToken: authorization.accessToken,
+      githubUserId: authorization.githubUserId,
     };
   }
 

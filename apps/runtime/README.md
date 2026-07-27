@@ -33,7 +33,7 @@ The package-level `pnpm build` command generates and retains all three provider 
 After deploying:
 
 - Save `config.json` or `redirects.json` through the selected WebUI Repository when non-sensitive settings or rules change. The default Git setup uses the `data` branch. Built-in Sources pick up valid updates after their configured cache TTL without a rebuild.
-- Set `ANALYTICS_WRITE_KEY` on every provider that should deliver analytics events.
+- Set the same `I0C_SECRET` on every Runtime provider and the WebUI.
 - Re-run the package build after updating shared redirect logic, then redeploy.
 
 ## Choose an adapter
@@ -86,7 +86,7 @@ When GitHub Raw is selected, programmatic consumers can override its URLs or inj
 
 Analytics delivery is disabled unless the versioned endpoint and source ID are valid and this secret is set:
 
-- `ANALYTICS_WRITE_KEY`: Long random secret used to sign each request. Set the WebUI collector's `ANALYTICS_INGEST_SECRET` to the same value.
+- `I0C_SECRET`: Shared instance secret used to sign analytics delivery. Use the same value on the WebUI and every Runtime provider.
 
 Copy [.env.example](.env.example) for the local placeholder. No other built-in Runtime setting is read from the environment.
 

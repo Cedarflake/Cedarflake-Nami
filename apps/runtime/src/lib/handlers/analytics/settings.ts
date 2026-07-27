@@ -21,7 +21,8 @@ import {
 import { readRuntimeSecret } from "../configuration/env";
 import type { ResolvedRuntime } from "../core/types";
 
-const ANALYTICS_WRITE_KEY = "ANALYTICS_WRITE_KEY";
+const I0C_SECRET = "I0C_SECRET";
+const LEGACY_ANALYTICS_WRITE_KEY = "ANALYTICS_WRITE_KEY";
 const ANALYTICS_RUNTIME_SAMPLE_RATE = 0.1;
 
 let attributionKeyCache: {
@@ -65,9 +66,12 @@ export async function resolveAnalyticsSettings(
       runtimePlatformManifests: runtime.runtimePlatformManifests
     }
   ).find((plugin) => plugin.manifest.kind === "analytics-sink");
-  const writeKeyBinding = sinkPlugin?.declaration.secrets?.writeKey
+  const configuredWriteKeyBinding = sinkPlugin?.declaration.secrets?.writeKey
     ?? sinkPlugin?.manifest.secrets.writeKey?.defaultBinding
-    ?? ANALYTICS_WRITE_KEY;
+    ?? I0C_SECRET;
+  const writeKeyBinding = configuredWriteKeyBinding === LEGACY_ANALYTICS_WRITE_KEY
+    ? I0C_SECRET
+    : configuredWriteKeyBinding;
   const writeKey = readRuntimeSecret(
     runtime.envBindings,
     writeKeyBinding,

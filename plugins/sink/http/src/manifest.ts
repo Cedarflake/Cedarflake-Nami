@@ -63,7 +63,7 @@ export const httpAnalyticsSinkManifest = {
     writeKey: {
       required: true,
       sensitive: true,
-      defaultBinding: "ANALYTICS_WRITE_KEY",
+      defaultBinding: "I0C_SECRET",
       description: "HMAC key shared with the analytics collector.",
       label: {
         en: "Analytics write key binding",

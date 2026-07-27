@@ -1,6 +1,7 @@
 import type {
   DataDocument,
   DataDocumentKind,
+  DataRepositoryManagement,
   DataRepositoryReadOptions,
   DataRepositorySnapshot,
   DataRepositoryWriteInput,
@@ -15,4 +16,6 @@ export type AppDataRepository = AtomicVersionedDataRepository<
   DataDocument,
   DataRepositoryWriteResult,
   DataRepositorySnapshot
->;
+> & {
+  management?: DataRepositoryManagement;
+};

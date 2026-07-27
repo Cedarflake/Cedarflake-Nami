@@ -3,6 +3,7 @@ import "server-only";
 import type { DataConfig } from "@i0c/config";
 
 import { getEffectiveDataConfig } from "@/lib/configuration/data-config";
+import { readInstanceSecret } from "@/lib/configuration/instance-secret";
 
 const hostnameLabelPattern = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 
@@ -28,6 +29,5 @@ export async function readAnalyticsSourceId(): Promise<string | null> {
 }
 
 export function readAnalyticsIngestSecret(): string | null {
-  const secret = process.env.ANALYTICS_INGEST_SECRET?.trim();
-  return secret && secret.length >= 32 ? secret : null;
+  return readInstanceSecret();
 }

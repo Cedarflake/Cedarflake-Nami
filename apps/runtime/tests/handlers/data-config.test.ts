@@ -61,7 +61,7 @@ test("accepts namespaced plugin configuration and secret binding names", () => {
           retryAttempts: 2
         },
         secrets: {
-          writeKey: "ANALYTICS_WRITE_KEY"
+          writeKey: "PLUGIN_WRITE_KEY"
         }
       }
     }

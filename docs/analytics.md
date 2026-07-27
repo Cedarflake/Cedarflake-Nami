@@ -29,23 +29,19 @@ The collector endpoint and source namespace are versioned in `data/config.json`:
 Configure every Runtime deployment with the shared signing secret:
 
 ```dotenv
-ANALYTICS_WRITE_KEY="replace-with-a-32-byte-random-secret"
+I0C_SECRET="replace-with-a-32-byte-random-secret"
 ```
 
 Configure the WebUI deployment with:
 
 ```dotenv
 DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
-ANALYTICS_INGEST_SECRET="replace-with-a-32-byte-random-secret"
-CRON_SECRET="replace-with-a-32-byte-random-secret"
+I0C_SECRET="the-same-value-as-every-Runtime"
 ```
 
 The Runtime and WebUI do not read the former non-sensitive analytics environment variables. Values left in provider dashboards are ignored; edit the validated remote `config.json` to change them without rebuilding the applications.
 
-`ANALYTICS_WRITE_KEY` and `ANALYTICS_INGEST_SECRET` must contain exactly the same secret. Do not reuse the GitHub OAuth, NextAuth, or database credentials.
-
-`CRON_SECRET` independently protects the daily retention endpoint. Vercel sends it in the
-`Authorization` header for scheduled requests; do not reuse another application secret.
+`I0C_SECRET` is the single instance secret shared by the WebUI and every Runtime provider. It signs WebUI sessions, setup authorization, analytics delivery, and attribution data. Rotating it invalidates existing WebUI sessions and requires redeploying every Runtime.
 
 `analytics.sourceId` is both the logical statistics namespace and its base hostname. It is normalized to lowercase. With `i0c.cc`, events may report `i0c.cc` or any subdomain of `i0c.cc`; other hostnames are stored as `unknown`. This bounds entry-domain cardinality without requiring a separate domain-list setting.
 
@@ -185,19 +181,20 @@ Recommended rollout order:
 5. Configure and deploy the Netlify Runtime.
 6. Check collector errors, `unknown` entry domains, observed/estimated ratios, and all-domain sums.
 
-Vercel calls `/api/analytics/retention` once per day. The authenticated endpoint deletes link
-events, Runtime events, idempotency receipts, and expired upstream claims whose database receive
-time is more than 181 days old. Hourly and daily aggregate tables are retained, so historical
-trends and prior-period comparisons do not depend on keeping raw request rows indefinitely.
-Retention and schema migrations are never run as part of the WebUI build.
+After a successful analytics ingestion, the WebUI schedules retention in the background at most
+once per running instance per day. It deletes link events, Runtime events, idempotency receipts,
+and expired upstream claims whose database receive time is more than 181 days old. Hourly and
+daily aggregate tables are retained, so historical trends and prior-period comparisons do not
+depend on keeping raw request rows indefinitely. Retention and schema migrations are never run as
+part of the WebUI build.
 
 The WebUI exposes 1, 7, 30, and 90-day ranges. The 1-day trend is a rolling 24-hour window with
 UTC-aligned hourly storage buckets that are formatted in the device time zone. Longer ranges use
 calendar-day boundaries and trend buckets aligned to the device's IANA time zone. UTC hourly and
 daily tables remain the storage format; non-UTC boundary-sensitive breakdowns use retained raw
 events so cards, trends, and dimensions cover the same interval. The 181-day raw-event policy
-preserves two complete 90-day periods plus one day for boundary handling and the daily cleanup
-schedule. This retention window makes future aggregate rebuilding possible; it does not by itself
+preserves two complete 90-day periods plus one day for boundary handling and the cleanup interval.
+This retention window makes future aggregate rebuilding possible; it does not by itself
 perform a rebuild.
 
 ## Acceptance scenarios

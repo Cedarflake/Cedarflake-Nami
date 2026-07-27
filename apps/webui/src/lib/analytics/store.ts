@@ -20,7 +20,7 @@ export type { WebUiAnalyticsStore } from "@/lib/plugins/installations";
 
 const analyticsStoreBindings = new Map<string, unknown>();
 let analyticsStoreCache:
-  | { key: string; store: WebUiAnalyticsStore | null }
+  | { key: string; storePromise: Promise<WebUiAnalyticsStore | null> }
   | undefined;
 
 export function configureAnalyticsStoreBinding(
@@ -62,12 +62,13 @@ export async function getAnalyticsStoreForSelection(
 ): Promise<WebUiAnalyticsStore | null> {
   const cacheKey = getAnalyticsStoreCacheKey(selected);
   if (analyticsStoreCache?.key === cacheKey) {
-    return analyticsStoreCache.store;
+    return analyticsStoreCache.storePromise;
   }
 
   if (!selected) {
-    analyticsStoreCache = { key: cacheKey, store: null };
-    return null;
+    const storePromise = Promise.resolve(null);
+    analyticsStoreCache = { key: cacheKey, storePromise };
+    return storePromise;
   }
   const installation = webUiPluginInstallations.analyticsStores.find(
     (candidate) => candidate.manifest.id === selected.pluginId
@@ -80,14 +81,21 @@ export async function getAnalyticsStoreForSelection(
     );
   }
 
-  const store = installation.create({
+  const storePromise = Promise.resolve(installation.create({
     bindings: analyticsStoreBindings,
     declaration: selected.declaration,
     development: process.env.NODE_ENV === "development",
     readEnvironment: (name) => process.env[name]
-  });
-  analyticsStoreCache = { key: cacheKey, store };
-  return store;
+  }));
+  analyticsStoreCache = { key: cacheKey, storePromise };
+  try {
+    return await storePromise;
+  } catch (error) {
+    if (analyticsStoreCache?.storePromise === storePromise) {
+      analyticsStoreCache = undefined;
+    }
+    throw error;
+  }
 }
 
 export async function getRequiredAnalyticsStore(): Promise<WebUiAnalyticsStore> {

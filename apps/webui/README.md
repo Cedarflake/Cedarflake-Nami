@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-i0c.cc WebUI is a management panel based on Next.js 16, designed for online editing of `config.json` and `redirects.json` after logging in via GitHub OAuth. Saves go through the selected build-time Data Repository. GitHub Contents remains the default and preserves commit history; PostgreSQL is available for optimistic database-backed saves and atomic snapshots.
+i0c.cc WebUI is a management panel based on Next.js 16, designed for online editing of `config.json` and `redirects.json` after logging in via GitHub OAuth. The checked-in deployment uses PostgreSQL for immediate, optimistic saves, atomic snapshots, immutable revision history, and rollback. The former GitHub Contents workflow remains an archived build-time alternative and is not enabled by default.
 
 This WebUI supports the personal [i0c.cc](https://github.com/Revaea/i0c.cc) workflow. It is maintained as an optional management surface rather than a general-purpose enterprise URL management product.
 
@@ -13,6 +13,7 @@ This project provides two rule-editing modes and a separate settings surface:
 - Visual rule editing (group tree + form)
 - Rules JSON editing (right panel, directly edit `redirects.json`)
 - Visual instance settings in the bottom of the sidebar (`config.json`, with shared contract validation)
+- Database-backed backup import/export and immutable revision history
 
 ## Quick Start
 
@@ -27,25 +28,17 @@ This project provides two rule-editing modes and a separate settings surface:
      Copy-Item .env.example .env.local
      ```
 
-2. Create an OAuth App on GitHub, set the callback URL to `http(s)://<localhost:3000 or your domain>/api/auth/callback/github`, and write the `Client ID` and `Client Secret` into `.env.local` as `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`. If deploying on ▲ Vercel, configure these as environment variables.
+2. Create a PostgreSQL database and configure `DATABASE_URL` for the WebUI. The deliberate Data Repository migration command uses the same connection. Apply the migrations from the repository root:
 
-   Configure the OAuth scope in [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts). Use
-   `read:user user:email public_repo` for a public target repository or replace `public_repo`
-   with `repo` for a private repository. Configure the access mode and manager GitHub numeric
-   user IDs in the `webui.access` section of `data/config.json`. Find a numeric user ID with `gh api user --jq .id`.
-   `access.mode` accepts `authenticated`, `allowlist`, or `public-readonly`. Manager IDs are
-   required by `allowlist` and optional for `public-readonly`.
-   `blockedGitHubUserIds` optionally rejects selected numeric account IDs in `authenticated`
-   and `public-readonly` modes. It is ignored in `allowlist` mode, and an ID cannot be both a
-   manager and blocked.
-   When GitHub Contents is selected, `public-readonly` loads the configured rules through
-   GitHub's unauthenticated API for read-only accounts, so the target repository must be public.
-   Any GitHub user may sign in to inspect rules and analytics, while listed users may edit
-   config, create campaign URLs, and refresh analytics. Without listed IDs, no one can manage it.
+   ```bash
+   pnpm --filter @i0c/plugin-data-repository-postgres migrate
+   ```
 
-3. The build-time Repository and Runtime Source selections are defined in [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts), while executable Repository factories are installed by [../../i0c.webui.config.ts](../../i0c.webui.config.ts). The default GitHub setup loads `config.json` and `redirects.json` from the `data` branch of `Revaea/i0c.cc`. The canonical Runtime origin used by QR codes comes from `config.json`.
+   Migrations are deliberate external writes. They are never run by the build, startup, health checks, or ordinary requests.
 
-4. Generate `NEXTAUTH_SECRET` and write it into `.env.local`. For production, set `NEXTAUTH_URL` to `https://your-domain`; for development, set it to `http://localhost:3000`.
+3. Create a GitHub OAuth App with callback URL `http(s)://<localhost:3000 or your domain>/api/auth/callback/github`. Configure `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`. The default OAuth scope is `read:user user:email`; Repository permissions are not required by the PostgreSQL control plane.
+
+4. Generate one `I0C_SECRET` value of at least 32 random bytes and configure the same value on the WebUI and every Runtime provider. NextAuth normally infers the request origin; set the optional `NEXTAUTH_URL` override only when a self-hosted proxy does not forward it correctly.
 
    - Using OpenSSL:
      ```bash
@@ -63,22 +56,25 @@ This project provides two rule-editing modes and a separate settings surface:
    pnpm webui:dev
    ```
 
-6. Open [http://localhost:3000](http://localhost:3000) or **your domain** and sign in. Configured managers can edit both data documents; other permitted users receive the access defined by the selected mode.
+6. Open [http://localhost:3000](http://localhost:3000) or your deployment. When the database is empty, the WebUI enters its setup page. Sign in with GitHub, enter the shared `I0C_SECRET`, choose the deployed Runtime adapters and public origins, then create the initial `config.json` and empty `redirects.json` atomically. The signed-in GitHub account becomes the first manager.
+
+7. Keep `I0C_SECRET` configured after initialization because it also signs WebUI sessions and Runtime analytics events.
 
 ## Data repository
 
-GitHub Contents remains available. It uses the configured branch commit as the snapshot revision and reads both documents at the same commit for Runtime publication.
+The checked-in deployment selects PostgreSQL through [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) and uses `DATABASE_URL`.
 
-The checked-in deployment selects PostgreSQL through [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) and reuses `DATABASE_URL`; installations may choose a separate binding such as `DATA_REPOSITORY_DATABASE_URL`. Deliberately migrate and seed a new repository before selecting it:
+First-run setup creates both documents in one transaction and refuses partially initialized databases. Every save creates an immutable revision. Import validates both JSON files and replaces them atomically, while restore copies an old document into a new head revision instead of rewriting history. Managers can export, import, inspect, and restore revisions from **Settings → Data and history**.
+
+The `seed` command remains available for controlled non-interactive migrations, but it is not part of the normal deployment flow:
 
 ```bash
-pnpm --filter @i0c/plugin-data-repository-postgres migrate
 pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
 ```
 
-Both commands mutate the configured database and are never run by builds, startup, health checks, or ordinary requests. Seeding validates both files, creates only missing documents in one transaction, and never overwrites existing content. Before seeding, replace the GitHub Repository and Raw Source declarations in `config.json` with enabled `@i0c/data-repository-postgres` and `@i0c/http-snapshot-source` declarations so the document matches the selected build-time installations.
-
 For database-backed documents, also select the HTTP Runtime Source in the same bootstrap configuration and point it at `https://<webui-domain>/api/runtime/snapshot`. The public endpoint returns one validated config-and-rules revision with an ETag; it contains no Secret values. Edge Runtime deployments fetch this endpoint and never receive the PostgreSQL connection string.
+
+GitHub Contents and GitHub Raw remain in the workspace as archived build-time alternatives. Re-enabling them requires deliberately changing the bootstrap Repository and Runtime Source selections, restoring the required OAuth Repository scope, and rebuilding both applications. They are not part of the default first-run flow.
 
 ## Short-link analytics
 
@@ -90,8 +86,7 @@ The repository also contains a complete D1 Store that passes the same analytics 
 
    ```dotenv
    DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
-   ANALYTICS_INGEST_SECRET="replace-with-a-separate-strong-secret"
-   CRON_SECRET="replace-with-an-independent-strong-secret"
+   I0C_SECRET="replace-with-the-shared-instance-secret"
    ```
 
 2. Apply the PostgreSQL plugin migrations from the repository root:
@@ -103,7 +98,7 @@ The repository also contains a complete D1 Store that passes the same analytics 
 3. Configure every runtime deployment to send signed events to the WebUI:
 
    ```dotenv
-   ANALYTICS_WRITE_KEY="the-same-value-as-ANALYTICS_INGEST_SECRET"
+   I0C_SECRET="the-same-value-as-the-WebUI-I0C_SECRET"
    ```
 
 The collector endpoint and analytics source ID come from `data/config.json`. The source ID must be the shared base hostname, not a provider name. With `i0c.cc`, `i0c.cc`, `www.i0c.cc`, `api.i0c.cc`, `vc.i0c.cc`, and `nf.i0c.cc` can be reported independently without configuring a second domain list. Hostnames outside that namespace are stored as `unknown`.
@@ -118,10 +113,11 @@ The Runtime sends the configured rule path for matched traffic, entry domain, pr
 
 For campaign links, an authenticated client can call `POST /api/analytics/campaigns` with a Runtime URL, analytics ID, campaign ID, and 1–365 day lifetime. The returned signed `_i0c_via` parameter is bound to the exact host and normalized path, then removed by the Runtime before rule processing.
 
-Keep the database URL and signing secrets server-only. Vercel invokes the protected retention
-endpoint daily: raw events, idempotency receipts, and upstream claims expire after 181 days, while
-hourly and daily aggregates remain available. Free-plan quotas and inactivity policies can change,
-so check the provider's current limits before production use.
+Keep the database URL and instance secret server-only. After analytics ingestion, the WebUI
+periodically schedules retention in the background without a public maintenance endpoint or
+another deployment secret. Raw events, idempotency receipts, and upstream claims expire after
+181 days, while hourly and daily aggregates remain available. Free-plan quotas and inactivity
+policies can change, so check the provider's current limits before production use.
 
 See [../../docs/analytics.md](../../docs/analytics.md) for the complete event contract, attribution behavior, database migration order, privacy limits, delivery guarantees, and acceptance scenarios. Each Store plugin owns migration `status`, `plan`, and `apply`; migrations are deliberate external writes and are never run automatically by the WebUI build, startup, or health check.
 
@@ -136,9 +132,7 @@ Deploy this package from the monorepo with these Vercel settings:
 | Build Command | `pnpm build` |
 | Output Directory | Next.js default |
 
-Keep **Include source files outside of the Root Directory in the Build Step** enabled so Vercel includes the shared workspace packages. Set the deployment bindings and secrets from [.env.example](.env.example) in Vercel. For production,
-`NEXTAUTH_URL` must match the deployed domain, `CRON_SECRET` must be configured for the daily retention request, and the GitHub OAuth callback URL must be
-`https://<your-domain>/api/auth/callback/github`.
+Keep **Include source files outside of the Root Directory in the Build Step** enabled so Vercel includes the shared workspace packages. Set the required deployment bindings from [.env.example](.env.example) in Vercel. The GitHub OAuth callback URL must be `https://<your-domain>/api/auth/callback/github`. Configure `NEXTAUTH_URL` only when the deployment origin cannot be inferred correctly.
 
 The WebUI does not read former non-sensitive environment variables as overrides or fallbacks. Values left in Vercel are ignored and can be removed after the versioned configuration deployment is verified.
 
@@ -148,17 +142,17 @@ The WebUI does not read former non-sensitive environment variables as overrides 
 - Visual editing of `redirects.json`: group tree management + rule form editing.
 - Rules JSON editor: line numbers, current line highlighting, JSON syntax validation (error prompts for formatting issues).
 - Visual, validated `config.json` settings with a raw recovery editor only when the current document cannot be represented safely.
+- First-run database initialization without hand-written JSON or a seed command.
+- Immutable document history, non-destructive rollback, and atomic JSON backup import/export.
 - Authenticated plugin status reporting for installed manifests, configuration state, capabilities, missing bindings, and selected-Store health.
 - Form behavior aligned with the schema (specification source: [https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json](https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json)).
 - Supports undo/redo for quick editing rollback.
 - Saves through the selected versioned Repository and rejects stale revisions instead of overwriting newer content.
-- Shows a GitHub commit link after saves when the selected Repository provides one.
+- Shows a Repository result link after saves when the selected Repository provides one.
 
 ## Notes
 
-- The OAuth app requires `repo` permissions to write to private repositories.
-- If the target repository is private, ensure the logged-in account has the appropriate write permissions.
-- With the GitHub Repository, `public-readonly` supports only public targets and is subject to GitHub's unauthenticated API limits.
+- Repository OAuth permissions and public-target limitations apply only when the archived GitHub Repository is deliberately re-enabled.
 - For production deployment, make sure to configure the credentials in `.env.local` into the environment variable management of the respective platform.
 
 For the Chinese version, see [README.zh-CN.md](README.zh-CN.md).

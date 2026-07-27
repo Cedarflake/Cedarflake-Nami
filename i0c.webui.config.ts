@@ -2,26 +2,8 @@ import {
   assertBootstrapConfigCompatibility,
   bootstrapConfig,
 } from "@i0c/config"
-import {
-  resolveD1AnalyticsStoreConfig,
-} from "@i0c/plugin-analytics-store-d1/config"
-import {
-  createD1AnalyticsStore,
-} from "@i0c/plugin-analytics-store-d1/store"
 import type { D1Database } from "@i0c/plugin-analytics-store-d1/types"
-import {
-  resolvePostgresAnalyticsStoreConfig,
-} from "@i0c/plugin-analytics-store-postgres/config"
-import {
-  createPostgresAnalyticsStore,
-} from "@i0c/plugin-analytics-store-postgres/store"
-import {
-  createPostgresDataRepository,
-} from "@i0c/plugin-data-repository-postgres/repository"
-import {
-  createGitHubContentsRepository,
-  type GitHubFetch,
-} from "@i0c/plugin-github-data/webui"
+import type { GitHubFetch } from "@i0c/plugin-github-data/webui"
 
 import {
   defineWebUiPluginInstallations,
@@ -40,7 +22,14 @@ export const webUiPluginInstallations = defineWebUiPluginInstallations({
   analyticsStores: [
     {
       ...webUiPluginDescriptors.analyticsStores[0],
-      create: ({ declaration, development, readEnvironment }) => {
+      create: async ({ declaration, development, readEnvironment }) => {
+        const [
+          { resolvePostgresAnalyticsStoreConfig },
+          { createPostgresAnalyticsStore },
+        ] = await Promise.all([
+          import("@i0c/plugin-analytics-store-postgres/config"),
+          import("@i0c/plugin-analytics-store-postgres/store"),
+        ])
         const databaseUrlBinding = declaration.secrets?.databaseUrl
           ?? webUiPluginDescriptors.analyticsStores[0].manifest
             .secrets.databaseUrl.defaultBinding
@@ -56,13 +45,20 @@ export const webUiPluginInstallations = defineWebUiPluginInstallations({
     },
     {
       ...webUiPluginDescriptors.analyticsStores[1],
-      create: ({ bindings, declaration }) => {
+      create: async ({ bindings, declaration }) => {
         const database = bindings.get(
           webUiPluginDescriptors.analyticsStores[1].manifest.id,
         )
         if (!isD1Database(database)) {
           return null
         }
+        const [
+          { resolveD1AnalyticsStoreConfig },
+          { createD1AnalyticsStore },
+        ] = await Promise.all([
+          import("@i0c/plugin-analytics-store-d1/config"),
+          import("@i0c/plugin-analytics-store-d1/store"),
+        ])
         return createD1AnalyticsStore(
           resolveD1AnalyticsStoreConfig(declaration.config),
           { database },
@@ -72,9 +68,12 @@ export const webUiPluginInstallations = defineWebUiPluginInstallations({
   ],
 })
 
-function createConfiguredDataRepository() {
+async function createConfiguredDataRepository() {
   const repository = bootstrapConfig.data.repository
   if (repository.provider === "postgres") {
+    const { createPostgresDataRepository } = await import(
+      "@i0c/plugin-data-repository-postgres/repository"
+    )
     const connectionString =
       process.env[repository.databaseUrlBinding]?.trim() ?? ""
     return createPostgresDataRepository({
@@ -84,6 +83,9 @@ function createConfiguredDataRepository() {
       connectTimeoutSeconds: repository.connectTimeoutSeconds,
     })
   }
+  const { createGitHubContentsRepository } = await import(
+    "@i0c/plugin-github-data/webui"
+  )
   return createGitHubContentsRepository(
     {
       ...bootstrapConfig.data.github,

@@ -11,6 +11,35 @@
     "accessDeniedDescription": "This GitHub account is not allowed to access this deployment.",
     "signOutAndReturn": "Sign out and return"
   },
+  "setup": {
+    "title": "Initialize this deployment",
+    "description": "Create the first instance configuration and an empty rule set in PostgreSQL. Your signed-in GitHub account becomes the first manager.",
+    "secret": "Instance secret",
+    "secretHelp": "Enter the shared I0C_SECRET configured in this WebUI and every Runtime deployment.",
+    "webUiOrigin": "WebUI origin",
+    "runtimeOrigin": "Runtime origin",
+    "runtimePlatforms": "Deployed Runtime platforms",
+    "providers": {
+      "cloudflare": "Cloudflare",
+      "vercel": "Vercel",
+      "netlify": "Netlify"
+    },
+    "analytics": "Enable analytics",
+    "analyticsHelp": "Enable signed Runtime event delivery and the PostgreSQL analytics store.",
+    "sourceId": "Analytics source ID",
+    "sourceIdHelp": "Use the shared lowercase base hostname for all Runtime domains.",
+    "initialize": "Initialize deployment",
+    "initializing": "Initializing...",
+    "unknownError": "Initialization failed. Check the values and try again.",
+    "migrationRequired": "Database migration required",
+    "migrationRequiredHelp": "Apply the PostgreSQL data repository migrations before opening setup again.",
+    "partial": "Partial initialization detected",
+    "partialHelp": "Only one required data document exists. Setup will not overwrite it; repair or clear the partial state explicitly.",
+    "unsupported": "Setup is unavailable",
+    "unsupportedHelp": "The selected data repository does not provide the initialization capability.",
+    "secretMissing": "Instance secret is not configured",
+    "secretMissingHelp": "Add an I0C_SECRET of at least 32 characters to the WebUI deployment and reload this page."
+  },
   "notFound": {
     "title": "404 · Page not found",
     "description": "The page you requested does not exist or may have moved.",

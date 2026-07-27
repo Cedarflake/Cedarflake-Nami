@@ -1,13 +1,13 @@
 # <img src="./logo.webp" alt="i0c.cc" width="420">
 
-i0c.cc is a personal edge redirect playground with a PostgreSQL control plane and optional Git fallback. It runs the same core through optional edge-platform adapters and provides a WebUI with optional analytics for my own use.
+i0c.cc is a personal edge redirect playground with a PostgreSQL control plane and an archived Git fallback. It runs the same core through optional edge-platform adapters and provides a WebUI with optional analytics for my own use.
 
 ## Positioning
 
 This repository is maintained for personal use and engineering experimentation. It is not intended to be a hosted URL-shortening service or an enterprise redirect platform.
 
 - Deploy whichever Runtime adapter fits the environment; Cloudflare, Vercel, and Netlify are supported alternatives rather than required replicas.
-- Use PostgreSQL for immediate database-backed saves while keeping Git as a simple, auditable fallback.
+- Use PostgreSQL for immediate database-backed saves, immutable history, and rollback; Git remains an archived build-time fallback.
 - Use the WebUI and analytics when they help the personal workflow; the roadmap prioritizes clarity and reliability over feature parity with commercial products.
 
 ## Projects
@@ -55,7 +55,7 @@ Use these settings when the platform asks for project or build configuration:
 | Vercel | `apps/runtime` | `pnpm build:vc` | `.vercel/output` |
 | Netlify | `apps/runtime` | `pnpm build:nf` | `dist` |
 
-Build from a full monorepo checkout so the Runtime can import the shared workspace packages. On Vercel, keep **Include source files outside of the Root Directory in the Build Step** enabled. The checked-in Runtime Source reads one atomic HTTP snapshot from the WebUI; GitHub Raw remains available as a build-time fallback. Analytics delivery only requires the `ANALYTICS_WRITE_KEY` secret on each provider.
+Build from a full monorepo checkout so the Runtime can import the shared workspace packages. On Vercel, keep **Include source files outside of the Root Directory in the Build Step** enabled. The checked-in Runtime Source reads one atomic HTTP snapshot from the WebUI; GitHub Raw remains available as a build-time fallback. Configure the same `I0C_SECRET` on the WebUI and every Runtime provider.
 
 ### WebUI
 
@@ -81,7 +81,9 @@ The selected WebUI Repository contains two independently editable documents:
 - `config.json` stores non-sensitive instance settings such as the canonical Runtime origin, cache TTLs, robots policy, analytics namespace and collector endpoint, WebUI access policy, and namespaced plugin configuration.
 - `redirects.json` stores redirect rules.
 
-The checked-in PostgreSQL Repository uses optimistic document revisions and exposes an atomic two-document snapshot. GitHub Contents remains available as a build-time fallback that preserves commits on the `data` branch. The WebUI can edit both documents; invalid `config.json` content remains visible to managers so it can be repaired.
+The checked-in PostgreSQL Repository uses optimistic document revisions and exposes an atomic two-document snapshot. An empty database enters a one-time WebUI setup flow that creates both documents atomically. Every save, import, migration, and rollback produces an immutable revision; restoring an older document creates a new head instead of rewriting history. Managers can import and export both JSON documents for backup and migration.
+
+GitHub Contents remains available as an archived build-time fallback that preserves commits on a configured branch, but it is not enabled by the checked-in deployment. The WebUI can edit both documents; invalid `config.json` content remains visible to managers so it can be repaired.
 
 The checked-in HTTP Snapshot Source reads one validated WebUI snapshot so config and rules always come from the same Repository revision. It uses ETags, bounded retries and timeouts, and the last valid memory or platform cache. GitHub Raw remains available when Git-backed data is selected. Runtime deployments never receive PostgreSQL credentials.
 

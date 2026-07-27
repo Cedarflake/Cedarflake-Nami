@@ -179,9 +179,68 @@
         "installedPlugins": {
           "title": "已安装插件"
         },
+        "data": {
+          "title": "数据与历史"
+        },
         "plugins": {
           "title": "插件配置",
         "description": "启用已安装插件，并编辑它们的公开参数和环境变量绑定。"
+      }
+    },
+    "dataManagement": {
+      "title": "数据管理",
+      "description": "备份、导入、查看和恢复存储在 PostgreSQL 中的实例配置与重定向规则。",
+      "managerOnly": "只有管理者可以导出、导入或查看存储的历史版本。",
+      "unsavedWarning": "导入或恢复数据前，请先保存或放弃当前的规则和设置改动。",
+      "cancel": "取消",
+      "close": "关闭",
+      "kinds": {
+        "config": "实例配置",
+        "redirects": "重定向规则"
+      },
+      "operations": {
+        "import": "导入",
+        "initialize": "初始化",
+        "migration": "迁移",
+        "rollback": "恢复",
+        "save": "保存"
+      },
+      "export": {
+        "title": "导出备份",
+        "description": "将当前文档下载为可迁移的 JSON 文件。",
+        "config": "下载 config.json",
+        "redirects": "下载 redirects.json"
+      },
+      "import": {
+        "title": "导入备份",
+        "description": "以原子方式替换两份文档；所有上传内容通过校验后才会修改数据。",
+        "config": "config.json",
+        "redirects": "redirects.json",
+        "chooseFile": "选择文件",
+        "noFile": "尚未选择文件",
+        "action": "导入两份文件",
+        "confirmTitle": "导入此备份？",
+        "confirmDescription": "当前配置和规则会保留在历史记录中，随后两份上传文件将成为新的活动版本。",
+        "confirmAction": "导入备份"
+      },
+      "history": {
+        "title": "版本历史",
+        "description": "每次保存、导入、迁移和恢复都会创建一份不可变的历史版本。",
+        "empty": "暂无历史版本。",
+        "revision": "版本 {revision}",
+        "current": "当前",
+        "actor": "GitHub 用户 {actor}",
+        "checksum": "校验和 {checksum}",
+        "view": "查看 JSON",
+        "restore": "恢复",
+        "confirmTitle": "恢复此版本？",
+        "confirmDescription": "版本 {revision} 会被复制为新的活动版本，现有历史记录不会被修改。",
+        "confirmAction": "恢复版本",
+        "previewTitle": "版本 {revision}"
+      },
+      "errors": {
+        "fileTooLarge": "每份 JSON 文件不能超过 1 MB。",
+        "currentRevisionUnavailable": "无法确定当前版本，请刷新页面后重试。"
       }
     },
     "fields": {

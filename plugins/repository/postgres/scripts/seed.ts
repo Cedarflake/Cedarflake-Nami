@@ -1,4 +1,3 @@
-import { createHash } from "node:crypto"
 import { readFile } from "node:fs/promises"
 import path from "node:path"
 import process from "node:process"
@@ -13,11 +12,12 @@ import {
 import {
   resolvePostgresDataRepositoryConnectionOptions,
 } from "../src/config"
+import { createPostgresDataRepository } from "../src/repository"
 
-const connectionString = process.env.DATA_REPOSITORY_DATABASE_URL?.trim()
+const connectionString = process.env.DATABASE_URL?.trim()
 if (!connectionString) {
   throw new Error(
-    "DATA_REPOSITORY_DATABASE_URL is required to seed the PostgreSQL data repository",
+    "DATABASE_URL is required to seed the PostgreSQL data repository",
   )
 }
 
@@ -40,55 +40,26 @@ const sql = postgres(options.connectionString, {
   connect_timeout: options.connectTimeoutSeconds,
   prepare: false,
 })
+const repository = createPostgresDataRepository(options, { sql })
 
 try {
-  const insertedKinds = await sql.begin(async (transaction) => {
-    const rows = await transaction<{ kind: string }[]>`
-      INSERT INTO i0c_data_document (
-        kind,
-        content,
-        revision,
-        checksum,
-        updated_at
-      )
-      VALUES
-        (
-          'config',
-          ${configContent},
-          1,
-          ${createChecksum(configContent)},
-          NOW()
-        ),
-        (
-          'redirects',
-          ${redirectsContent},
-          1,
-          ${createChecksum(redirectsContent)},
-          NOW()
-        )
-      ON CONFLICT (kind) DO NOTHING
-      RETURNING kind
-    `
-    const documents = await transaction<{ kind: string }[]>`
-      SELECT kind
-      FROM i0c_data_document
-      WHERE kind IN ('config', 'redirects')
-      ORDER BY kind ASC
-    `
-    if (
-      documents.length !== 2
-      || documents[0]?.kind !== "config"
-      || documents[1]?.kind !== "redirects"
-    ) {
-      throw new Error("PostgreSQL data repository seeding is incomplete")
-    }
-    return rows.map((row) => row.kind)
-  })
-
-  if (insertedKinds.length === 0) {
+  const setupState = await repository.management.inspectSetupState()
+  if (setupState.state === "initialized") {
     console.info("Both data documents already exist; nothing was overwritten")
+  } else if (setupState.state === "empty") {
+    await repository.management.initialize({
+      configContent,
+      redirectsContent,
+    })
+    console.info("Seeded config, redirects")
+  } else if (setupState.state === "migration-required") {
+    throw new Error(
+      "PostgreSQL data repository migrations must be applied before seeding",
+    )
   } else {
-    console.info(`Seeded ${insertedKinds.join(", ")}`)
+    throw new Error(
+      `PostgreSQL data repository is partially initialized: ${setupState.existingKinds.join(", ")}`,
+    )
   }
 } finally {
   await sql.end({ timeout: 5 })
@@ -125,8 +96,4 @@ function validateDocumentContent(
         .join("; ")}`,
     )
   }
-}
-
-function createChecksum(content: string): string {
-  return createHash("sha256").update(content).digest("hex")
 }
