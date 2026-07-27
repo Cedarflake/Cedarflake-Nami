@@ -24,6 +24,23 @@ export interface VersionedDataRepository<
   write(kind: TKind, input: TWriteInput): Promise<TWriteResult>
 }
 
+export interface AtomicVersionedDataRepository<
+  TKind extends string,
+  TReadOptions,
+  TWriteInput,
+  TDocument,
+  TWriteResult,
+  TSnapshot,
+> extends VersionedDataRepository<
+  TKind,
+  TReadOptions,
+  TWriteInput,
+  TDocument,
+  TWriteResult
+> {
+  readSnapshot(options: TReadOptions): Promise<TSnapshot>
+}
+
 export interface RuntimePlatformAdapter<TArguments extends readonly unknown[]> {
   readonly id: string
   handle(...args: TArguments): Promise<Response>

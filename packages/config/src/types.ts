@@ -22,9 +22,43 @@ export interface DataSourceTarget {
   redirectsPath: string
 }
 
+export interface GitHubDataRepositoryBootstrapConfig {
+  provider: "github"
+}
+
+export interface PostgresDataRepositoryBootstrapConfig {
+  provider: "postgres"
+  databaseUrlBinding: string
+  maxConnections: number
+  idleTimeoutSeconds: number
+  connectTimeoutSeconds: number
+}
+
+export type DataRepositoryBootstrapConfig =
+  | GitHubDataRepositoryBootstrapConfig
+  | PostgresDataRepositoryBootstrapConfig
+
+export interface GitHubRuntimeDataSourceBootstrapConfig {
+  provider: "github"
+}
+
+export interface HttpRuntimeDataSourceBootstrapConfig {
+  provider: "http"
+  snapshotUrl: `https://${string}`
+  requestTimeoutMs: number
+  maximumFetchAttempts: number
+  failureBackoffSeconds: number
+}
+
+export type RuntimeDataSourceBootstrapConfig =
+  | GitHubRuntimeDataSourceBootstrapConfig
+  | HttpRuntimeDataSourceBootstrapConfig
+
 export interface BootstrapConfig {
   data: {
     github: DataSourceTarget
+    repository: DataRepositoryBootstrapConfig
+    source: RuntimeDataSourceBootstrapConfig
   }
   webui: {
     githubOAuthScope: string
