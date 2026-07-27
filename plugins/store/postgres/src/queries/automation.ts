@@ -100,7 +100,7 @@ function toAutomationTotals(row: AutomationTotalsRow | undefined): AnalyticsAuto
   };
 }
 
-async function getOneDayLinkBotBreakdowns(
+async function getEventLinkBotBreakdowns(
   sourceId: string,
   scope: ResolvedQueryScope,
   analyticsId: string | null,
@@ -111,7 +111,7 @@ async function getOneDayLinkBotBreakdowns(
       SELECT *
       FROM access_event
       WHERE source_id = ${sourceId}
-        AND occurred_at >= ${scope.range.seriesStart}
+        AND occurred_at >= ${scope.range.start}
         AND occurred_at < ${scope.range.end}
         AND (${scope.entryDomain === "all"} OR entry_domain = ${scope.entryDomain})
         AND (${analyticsId}::TEXT IS NULL OR analytics_id = ${analyticsId})
@@ -167,7 +167,7 @@ async function getOneDayLinkBotBreakdowns(
   return mapAutomationDimensions(rows);
 }
 
-async function getOneDayRuntimeBotBreakdowns(
+async function getEventRuntimeBotBreakdowns(
   sourceId: string,
   scope: ResolvedQueryScope,
 ): Promise<AnalyticsBotBreakdowns> {
@@ -186,7 +186,7 @@ async function getOneDayRuntimeBotBreakdowns(
         sample_rate
       FROM access_event
       WHERE source_id = ${sourceId}
-        AND occurred_at >= ${scope.range.seriesStart}
+        AND occurred_at >= ${scope.range.start}
         AND occurred_at < ${scope.range.end}
         AND (${scope.entryDomain === "all"} OR entry_domain = ${scope.entryDomain})
 
@@ -204,7 +204,7 @@ async function getOneDayRuntimeBotBreakdowns(
         sample_rate
       FROM runtime_event
       WHERE source_id = ${sourceId}
-        AND occurred_at >= ${scope.range.seriesStart}
+        AND occurred_at >= ${scope.range.start}
         AND occurred_at < ${scope.range.end}
         AND (${scope.entryDomain === "all"} OR entry_domain = ${scope.entryDomain})
     ), dimensions AS (
@@ -264,7 +264,7 @@ async function getOneDayRuntimeBotBreakdowns(
   return mapAutomationDimensions(rows);
 }
 
-async function getOneDayAutomationLinks(
+async function getEventAutomationLinks(
   sourceId: string,
   scope: ResolvedQueryScope,
 ): Promise<AnalyticsAutomationLinkSummary[]> {
@@ -281,7 +281,7 @@ async function getOneDayAutomationLinks(
       ON link.source_id = event.source_id
      AND link.analytics_id = event.analytics_id
     WHERE event.source_id = ${sourceId}
-      AND event.occurred_at >= ${scope.range.seriesStart}
+      AND event.occurred_at >= ${scope.range.start}
       AND event.occurred_at < ${scope.range.end}
       AND (${scope.entryDomain === "all"} OR event.entry_domain = ${scope.entryDomain})
       AND event.traffic_class IN ('declared_bot', 'suspected_automation')
@@ -304,8 +304,11 @@ export async function getLinkBotBreakdowns(
   scope: ResolvedQueryScope,
   analyticsId: string | null,
 ): Promise<AnalyticsBotBreakdowns> {
-  if (scope.range.publicRange.key === "1d") {
-    return getOneDayLinkBotBreakdowns(sourceId, scope, analyticsId);
+  if (
+    scope.range.publicRange.key === "1d"
+    || scope.range.publicRange.timeZone !== "UTC"
+  ) {
+    return getEventLinkBotBreakdowns(sourceId, scope, analyticsId);
   }
 
   const sql = getDatabase();
@@ -424,16 +427,32 @@ export async function getAutomationSeries(
 ): Promise<AnalyticsAutomationSeriesPoint[]> {
   const sql = getDatabase();
   const bucket = resolveSeriesBucket(scope.range.publicRange.key);
+  const timeZone = scope.range.publicRange.timeZone;
+  const bucketSeries = bucket.unit === "day"
+    ? sql`
+        SELECT local_bucket AT TIME ZONE ${timeZone} AS bucket_time
+        FROM generate_series(
+          ${scope.range.seriesStart}::TIMESTAMPTZ AT TIME ZONE ${timeZone},
+          ${scope.range.seriesEnd}::TIMESTAMPTZ AT TIME ZONE ${timeZone},
+          ${bucket.step}::INTERVAL
+        ) AS series(local_bucket)
+      `
+    : sql`
+        SELECT generate_series(
+          ${scope.range.seriesStart}::TIMESTAMPTZ,
+          ${scope.range.seriesEnd}::TIMESTAMPTZ,
+          ${bucket.step}::INTERVAL
+        ) AS bucket_time
+      `;
+  const bucketTime = bucket.unit === "day"
+    ? sql`date_trunc('day', bucket_start AT TIME ZONE ${timeZone}) AT TIME ZONE ${timeZone}`
+    : sql`date_trunc('hour', bucket_start AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'`;
   const rows = await sql<AutomationSeriesRow[]>`
     WITH buckets AS (
-      SELECT generate_series(
-        ${scope.range.seriesStart}::TIMESTAMPTZ,
-        ${scope.range.seriesEnd}::TIMESTAMPTZ,
-        ${bucket.step}::INTERVAL
-      ) AS bucket_time
+      ${bucketSeries}
     ), stats AS (
       SELECT
-        date_trunc(${bucket.unit}, bucket_start AT TIME ZONE 'UTC') AT TIME ZONE 'UTC' AS bucket_time,
+        ${bucketTime} AS bucket_time,
         SUM(observed_requests) AS observed_requests,
         SUM(estimated_requests) AS estimated_requests,
         SUM(declared_bot_observed_requests) AS observed_declared_bots,
@@ -478,8 +497,11 @@ export async function getRuntimeBotBreakdowns(
   sourceId: string,
   scope: ResolvedQueryScope,
 ): Promise<AnalyticsBotBreakdowns> {
-  if (scope.range.publicRange.key === "1d") {
-    return getOneDayRuntimeBotBreakdowns(sourceId, scope);
+  if (
+    scope.range.publicRange.key === "1d"
+    || scope.range.publicRange.timeZone !== "UTC"
+  ) {
+    return getEventRuntimeBotBreakdowns(sourceId, scope);
   }
 
   const sql = getDatabase();
@@ -621,8 +643,11 @@ export async function getAutomationLinks(
   sourceId: string,
   scope: ResolvedQueryScope,
 ): Promise<AnalyticsAutomationLinkSummary[]> {
-  if (scope.range.publicRange.key === "1d") {
-    return getOneDayAutomationLinks(sourceId, scope);
+  if (
+    scope.range.publicRange.key === "1d"
+    || scope.range.publicRange.timeZone !== "UTC"
+  ) {
+    return getEventAutomationLinks(sourceId, scope);
   }
 
   const sql = getDatabase();

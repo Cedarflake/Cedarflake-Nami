@@ -141,7 +141,7 @@ function mapDimensions(rows: DimensionRow[]): DimensionGroups {
   return groups;
 }
 
-async function getOneDayDimensions(
+async function getEventDimensions(
   sourceId: string,
   scope: ResolvedQueryScope,
   analyticsId: string | null,
@@ -152,7 +152,7 @@ async function getOneDayDimensions(
       SELECT *
       FROM access_event
       WHERE source_id = ${sourceId}
-        AND occurred_at >= ${scope.range.seriesStart}
+        AND occurred_at >= ${scope.range.start}
         AND occurred_at < ${scope.range.end}
         AND (${scope.entryDomain === "all"} OR entry_domain = ${scope.entryDomain})
         AND (${analyticsId}::TEXT IS NULL OR analytics_id = ${analyticsId})
@@ -279,16 +279,32 @@ export async function getSeries(
 ): Promise<AnalyticsSeriesPoint[]> {
   const sql = getDatabase();
   const bucket = resolveSeriesBucket(scope.range.publicRange.key);
+  const timeZone = scope.range.publicRange.timeZone;
+  const bucketSeries = bucket.unit === "day"
+    ? sql`
+        SELECT local_bucket AT TIME ZONE ${timeZone} AS bucket_time
+        FROM generate_series(
+          ${scope.range.seriesStart}::TIMESTAMPTZ AT TIME ZONE ${timeZone},
+          ${scope.range.seriesEnd}::TIMESTAMPTZ AT TIME ZONE ${timeZone},
+          ${bucket.step}::INTERVAL
+        ) AS series(local_bucket)
+      `
+    : sql`
+        SELECT generate_series(
+          ${scope.range.seriesStart}::TIMESTAMPTZ,
+          ${scope.range.seriesEnd}::TIMESTAMPTZ,
+          ${bucket.step}::INTERVAL
+        ) AS bucket_time
+      `;
+  const bucketTime = bucket.unit === "day"
+    ? sql`date_trunc('day', bucket_start AT TIME ZONE ${timeZone}) AT TIME ZONE ${timeZone}`
+    : sql`date_trunc('hour', bucket_start AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'`;
   const rows = await sql<SeriesRow[]>`
     WITH buckets AS (
-      SELECT generate_series(
-        ${scope.range.seriesStart}::TIMESTAMPTZ,
-        ${scope.range.seriesEnd}::TIMESTAMPTZ,
-        ${bucket.step}::INTERVAL
-      ) AS bucket_time
+      ${bucketSeries}
     ), stats AS (
       SELECT
-        date_trunc(${bucket.unit}, bucket_start AT TIME ZONE 'UTC') AT TIME ZONE 'UTC' AS bucket_time,
+        ${bucketTime} AS bucket_time,
         SUM(requests) AS requests,
         SUM(entry_requests) AS entry_requests,
         SUM(human_requests) AS clicks,
@@ -330,8 +346,11 @@ export async function getDimensions(
   scope: ResolvedQueryScope,
   analyticsId: string | null,
 ): Promise<DimensionGroups> {
-  if (scope.range.publicRange.key === "1d") {
-    return getOneDayDimensions(sourceId, scope, analyticsId);
+  if (
+    scope.range.publicRange.key === "1d"
+    || scope.range.publicRange.timeZone !== "UTC"
+  ) {
+    return getEventDimensions(sourceId, scope, analyticsId);
   }
 
   const sql = getDatabase();

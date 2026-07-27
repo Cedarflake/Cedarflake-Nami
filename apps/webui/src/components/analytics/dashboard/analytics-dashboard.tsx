@@ -17,12 +17,14 @@ interface AnalyticsOverviewDashboardProps {
   detailBasePath: string
   locale: string
   range: AnalyticsRange
+  timeZone: string
 }
 
 interface AnalyticsDetailDashboardProps {
   data: AnalyticsDetailViewModel
   locale: string
   range: AnalyticsRange
+  timeZone: string
 }
 
 interface AnalyticsAutomationDashboardProps {
@@ -30,6 +32,7 @@ interface AnalyticsAutomationDashboardProps {
   detailBasePath: string
   locale: string
   range: AnalyticsRange
+  timeZone: string
 }
 
 export function AnalyticsOverviewDashboard({
@@ -37,6 +40,7 @@ export function AnalyticsOverviewDashboard({
   detailBasePath,
   locale,
   range,
+  timeZone,
 }: AnalyticsOverviewDashboardProps) {
   return (
     <div className="space-y-6">
@@ -47,6 +51,7 @@ export function AnalyticsOverviewDashboard({
         locale={locale}
         range={range}
         chartId="analytics-overview-trend"
+        timeZone={timeZone}
       />
       <LinkRanking
         links={data.links.slice(0, 10)}
@@ -61,7 +66,12 @@ export function AnalyticsOverviewDashboard({
   )
 }
 
-export function AnalyticsDetailDashboard({ data, locale, range }: AnalyticsDetailDashboardProps) {
+export function AnalyticsDetailDashboard({
+  data,
+  locale,
+  range,
+  timeZone,
+}: AnalyticsDetailDashboardProps) {
   return (
     <div className="space-y-6">
       <MetricCards metrics={data.metrics} locale={locale} />
@@ -70,6 +80,7 @@ export function AnalyticsDetailDashboard({ data, locale, range }: AnalyticsDetai
         locale={locale}
         range={range}
         chartId="analytics-detail-trend"
+        timeZone={timeZone}
       />
       <BreakdownGrid breakdowns={data.breakdowns} locale={locale} />
       <WebUiPluginSlot name="analytics.detail.sections" context={data} />
@@ -83,11 +94,17 @@ export function AnalyticsAutomationDashboard({
   detailBasePath,
   locale,
   range,
+  timeZone,
 }: AnalyticsAutomationDashboardProps) {
   return (
     <div className="space-y-6">
       <AutomationMetricCards metrics={data.metrics} locale={locale} />
-      <AutomationTrendChart points={data.trend} locale={locale} range={range} />
+      <AutomationTrendChart
+        points={data.trend}
+        locale={locale}
+        range={range}
+        timeZone={timeZone}
+      />
       <BotBreakdownGrid breakdowns={data.breakdowns} locale={locale} />
       <AutomationLinkRanking
         links={data.links.slice(0, 10)}

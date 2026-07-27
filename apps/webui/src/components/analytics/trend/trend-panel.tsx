@@ -19,15 +19,22 @@ interface TrendChartProps {
   primaryLabel?: string
   secondaryLabel?: string
   title?: string
+  timeZone: string
 }
 
 interface AutomationTrendChartProps {
   points: AnalyticsAutomationTrendPoint[]
   locale: string
   range: AnalyticsRange
+  timeZone: string
 }
 
-export function AutomationTrendChart({ points, locale, range }: AutomationTrendChartProps) {
+export function AutomationTrendChart({
+  points,
+  locale,
+  range,
+  timeZone,
+}: AutomationTrendChartProps) {
   const t = useTranslations("analytics")
   const chartPoints: AnalyticsTrendPoint[] = points.map((point) => ({
     timestamp: point.timestamp,
@@ -48,6 +55,7 @@ export function AutomationTrendChart({ points, locale, range }: AutomationTrendC
       description={t("automation.trend.description")}
       primaryLabel={t("automation.metrics.declaredBots")}
       secondaryLabel={t("automation.metrics.suspectedAutomation")}
+      timeZone={timeZone}
     />
   )
 }
@@ -62,6 +70,7 @@ export function TrendChart({
   primaryLabel,
   secondaryLabel,
   title,
+  timeZone,
 }: TrendChartProps) {
   const t = useTranslations("analytics")
   const resolvedPrimaryLabel = primaryLabel ?? t("metrics.effectiveVisits")
@@ -116,6 +125,7 @@ export function TrendChart({
             secondaryLabel={resolvedSecondaryLabel}
             tableCaption={t("trend.tableCaption")}
             timeColumnLabel={t(isHourly ? "trend.time" : "trend.date")}
+            timeZone={timeZone}
           />
         </div>
       )}

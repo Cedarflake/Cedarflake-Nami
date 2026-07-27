@@ -10,6 +10,7 @@ import {
   getAnalyticsAutomationOverview,
   isAnalyticsConfigured,
 } from "@/lib/analytics/queries";
+import { analyticsTimeZoneCookieName } from "@/lib/analytics/time-zone-cookie";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +21,10 @@ export async function GET(request: NextRequest) {
     return createWebUiAuthorizationErrorResponse(authorization.status);
   }
 
-  const scope = parseAnalyticsQueryScope(request.nextUrl.searchParams);
+  const scope = parseAnalyticsQueryScope(
+    request.nextUrl.searchParams,
+    request.cookies.get(analyticsTimeZoneCookieName)?.value,
+  );
   if (!scope) {
     return NextResponse.json({ error: "Range must be one of 1d, 7d, 30d, or 90d" }, { status: 400 });
   }

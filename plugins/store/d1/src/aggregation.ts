@@ -1,5 +1,6 @@
 import {
-  resolveSeriesBucket,
+  createSeriesBucketDates,
+  resolveSeriesBucketStart,
   type QueryRange,
 } from "@i0c/analytics-domain/range"
 import { createTrendComparison } from "@i0c/analytics-domain/trend"
@@ -336,34 +337,15 @@ function createSeriesMap<T>(
   range: QueryRange,
   createPoint: () => T,
 ): Map<string, T> {
-  const stepMs = resolveSeriesBucket(range.publicRange.key).unit === "hour"
-    ? 60 * 60 * 1000
-    : 24 * 60 * 60 * 1000
   const points = new Map<string, T>()
-  for (
-    let cursor = range.seriesStart.getTime();
-    cursor <= range.seriesEnd.getTime();
-    cursor += stepMs
-  ) {
-    points.set(new Date(cursor).toISOString(), createPoint())
+  for (const date of createSeriesBucketDates(range)) {
+    points.set(date.toISOString(), createPoint())
   }
   return points
 }
 
 function resolveBucketTimestamp(timestamp: string, range: QueryRange): string {
-  const date = new Date(timestamp)
-  return resolveSeriesBucket(range.publicRange.key).unit === "hour"
-    ? new Date(Date.UTC(
-        date.getUTCFullYear(),
-        date.getUTCMonth(),
-        date.getUTCDate(),
-        date.getUTCHours(),
-      )).toISOString()
-    : new Date(Date.UTC(
-        date.getUTCFullYear(),
-        date.getUTCMonth(),
-        date.getUTCDate(),
-      )).toISOString()
+  return resolveSeriesBucketStart(new Date(timestamp), range).toISOString()
 }
 
 function addAutomationTotals(

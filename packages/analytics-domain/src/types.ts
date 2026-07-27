@@ -6,11 +6,13 @@ export interface AnalyticsDateRange {
   key: AnalyticsRange;
   start: string;
   end: string;
+  timeZone: string;
 }
 
 export interface AnalyticsQueryScope {
   range: AnalyticsRange;
   entryDomain: string;
+  timeZone: string;
 }
 
 export interface AnalyticsEntryDomainOption {

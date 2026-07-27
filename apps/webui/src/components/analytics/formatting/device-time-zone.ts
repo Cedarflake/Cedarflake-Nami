@@ -8,7 +8,7 @@ function subscribeToTimeZone() {
   return () => undefined
 }
 
-function getDeviceTimeZone() {
+export function getDeviceTimeZone() {
   return Intl.DateTimeFormat().resolvedOptions().timeZone || serverTimeZone
 }
 

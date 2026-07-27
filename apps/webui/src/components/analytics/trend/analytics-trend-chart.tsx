@@ -11,7 +11,6 @@ import { scaleLinear } from "@visx/scale"
 import { AreaClosed, LinePath } from "@visx/shape"
 import { TooltipWithBounds, useTooltip } from "@visx/tooltip"
 
-import { useDeviceTimeZone } from "../formatting/device-time-zone"
 import { formatCount, formatDate, formatDay, formatHour } from "../formatting/format"
 import { getLabelTickIndices } from "./axis-ticks"
 
@@ -35,6 +34,7 @@ interface AnalyticsTrendChartProps {
   secondaryLabel: string
   tableCaption: string
   timeColumnLabel: string
+  timeZone: string
 }
 
 interface ResolvedAnalyticsTrendChartDatum extends AnalyticsTrendChartDatum {
@@ -440,8 +440,8 @@ export function AnalyticsTrendChart(props: AnalyticsTrendChartProps) {
     secondaryLabel,
     tableCaption,
     timeColumnLabel,
+    timeZone,
   } = props
-  const timeZone = useDeviceTimeZone()
   const localizedData = useMemo<ResolvedAnalyticsTrendChartDatum[]>(
     () =>
       data.map((point) => {

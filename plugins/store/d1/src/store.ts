@@ -410,7 +410,7 @@ async function resolveQueryContext(
     ? requested
     : "all"
   return {
-    range: resolveQueryRange(input.query.range, clock()),
+    range: resolveQueryRange(input.query.range, clock(), input.query.timeZone),
     entryDomain,
     scope: { entryDomain, availableEntryDomains },
   }

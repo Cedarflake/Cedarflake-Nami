@@ -12,6 +12,7 @@ import { AnalyticsShell } from "@/components/analytics/shell/analytics-shell"
 import { AnalyticsStatePanel } from "@/components/analytics/shell/analytics-state-panel"
 import { SignInPanel } from "@/components/ui/feedback/sign-in-panel"
 import { getAnalyticsOverview, isAnalyticsConfigured } from "@/lib/analytics/queries"
+import { getRequestAnalyticsTimeZone } from "@/lib/analytics/request-time-zone"
 
 interface AnalyticsPageProps {
   params: Promise<{ locale: string }>
@@ -45,6 +46,7 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
   const entryDomain = Array.isArray(query.entryDomain)
     ? query.entryDomain[0] ?? "all"
     : query.entryDomain ?? "all"
+  const timeZone = await getRequestAnalyticsTimeZone()
   const basePath = `/${locale}/analytics`
 
   if (!await isAnalyticsConfigured()) {
@@ -67,6 +69,7 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
   const overview = toOverviewViewModel(await getAnalyticsOverview({
     range: toQueryRange(range),
     entryDomain,
+    timeZone,
   }))
 
   return (
@@ -91,6 +94,7 @@ export default async function AnalyticsPage({ params, searchParams }: AnalyticsP
           detailBasePath={basePath}
           locale={locale}
           range={range}
+          timeZone={timeZone}
         />
       ) : (
         <AnalyticsStatePanel

@@ -87,7 +87,7 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
 
 收集端地址和统计 source ID 来自 `data/config.json`。source ID 必须是共享的基础域名，而不是平台名称。使用 `i0c.cc` 时，`i0c.cc`、`www.i0c.cc`、`api.i0c.cc`、`vc.i0c.cc`、`nf.i0c.cc` 可以分别统计，无需再维护一份域名列表。命名空间之外的域名会存为 `unknown`。
 
-使用 GitHub 登录后，可以在 `/<locale>/analytics` 查看 1、7、30 和 90 天范围的统计。1 天趋势使用小时桶，更长范围使用天桶。入口域名筛选会一致作用于总数、趋势、路由、国家或地区、设备、平台、来源域名、渠道、内部来源和自动化分析。`/<locale>/analytics/automation` 会把已声明机器人、疑似自动化和未匹配 Runtime 请求的观测值与抽样估算值分开展示。
+使用 GitHub 登录后，可以在 `/<locale>/analytics` 查看 1、7、30 和 90 天范围的统计。1 天趋势使用滚动小时桶；更长范围使用按当前设备 IANA 时区对齐的自然日桶。入口域名筛选会一致作用于总数、趋势、路由、国家或地区、设备、平台、来源域名、渠道、内部来源和自动化分析。`/<locale>/analytics/automation` 会把已声明机器人、疑似自动化和未匹配 Runtime 请求的观测值与抽样估算值分开展示。
 
 事件接收端兼容 V1，并严格校验 V2 的 link 与 Runtime 事件。过期、签名无效、正文过大、分类不一致或 source 错误的事件都会被拒绝。查询接口与渠道链接接口要求已经通过 WebUI 身份验证的会话。
 
