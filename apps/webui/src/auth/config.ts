@@ -9,6 +9,7 @@ import {
   canGitHubUserSignIn,
   getWebUiTokenAuthorization,
 } from "./access-policy";
+import { createAuthSessionCookie } from "./session-cookie";
 
 function requireEnv(key: string): string {
   const value = process.env[key];
@@ -21,8 +22,18 @@ function requireEnv(key: string): string {
 type NextAuthHandler = typeof import("next-auth/next")["default"];
 type AuthConfig = Parameters<NextAuthHandler>[2];
 
+const instanceSecret = requireInstanceSecret();
+
+export const authSessionCookie = createAuthSessionCookie(
+  instanceSecret,
+  process.env.NODE_ENV === "production",
+);
+
 export const authOptions = {
-  secret: requireInstanceSecret(),
+  secret: instanceSecret,
+  cookies: {
+    sessionToken: authSessionCookie,
+  },
   providers: [
     GitHubProvider({
       clientId: requireEnv("GITHUB_CLIENT_ID"),

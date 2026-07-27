@@ -12,7 +12,7 @@ import {
   hasWebUiAccessToken,
   isWebUiPublicReadOnly,
 } from "./access-policy";
-import { authOptions } from "./config";
+import { authOptions, authSessionCookie } from "./config";
 import { resolveTokenGitHubUserId } from "./token-authorization";
 
 export type WebUiAuthorizationDenial = "unauthenticated" | "forbidden";
@@ -98,7 +98,11 @@ async function getAuthenticatedRequestAuthorization(
 
   let token: JWT | null;
   try {
-    token = await getToken({ req: request, secret });
+    token = await getToken({
+      req: request,
+      secret,
+      cookieName: authSessionCookie.name,
+    });
   } catch {
     return { status: "unauthenticated" };
   }
