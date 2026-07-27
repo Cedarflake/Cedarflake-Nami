@@ -6,7 +6,7 @@
     "rootTitle": "根目录（直接写在 slots 下的规则）",
     "empty": "暂无分组",
     "readOnlyTitle": "公开只读视图",
-    "readOnlyDescription": "可以查看规则和设置，但不能编辑或加载自定义规则 JSON 地址。",
+    "readOnlyDescription": "可以查看规则和设置，但只有管理员可以保存更改。",
     "cannotLoad": "无法加载分组",
     "group": "分组",
     "selectHint": "从右侧选择分组",
@@ -189,7 +189,7 @@
     },
     "dataManagement": {
       "title": "数据管理",
-      "description": "备份、导入、查看和恢复存储在 PostgreSQL 中的实例配置与重定向规则。",
+      "description": "备份、导入、查看和恢复存储在当前数据 Repository 中的实例配置与重定向规则。",
       "managerOnly": "只有管理者可以导出、导入或查看存储的历史版本。",
       "unsavedWarning": "导入或恢复数据前，请先保存或放弃当前的规则和设置改动。",
       "cancel": "取消",
@@ -218,7 +218,7 @@
         "redirects": "redirects.json",
         "chooseFile": "选择文件",
         "noFile": "尚未选择文件",
-        "action": "导入两份文件",
+        "action": "确认导入",
         "confirmTitle": "导入此备份？",
         "confirmDescription": "当前配置和规则会保留在历史记录中，随后两份上传文件将成为新的活动版本。",
         "confirmAction": "导入备份"
@@ -231,12 +231,23 @@
         "current": "当前",
         "actor": "GitHub 用户 {actor}",
         "checksum": "校验和 {checksum}",
-        "view": "查看 JSON",
+        "view": "查看改动",
         "restore": "恢复",
         "confirmTitle": "恢复此版本？",
         "confirmDescription": "版本 {revision} 会被复制为新的活动版本，现有历史记录不会被修改。",
         "confirmAction": "恢复版本",
-        "previewTitle": "版本 {revision}"
+        "previewTitle": "版本 {revision}",
+        "previewLoading": "正在加载版本改动",
+        "previewError": "无法加载此版本。",
+        "views": {
+          "changes": "改动",
+          "json": "完整 JSON"
+        },
+        "comparedWith": "与版本 {revision} 对比",
+        "initialRevision": "初始版本",
+        "noChanges": "未发现行内容变化。",
+        "diffLabel": "版本行内容变化",
+        "omittedLines": "已隐藏 {count} 行未改动内容"
       },
       "errors": {
         "fileTooLarge": "每份 JSON 文件不能超过 1 MB。",

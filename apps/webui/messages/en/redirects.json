@@ -6,7 +6,7 @@
     "rootTitle": "Root (rules written directly under slots)",
     "empty": "No groups yet",
     "readOnlyTitle": "Public read-only view",
-    "readOnlyDescription": "Rules and settings can be inspected, but editing and custom rules JSON sources are disabled.",
+    "readOnlyDescription": "Rules and settings can be inspected, but only managers can save changes.",
     "cannotLoad": "Failed to load groups",
     "group": "Group",
     "selectHint": "Select a group on the right",
@@ -189,7 +189,7 @@
     },
     "dataManagement": {
       "title": "Data management",
-      "description": "Back up, import, inspect, and restore the instance configuration and redirect rules stored in PostgreSQL.",
+      "description": "Back up, import, inspect, and restore the instance configuration and redirect rules stored in the selected data repository.",
       "managerOnly": "Only managers can export, import, or inspect stored revisions.",
       "unsavedWarning": "Save or discard the current rule and settings changes before importing or restoring data.",
       "cancel": "Cancel",
@@ -218,7 +218,7 @@
         "redirects": "redirects.json",
         "chooseFile": "Choose file",
         "noFile": "No file selected",
-        "action": "Import both files",
+        "action": "Confirm import",
         "confirmTitle": "Import this backup?",
         "confirmDescription": "The current configuration and rules will be preserved in history, then both uploaded files will become the new active revision.",
         "confirmAction": "Import backup"
@@ -231,12 +231,23 @@
         "current": "Current",
         "actor": "GitHub user {actor}",
         "checksum": "Checksum {checksum}",
-        "view": "View JSON",
+        "view": "View changes",
         "restore": "Restore",
         "confirmTitle": "Restore this revision?",
         "confirmDescription": "Revision {revision} will be copied into a new active revision. Existing history will not be changed.",
         "confirmAction": "Restore revision",
-        "previewTitle": "Revision {revision}"
+        "previewTitle": "Revision {revision}",
+        "previewLoading": "Loading revision changes",
+        "previewError": "Could not load this revision.",
+        "views": {
+          "changes": "Changes",
+          "json": "Full JSON"
+        },
+        "comparedWith": "Compared with revision {revision}",
+        "initialRevision": "Initial revision",
+        "noChanges": "No line changes were found.",
+        "diffLabel": "Revision line changes",
+        "omittedLines": "{count, plural, one {# unchanged line hidden} other {# unchanged lines hidden}}"
       },
       "errors": {
         "fileTooLarge": "Each JSON file must be no larger than 1 MB.",
