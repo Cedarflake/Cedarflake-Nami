@@ -164,7 +164,7 @@ export function AppShell({
 
             <div
               className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
-              onClickCapture={handleNavigationClick}
+              onClick={handleNavigationClick}
             >
               {navigation}
             </div>
