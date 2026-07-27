@@ -1,13 +1,13 @@
 # i0c.cc
 
-i0c.cc 是一个以 PostgreSQL 为控制面、保留归档 Git 回退方案的个人边缘重定向实验项目。同一套核心可以通过不同边缘平台适配器运行，并提供自用的 WebUI 与可选统计功能。
+i0c.cc 是一个以数据库为控制面、默认启用 PostgreSQL、并保留归档 Git 回退方案的个人边缘重定向实验项目。同一套核心可以通过不同边缘平台适配器运行，并提供自用的 WebUI 与可选统计功能。
 
 ## 项目定位
 
 这个仓库面向个人使用和工程实验，不准备成为托管短链接服务或企业级重定向平台。
 
 - 按部署环境选择所需的 Runtime 适配器；Cloudflare、Vercel 与 Netlify 是可选方案，不要求同时运行。
-- 使用 PostgreSQL 实现数据库即时保存、不可变历史与回滚；Git 只作为归档的构建期回退方案保留。
+- 默认使用 PostgreSQL；兼容的 WebUI 宿主也可绑定 Cloudflare D1，实现即时保存、不可变历史与回滚；Git 只作为归档的构建期回退方案保留。
 - WebUI 与统计功能服务于个人工作流；后续路线优先保证清晰和可靠，不追求与商业产品功能对齐。
 
 ## 项目
@@ -22,7 +22,7 @@ i0c.cc 是一个以 PostgreSQL 为控制面、保留归档 Git 回退方案的�
 | 插件目录 | [packages/plugin-catalog](packages/plugin-catalog) | 可选的官方预设与按宿主执行的插件配置校验。 |
 | Runtime 宿主 | [packages/runtime-host](packages/runtime-host) | 平台无关的 Runtime 部署与可执行插件安装契约。 |
 | Runtime 构建 | [packages/runtime-build](packages/runtime-build) | 构建期安装校验、根配置绑定与所选适配器 Bundle 生成。 |
-| 官方插件 | [plugins](plugins) | Git 与 PostgreSQL 数据后端、HTTP Runtime 快照源、三个 Runtime 适配器、统计投递与存储，以及机器人分类。 |
+| 官方插件 | [plugins](plugins) | Git、PostgreSQL 与 D1 数据后端、HTTP Runtime 快照源、三个 Runtime 适配器、统计投递与存储，以及机器人分类。 |
 
 可执行插件在构建期选择：Runtime 安装位于 [i0c.runtime.config.ts](i0c.runtime.config.ts)，WebUI 服务端安装位于 [i0c.webui.config.ts](i0c.webui.config.ts)，客户端安全的 WebUI Renderer 位于 [apps/webui/webui.extensions.ts](apps/webui/webui.extensions.ts)。远程 `config.json` 文档只能配置已安装代码，不会下载或执行新包。
 
@@ -81,13 +81,13 @@ Vercel 需要保持开启 **Include source files outside of the Root Directory i
 - `config.json` 存放非敏感实例配置，包括 Runtime 规范域名、缓存时间、robots 策略、统计命名空间与收集端地址、WebUI 访问策略，以及按命名空间隔离的插件配置。
 - `redirects.json` 存放重定向规则。
 
-仓库当前启用的 PostgreSQL Repository 使用乐观文档版本，并提供两份文档的原子快照。数据库为空时，WebUI 会进入一次性初始化流程，并原子创建两份文档。每次保存、导入、迁移和回滚都会产生不可变版本；恢复旧文档会创建新的活动版本，而不是改写历史。管理者可以导入和导出两份 JSON，用于备份和迁移。
+PostgreSQL 与 D1 Repository 实现同一套乐观版本、原子快照、不可变历史、导入导出和回滚契约。仓库当前部署选择 PostgreSQL；支持 D1 的 WebUI 宿主可选择 D1，并在 Repository 初始化前注入数据库 binding。
 
 GitHub Contents 仍保留为归档的构建期回退方案，并可在指定分支保留 commit，但仓库当前部署不会启用它。WebUI 可以编辑两份文档；即使 `config.json` 写坏，管理员仍能看到原文并修复。
 
-仓库当前启用的 HTTP Snapshot Source 从 WebUI 读取一份经过校验的快照，确保配置和规则来自同一个 Repository revision；它使用 ETag、有限重试与超时，并保留最后一次有效的内存或平台缓存。选择 Git 数据后端时仍可使用 GitHub Raw。Runtime 部署不会获得 PostgreSQL 凭据。
+仓库当前启用的 HTTP Snapshot Source 从 WebUI 读取一份经过校验的快照，确保配置和规则来自同一个 Repository revision；它使用 ETag、有限重试与超时，并保留最后一次有效的内存或平台缓存。选择 Git 数据后端时仍可使用 GitHub Raw。Runtime 部署不会获得数据库凭据或 binding。
 
-[packages/config](packages/config) 负责 schema、校验、安全默认值，以及构建期 Repository 与 Source 选择。修改 GitHub 路径、PostgreSQL 连接策略、HTTP 快照地址或 GitHub OAuth scope 等启动配置后仍需重新构建。PostgreSQL Repository 迁移属于明确的外部写入，构建与应用启动都不会自动执行。
+[packages/config](packages/config) 负责 schema、校验、安全默认值，以及构建期 Repository 与 Source 选择。修改 GitHub 路径、数据库类型或连接策略、HTTP 快照地址或 GitHub OAuth scope 等启动配置后仍需重新构建。Repository 迁移属于明确的外部写入，构建与应用启动都不会自动执行。
 
 原有非敏感环境变量不再作为覆盖值或回退值读取。平台后台遗留的旧值会被忽略，确认新部署正常后即可删除。密钥和与部署绑定的值继续保留在各应用的环境变量示例中。
 
@@ -143,7 +143,7 @@ pnpm check
 
 ## 数据文档
 
-两种 Repository 实现共用下面的文档 schema：
+所有 Repository 实现共用下面的文档 schema：
 
 ```text
 packages/config/config.schema.json

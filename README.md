@@ -1,13 +1,13 @@
 # <img src="./logo.webp" alt="i0c.cc" width="420">
 
-i0c.cc is a personal edge redirect playground with a PostgreSQL control plane and an archived Git fallback. It runs the same core through optional edge-platform adapters and provides a WebUI with optional analytics for my own use.
+i0c.cc is a personal edge redirect playground with a database-backed control plane, PostgreSQL enabled by default, and an archived Git fallback. It runs the same core through optional edge-platform adapters and provides a WebUI with optional analytics for my own use.
 
 ## Positioning
 
 This repository is maintained for personal use and engineering experimentation. It is not intended to be a hosted URL-shortening service or an enterprise redirect platform.
 
 - Deploy whichever Runtime adapter fits the environment; Cloudflare, Vercel, and Netlify are supported alternatives rather than required replicas.
-- Use PostgreSQL for immediate database-backed saves, immutable history, and rollback; Git remains an archived build-time fallback.
+- Use PostgreSQL by default, or bind Cloudflare D1 on a compatible WebUI host, for immediate saves, immutable history, and rollback; Git remains an archived build-time fallback.
 - Use the WebUI and analytics when they help the personal workflow; the roadmap prioritizes clarity and reliability over feature parity with commercial products.
 
 ## Projects
@@ -22,7 +22,7 @@ This repository is maintained for personal use and engineering experimentation. 
 | Plugin Catalog | [packages/plugin-catalog](packages/plugin-catalog) | Optional official presets and host-specific plugin configuration validation. |
 | Runtime Host | [packages/runtime-host](packages/runtime-host) | Platform-neutral Runtime deployment and executable-plugin installation contracts. |
 | Runtime Build | [packages/runtime-build](packages/runtime-build) | Build-time installation validation, root-config binding, and selected-adapter bundling. |
-| Official plugins | [plugins](plugins) | Git and PostgreSQL data backends, an HTTP Runtime snapshot source, three Runtime adapters, analytics delivery and storage, and bot classification. |
+| Official plugins | [plugins](plugins) | Git, PostgreSQL, and D1 data backends, an HTTP Runtime snapshot source, three Runtime adapters, analytics delivery and storage, and bot classification. |
 
 Executable plugins are selected at build time: Runtime installations live in [i0c.runtime.config.ts](i0c.runtime.config.ts), WebUI server installations in [i0c.webui.config.ts](i0c.webui.config.ts), and client-safe WebUI renderers in [apps/webui/webui.extensions.ts](apps/webui/webui.extensions.ts). The remote `config.json` document configures installed code but never downloads or executes new packages.
 
@@ -81,13 +81,13 @@ The selected WebUI Repository contains two independently editable documents:
 - `config.json` stores non-sensitive instance settings such as the canonical Runtime origin, cache TTLs, robots policy, analytics namespace and collector endpoint, WebUI access policy, and namespaced plugin configuration.
 - `redirects.json` stores redirect rules.
 
-The checked-in PostgreSQL Repository uses optimistic document revisions and exposes an atomic two-document snapshot. An empty database enters a one-time WebUI setup flow that creates both documents atomically. Every save, import, migration, and rollback produces an immutable revision; restoring an older document creates a new head instead of rewriting history. Managers can import and export both JSON documents for backup and migration.
+The PostgreSQL and D1 Repositories implement the same optimistic-revision, atomic-snapshot, immutable-history, import/export, and rollback contract. The checked-in deployment selects PostgreSQL. A D1-capable WebUI host may select D1 and inject its database binding before the Repository is initialized.
 
 GitHub Contents remains available as an archived build-time fallback that preserves commits on a configured branch, but it is not enabled by the checked-in deployment. The WebUI can edit both documents; invalid `config.json` content remains visible to managers so it can be repaired.
 
-The checked-in HTTP Snapshot Source reads one validated WebUI snapshot so config and rules always come from the same Repository revision. It uses ETags, bounded retries and timeouts, and the last valid memory or platform cache. GitHub Raw remains available when Git-backed data is selected. Runtime deployments never receive PostgreSQL credentials.
+The checked-in HTTP Snapshot Source reads one validated WebUI snapshot so config and rules always come from the same Repository revision. It uses ETags, bounded retries and timeouts, and the last valid memory or platform cache. GitHub Raw remains available when Git-backed data is selected. Runtime deployments never receive database credentials or bindings.
 
-[packages/config](packages/config) owns schemas, validation, safe defaults, and the build-time Repository and Source selection. Bootstrap changes such as GitHub paths, PostgreSQL connection policy, HTTP snapshot URL, or GitHub OAuth scope require rebuilding. PostgreSQL Repository migrations are deliberate external writes and never run during a build or application startup.
+[packages/config](packages/config) owns schemas, validation, safe defaults, and the build-time Repository and Source selection. Bootstrap changes such as GitHub paths, database provider or connection policy, HTTP snapshot URL, or GitHub OAuth scope require rebuilding. Repository migrations are deliberate external writes and never run during a build or application startup.
 
 The former non-sensitive environment variables are not read as overrides or fallbacks. Existing values left in a provider dashboard are ignored and can be removed after the new deployment is verified. Secrets and deployment-specific bindings remain in each application's environment example.
 
@@ -143,7 +143,7 @@ pnpm check
 
 ## Data documents
 
-The two Repository implementations use the same document schemas:
+All Repository implementations use the same document schemas:
 
 ```text
 packages/config/config.schema.json

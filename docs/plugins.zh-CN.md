@@ -18,7 +18,7 @@ i0c.cc 使用轻量的静态注册插件架构，让重定向核心不直接绑�
 | Runtime 构建 | `@i0c/runtime-build` | 构建期安装配置校验与所选平台 Bundle 生成 |
 | Git 数据 | `@i0c/plugin-github-data` | GitHub Raw Runtime Source 与 GitHub Contents WebUI Repository |
 | HTTP 数据源 | `@i0c/plugin-http-snapshot-source` | 通过 HTTPS 原子读取 Runtime 配置与规则快照 |
-| 数据仓库 | `@i0c/plugin-data-repository-postgres` | 在 PostgreSQL 中以乐观并发和原子快照持久化配置与规则 |
+| 数据 Repository | `@i0c/plugin-data-repository-postgres`、`@i0c/plugin-data-repository-d1` | 在 PostgreSQL 或 Cloudflare D1 中以乐观并发和原子快照持久化配置与规则 |
 | Runtime | `@i0c/plugin-runtime-cloudflare`、`@i0c/plugin-runtime-vercel`、`@i0c/plugin-runtime-netlify` | 平台请求、环境、缓存、国家信息与后台任务适配 |
 | Sink | `@i0c/plugin-analytics-sink-http` | 带签名、尽力而为的 HTTP 统计投递 |
 | Store | `@i0c/plugin-analytics-store-postgres`、`@i0c/plugin-analytics-store-d1` | 统计写入、查询、重算、保留、健康检查和自有迁移 |
@@ -33,11 +33,11 @@ i0c.cc 使用轻量的静态注册插件架构，让重定向核心不直接绑�
 - `config.json` 存放版本化实例设置和已安装插件声明。
 - `redirects.json` 存放重定向规则。
 
-仓库当前启用的 PostgreSQL Repository 以乐观版本写入两份文档，并提供原子读取快照。GitHub Contents 仍然可用，并保留现有 `data` 分支工作流；Repository 迁移历史与统计迁移相互独立。
+PostgreSQL 与 D1 Repository 都以乐观版本写入两份文档，并提供原子快照、不可变历史与回滚。仓库当前部署选择 PostgreSQL。GitHub Contents 仍然可用，并保留归档的 `data` 分支工作流；Repository 迁移历史与统计迁移相互独立。
 
-仓库当前启用的 HTTP Snapshot Source 会从 WebUI 一次读取经过校验的 `{ revision, config, redirects }`，合并并发加载、使用 ETag 重新验证，并在刷新失败时保留最后一次通过宿主校验的快照。GitHub Raw 仍然可用，并会分别读取两份 Git 文档。Runtime 不会直接连接 PostgreSQL Repository。
+仓库当前启用的 HTTP Snapshot Source 会从 WebUI 一次读取经过校验的 `{ revision, config, redirects }`，合并并发加载、使用 ETag 重新验证，并在刷新失败时保留最后一次通过宿主校验的快照。GitHub Raw 仍然可用，并会分别读取两份 Git 文档。Runtime 不会直接连接所选数据库 Repository。
 
-有些值必须在读取远程文档之前存在。所选 Repository 与 Source、GitHub 所有者、仓库、分支和路径、OAuth scope、PostgreSQL binding 与连接策略、HTTP 快照地址与重试策略，以及已安装插件包因此属于**启动配置**，不是远程插件配置。默认值位于 `@i0c/config`；Runtime 可执行安装位于根目录 `i0c.runtime.config.ts`，WebUI 服务端安装位于根目录 `i0c.webui.config.ts`，客户端安全的 WebUI 扩展位于 `apps/webui/webui.extensions.ts`。修改安装项后需要重新构建。插件 Manifest 会明确拒绝在 `plugins.*.config` 中填写这些启动字段，避免出现“能通过校验，却无法初始化自身加载器”的假配置。
+有些值必须在读取远程文档之前存在。所选 Repository 与 Source、GitHub 所有者、仓库、分支和路径、OAuth scope、数据库 binding 与连接策略、HTTP 快照地址与重试策略，以及已安装插件包因此属于**启动配置**，不是远程插件配置。默认值位于 `@i0c/config`；Runtime 可执行安装位于根目录 `i0c.runtime.config.ts`，WebUI 服务端安装位于根目录 `i0c.webui.config.ts`，客户端安全的 WebUI 扩展位于 `apps/webui/webui.extensions.ts`。修改安装项后需要重新构建。插件 Manifest 会明确拒绝在 `plugins.*.config` 中填写这些启动字段，避免出现“能通过校验，却无法初始化自身加载器”的假配置。
 
 ## Manifest 与配置模型
 
@@ -101,9 +101,9 @@ WebUI 提供四个静态注册扩展插槽：
 
 ## Data Repository 与迁移
 
-`AtomicVersionedDataRepository` 提供文档读取、乐观并发写入和两份文档的原子快照。GitHub 把 commit SHA 作为 Repository revision，并在同一 commit 上读取两份文档；PostgreSQL 使用只读可重复读事务、数字文档版本与校验和。
+`AtomicVersionedDataRepository` 提供文档读取、乐观并发写入和两份文档的原子快照。GitHub 把 commit SHA 作为 Repository revision，并在同一 commit 上读取两份文档；PostgreSQL 与 D1 还实现相同的首次初始化、不可变版本历史、原子导入和非破坏性恢复契约。
 
-PostgreSQL Repository 迁移位于 `plugins/repository/postgres/migrations`，使用独立迁移表和 advisory lock。构建、应用启动、Runtime 请求与 WebUI 健康检查都不会自动执行迁移。选择 PostgreSQL 时需要配置 `DATABASE_URL`。它的显式初始化命令会校验本地 `config.json` 与 `redirects.json`，在同一个事务中只创建缺失文档，并且不会覆盖已有内容。该 Repository 必须搭配 HTTP Snapshot Runtime Source，让数据库中保存的状态能到达边缘部署，同时不向 Runtime 提供数据库凭据；不兼容的启动选择会让构建失败。
+PostgreSQL Repository 迁移位于 `plugins/repository/postgres/migrations`，使用独立迁移表和 advisory lock。D1 Repository 迁移位于 `plugins/repository/d1/migrations`，会校验 checksum 与迁移历史连续性，并在一个原子 D1 batch 中执行每次迁移和版本记录。构建、应用启动、Runtime 请求与 WebUI 健康检查都不会自动执行迁移。选择 PostgreSQL 时需要配置 `DATABASE_URL`；选择 D1 时，支持 D1 的 WebUI 宿主必须在首次使用前注入 binding。两种数据库 Repository 都必须搭配 HTTP Snapshot Runtime Source，让保存状态能到达边缘部署，同时不向 Runtime 提供数据库凭据；不兼容的启动选择会让构建失败。
 
 ## Analytics Store 与迁移
 
