@@ -2,6 +2,8 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 
+import { normalizeAnalyticsTimeZone } from "@i0c/analytics-domain/range";
+
 import { getEffectiveDataConfig } from "@/lib/configuration/data-config";
 
 import { analyticsCacheTag } from "./cache";
@@ -60,7 +62,7 @@ async function queryAnalyticsOverview(
 
 const getCachedAnalyticsOverview = unstable_cache(
   queryAnalyticsOverview,
-  ["analytics-overview-v7"],
+  ["analytics-overview-v8"],
   { revalidate: analyticsCacheSeconds, tags: [analyticsCacheTag] }
 );
 
@@ -92,7 +94,7 @@ async function queryAnalyticsDetail(
 
 const getCachedAnalyticsDetail = unstable_cache(
   queryAnalyticsDetail,
-  ["analytics-detail-v6"],
+  ["analytics-detail-v7"],
   { revalidate: analyticsCacheSeconds, tags: [analyticsCacheTag] }
 );
 
@@ -125,7 +127,7 @@ async function queryAnalyticsAutomationOverview(
 
 const getCachedAnalyticsAutomationOverview = unstable_cache(
   queryAnalyticsAutomationOverview,
-  ["analytics-automation-overview-v6"],
+  ["analytics-automation-overview-v7"],
   { revalidate: analyticsCacheSeconds, tags: [analyticsCacheTag] }
 );
 
@@ -153,7 +155,8 @@ async function normalizeQueryScope(
   const availableEntryDomains = await store.getEntryDomains({ sourceId, query: input });
   return {
     range: input.range,
-    entryDomain: resolveEntryDomain(input.entryDomain, availableEntryDomains)
+    entryDomain: resolveEntryDomain(input.entryDomain, availableEntryDomains),
+    timeZone: normalizeAnalyticsTimeZone(input.timeZone),
   };
 }
 

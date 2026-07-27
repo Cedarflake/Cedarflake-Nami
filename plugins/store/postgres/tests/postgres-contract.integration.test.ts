@@ -106,11 +106,11 @@ test("passes the shared analytics store behavior contract", {
     expiredEvent,
     scope: {
       sourceId,
-      query: { range: "1d", entryDomain: "all" },
+      query: { range: "1d", entryDomain: "all", timeZone: "UTC" },
     },
     createScope: (range, entryDomain) => ({
       sourceId,
-      query: { range, entryDomain },
+      query: { range, entryDomain, timeZone: "UTC" },
     }),
     rebuildInput: {
       sourceId,

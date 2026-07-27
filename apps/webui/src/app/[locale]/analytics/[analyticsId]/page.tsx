@@ -17,6 +17,7 @@ import {
   getAnalyticsScope,
   isAnalyticsConfigured,
 } from "@/lib/analytics/queries"
+import { getRequestAnalyticsTimeZone } from "@/lib/analytics/request-time-zone"
 
 interface AnalyticsDetailPageProps {
   params: Promise<{ locale: string; analyticsId: string }>
@@ -53,6 +54,7 @@ export default async function AnalyticsDetailPage({
   const entryDomain = Array.isArray(query.entryDomain)
     ? query.entryDomain[0] ?? "all"
     : query.entryDomain ?? "all"
+  const timeZone = await getRequestAnalyticsTimeZone()
   const overviewPath = `/${locale}/analytics`
   const detailPath = `${overviewPath}/${encodeURIComponent(analyticsId)}`
   const requestedOverviewHref = buildAnalyticsHref(overviewPath, {
@@ -78,7 +80,7 @@ export default async function AnalyticsDetailPage({
     )
   }
 
-  const queryScope = { range: toQueryRange(range), entryDomain }
+  const queryScope = { range: toQueryRange(range), entryDomain, timeZone }
   const result = await getAnalyticsDetail(analyticsId, queryScope)
   const scope = result?.scope ?? await getAnalyticsScope(queryScope)
   const navigationScope = {
@@ -129,7 +131,12 @@ export default async function AnalyticsDetailPage({
         showRefresh={!authorization.isReadOnly}
       />
       {detail.hasData ? (
-        <AnalyticsDetailDashboard data={detail} locale={locale} range={range} />
+        <AnalyticsDetailDashboard
+          data={detail}
+          locale={locale}
+          range={range}
+          timeZone={timeZone}
+        />
       ) : (
         <AnalyticsStatePanel
           title={t("states.linkEmptyTitle")}

@@ -13,6 +13,7 @@ import { AnalyticsShell } from "@/components/analytics/shell/analytics-shell"
 import { AnalyticsStatePanel } from "@/components/analytics/shell/analytics-state-panel"
 import { SignInPanel } from "@/components/ui/feedback/sign-in-panel"
 import { getAnalyticsAutomationOverview, isAnalyticsConfigured } from "@/lib/analytics/queries"
+import { getRequestAnalyticsTimeZone } from "@/lib/analytics/request-time-zone"
 
 interface AnalyticsAutomationPageProps {
   params: Promise<{ locale: string }>
@@ -49,6 +50,7 @@ export default async function AnalyticsAutomationPage({
   const entryDomain = Array.isArray(query.entryDomain)
     ? query.entryDomain[0] ?? "all"
     : query.entryDomain ?? "all"
+  const timeZone = await getRequestAnalyticsTimeZone()
   const basePath = `/${locale}/analytics`
   const automationPath = `${basePath}/automation`
 
@@ -69,7 +71,7 @@ export default async function AnalyticsAutomationPage({
     )
   }
 
-  const queryScope = { range: toQueryRange(range), entryDomain }
+  const queryScope = { range: toQueryRange(range), entryDomain, timeZone }
   const automation = toAutomationViewModel(await getAnalyticsAutomationOverview(queryScope))
 
   return (
@@ -95,6 +97,7 @@ export default async function AnalyticsAutomationPage({
           detailBasePath={basePath}
           locale={locale}
           range={range}
+          timeZone={timeZone}
         />
       ) : (
         <AnalyticsStatePanel

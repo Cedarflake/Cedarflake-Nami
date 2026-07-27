@@ -55,7 +55,7 @@ export async function resolvePostgresScope(
   sourceId: string,
   input: AnalyticsQueryScope,
 ): Promise<{ publicScope: AnalyticsScope; queryScope: ResolvedQueryScope }> {
-  const range = resolveQueryRange(input.range)
+  const range = resolveQueryRange(input.range, new Date(), input.timeZone)
   const availableEntryDomains = await getAvailableEntryDomains(sourceId)
   const requestedEntryDomain = input.entryDomain.trim().toLowerCase() || "all"
   const isAvailable = availableEntryDomains.some(

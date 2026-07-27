@@ -1,3 +1,5 @@
+import { normalizeAnalyticsTimeZone } from "@i0c/analytics-domain/range";
+
 import {
   analyticsRanges,
   type AnalyticsQueryScope,
@@ -5,6 +7,7 @@ import {
 
 export function parseAnalyticsQueryScope(
   searchParams: URLSearchParams,
+  fallbackTimeZone?: string,
 ): AnalyticsQueryScope | null {
   const rangeValue = searchParams.get("range") ?? "30d";
   const range = analyticsRanges.find((candidate) => candidate === rangeValue);
@@ -15,5 +18,8 @@ export function parseAnalyticsQueryScope(
   return {
     range,
     entryDomain: searchParams.get("entryDomain") ?? "all",
+    timeZone: normalizeAnalyticsTimeZone(
+      searchParams.get("timeZone") ?? fallbackTimeZone,
+    ),
   };
 }

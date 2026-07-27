@@ -191,10 +191,14 @@ time is more than 181 days old. Hourly and daily aggregate tables are retained, 
 trends and prior-period comparisons do not depend on keeping raw request rows indefinitely.
 Retention and schema migrations are never run as part of the WebUI build.
 
-The WebUI exposes 1, 7, 30, and 90-day ranges. The 1-day trend uses hourly UTC buckets; longer
-ranges use daily UTC buckets. The 181-day raw-event policy preserves two complete 90-day periods
-plus one day for UTC boundaries and the daily cleanup schedule. This retention window makes future
-aggregate rebuilding possible; it does not by itself perform a rebuild.
+The WebUI exposes 1, 7, 30, and 90-day ranges. The 1-day trend is a rolling 24-hour window with
+UTC-aligned hourly storage buckets that are formatted in the device time zone. Longer ranges use
+calendar-day boundaries and trend buckets aligned to the device's IANA time zone. UTC hourly and
+daily tables remain the storage format; non-UTC boundary-sensitive breakdowns use retained raw
+events so cards, trends, and dimensions cover the same interval. The 181-day raw-event policy
+preserves two complete 90-day periods plus one day for boundary handling and the daily cleanup
+schedule. This retention window makes future aggregate rebuilding possible; it does not by itself
+perform a rebuild.
 
 ## Acceptance scenarios
 

@@ -310,11 +310,11 @@ test("passes the shared analytics store behavior contract", async () => {
       expiredEvent,
       scope: {
         sourceId: event.sourceId,
-        query: { range: "1d", entryDomain: "all" },
+        query: { range: "1d", entryDomain: "all", timeZone: "UTC" },
       },
       createScope: (range, entryDomain) => ({
         sourceId: event.sourceId,
-        query: { range, entryDomain },
+        query: { range, entryDomain, timeZone: "UTC" },
       }),
       rebuildInput: {
         sourceId: event.sourceId,
@@ -341,6 +341,43 @@ test("passes the shared analytics store behavior contract", async () => {
         result.accessEventsReplayed + result.runtimeEventsReplayed,
       getRetentionDeletedRawEvents: (result) =>
         result.deleted.accessEvents + result.deleted.runtimeEvents,
+    })
+  } finally {
+    database.close()
+  }
+})
+
+test("groups daily series by the requested device time zone", async () => {
+  const database = new SQLiteD1Database()
+  try {
+    await createD1MigrationProvider(database, await loadMigrations()).applyMigrations()
+    const store = createD1AnalyticsStore(defaultD1AnalyticsStoreConfig, {
+      database,
+      clock: () => new Date(now),
+    })
+    await store.ingest(event)
+
+    const overview = await store.getOverview({
+      sourceId: event.sourceId,
+      query: {
+        range: "7d",
+        entryDomain: "all",
+        timeZone: "Asia/Shanghai",
+      },
+    })
+
+    assert.equal(overview.range.timeZone, "Asia/Shanghai")
+    assert.deepEqual(overview.series.at(-1), {
+      timestamp: "2026-07-21T16:00:00.000Z",
+      requests: 1,
+      entryRequests: 1,
+      clicks: 1,
+      entryClicks: 1,
+      previews: 0,
+      bots: 0,
+      declaredBots: 0,
+      suspectedAutomation: 0,
+      errors: 0,
     })
   } finally {
     database.close()
