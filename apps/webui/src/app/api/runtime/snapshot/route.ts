@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 
+import type { RuntimeDataSnapshot } from "@i0c/config";
+
 import {
   createRuntimeSnapshotEtag,
   matchesRuntimeSnapshotEtag,
@@ -12,8 +14,15 @@ const SUCCESS_CACHE_CONTROL =
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  return createRuntimeSnapshotResponse(request);
+}
+
+export async function createRuntimeSnapshotResponse(
+  request: NextRequest,
+  readSnapshot: () => Promise<RuntimeDataSnapshot> = readRuntimeDataSnapshot,
+) {
   try {
-    const snapshot = await readRuntimeDataSnapshot();
+    const snapshot = await readSnapshot();
     const etag = createRuntimeSnapshotEtag(snapshot.revision);
     const headers = {
       "Cache-Control": SUCCESS_CACHE_CONTROL,
