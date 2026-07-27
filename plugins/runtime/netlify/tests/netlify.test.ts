@@ -18,7 +18,7 @@ test("declares a valid manifest and adapts Netlify requests", async () => {
     async (_request, context) => {
       assert.equal(context.provider, "netlify")
       assert.equal(context.country, "CN")
-      assert.equal(context.readEnvironment?.("ANALYTICS_WRITE_KEY"), "test-key")
+      assert.equal(context.readEnvironment?.("I0C_SECRET"), "test-key")
       return new Response("ok")
     },
     { readEnvironment: () => "test-key" },

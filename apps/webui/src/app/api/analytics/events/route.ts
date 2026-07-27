@@ -5,6 +5,7 @@ import {
 import { createPrivateAnalyticsJsonResponse } from "@/lib/analytics/api-response";
 import { normalizeAnalyticsEvent } from "@/lib/analytics/event-normalization";
 import { parseAnalyticsIngestRequest } from "@/lib/analytics/ingest-request";
+import { scheduleAnalyticsRetention } from "@/lib/analytics/retention-scheduler";
 import { getAnalyticsStore } from "@/lib/analytics/store";
 import { getAuthoritativeDataConfig } from "@/lib/configuration/data-config";
 
@@ -59,6 +60,7 @@ export async function POST(request: Request) {
 
   try {
     const result = await store.ingest(event);
+    scheduleAnalyticsRetention(store);
     return createPrivateAnalyticsJsonResponse(
       { accepted: true, duplicate: result.isDuplicate },
       { status: 202 },

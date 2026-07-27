@@ -179,9 +179,68 @@
         "installedPlugins": {
           "title": "Installed plugins"
         },
+        "data": {
+          "title": "Data and history"
+        },
         "plugins": {
           "title": "Plugin settings",
         "description": "Enable installed plugins and edit their public options and environment-variable bindings."
+      }
+    },
+    "dataManagement": {
+      "title": "Data management",
+      "description": "Back up, import, inspect, and restore the instance configuration and redirect rules stored in PostgreSQL.",
+      "managerOnly": "Only managers can export, import, or inspect stored revisions.",
+      "unsavedWarning": "Save or discard the current rule and settings changes before importing or restoring data.",
+      "cancel": "Cancel",
+      "close": "Close",
+      "kinds": {
+        "config": "Instance configuration",
+        "redirects": "Redirect rules"
+      },
+      "operations": {
+        "import": "Imported",
+        "initialize": "Initialized",
+        "migration": "Migrated",
+        "rollback": "Restored",
+        "save": "Saved"
+      },
+      "export": {
+        "title": "Export a backup",
+        "description": "Download the current documents as portable JSON files.",
+        "config": "Download config.json",
+        "redirects": "Download redirects.json"
+      },
+      "import": {
+        "title": "Import a backup",
+        "description": "Replace both documents atomically. The uploaded files are validated before any data is changed.",
+        "config": "config.json",
+        "redirects": "redirects.json",
+        "chooseFile": "Choose file",
+        "noFile": "No file selected",
+        "action": "Import both files",
+        "confirmTitle": "Import this backup?",
+        "confirmDescription": "The current configuration and rules will be preserved in history, then both uploaded files will become the new active revision.",
+        "confirmAction": "Import backup"
+      },
+      "history": {
+        "title": "Revision history",
+        "description": "Each save, import, migration, and restore creates an immutable revision.",
+        "empty": "No revisions are available.",
+        "revision": "Revision {revision}",
+        "current": "Current",
+        "actor": "GitHub user {actor}",
+        "checksum": "Checksum {checksum}",
+        "view": "View JSON",
+        "restore": "Restore",
+        "confirmTitle": "Restore this revision?",
+        "confirmDescription": "Revision {revision} will be copied into a new active revision. Existing history will not be changed.",
+        "confirmAction": "Restore revision",
+        "previewTitle": "Revision {revision}"
+      },
+      "errors": {
+        "fileTooLarge": "Each JSON file must be no larger than 1 MB.",
+        "currentRevisionUnavailable": "The current revision could not be determined. Refresh the page and try again."
       }
     },
     "fields": {

@@ -123,7 +123,7 @@ test("uses versioned analytics settings and reads only the Runtime write key bin
     envBindings: {
       ANALYTICS_ENDPOINT: "https://ignored.example/events",
       ANALYTICS_SOURCE_ID: "ignored.example",
-      ANALYTICS_WRITE_KEY: analyticsWriteKey
+      I0C_SECRET: analyticsWriteKey
     }
   });
 
@@ -157,13 +157,13 @@ test("uses the HTTP sink plugin declaration for enablement, config, and secret m
             maximumDeliveryAttempts: 1
           },
           secrets: {
-            writeKey: "CUSTOM_ANALYTICS_WRITE_KEY"
+            writeKey: "CUSTOM_I0C_SECRET"
           }
         }
       }
     },
     envBindings: {
-      CUSTOM_ANALYTICS_WRITE_KEY: analyticsWriteKey
+      CUSTOM_I0C_SECRET: analyticsWriteKey
     }
   });
 

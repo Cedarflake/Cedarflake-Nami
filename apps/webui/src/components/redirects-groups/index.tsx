@@ -687,6 +687,7 @@ export function RedirectsGroupsManager({
                   ) : configValue ? (
                     <>
                       <InstanceSettingsEditor
+                        hasUnsavedChanges={isRulesDirty || isSettingsDirty}
                         value={configValue}
                         isReadOnly={isReadOnly}
                         onChange={(nextConfig) => {

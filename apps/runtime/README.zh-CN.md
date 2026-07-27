@@ -33,7 +33,7 @@
 部署完成后：
 
 - 非敏感配置或规则变化时，通过所选 WebUI Repository 保存 `config.json` 或 `redirects.json`。默认 Git 方案使用 `data` 分支；内置 Source 会在对应缓存时间结束后获取有效更新，不需要重新构建。
-- 在需要投递统计事件的每个平台设置 `ANALYTICS_WRITE_KEY`。
+- 在 WebUI 和每个平台的 Runtime 中设置相同的 `I0C_SECRET`。
 - 更新公共重定向逻辑后重新执行包构建，然后再部署。
 
 ## 选择适配器
@@ -86,7 +86,7 @@ source: {
 
 只有版本化收集端地址、source ID 均有效并设置下面的密钥时，才会启用统计事件投递：
 
-- `ANALYTICS_WRITE_KEY`：用于为每次请求签名的长随机密钥。WebUI 收集端的 `ANALYTICS_INGEST_SECRET` 必须设置为相同值。
+- `I0C_SECRET`：用于签名统计投递的共享实例密钥。WebUI 和每个平台的 Runtime 必须使用相同值。
 
 本地占位值见 [.env.example](.env.example)。内置 Runtime 不再从环境中读取其他配置项。
 

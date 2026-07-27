@@ -74,7 +74,10 @@ export async function PUT(request: NextRequest) {
   try {
     const result = await updateAppDataConfigDocument(
       authorization.accessToken,
-      parsed.data,
+      {
+        ...parsed.data,
+        actorGitHubUserId: authorization.githubUserId,
+      },
     );
     revalidateTag(APP_DATA_CONFIG_CACHE_TAG, { expire: 0 });
     revalidateTag(APP_DATA_SNAPSHOT_CACHE_TAG, { expire: 0 });

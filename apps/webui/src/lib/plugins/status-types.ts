@@ -1,4 +1,8 @@
-import type { PluginHost, PluginKind } from "@i0c/plugin-api";
+import type {
+  PluginDescriptionManifest,
+  PluginHost,
+  PluginKind,
+} from "@i0c/plugin-api";
 
 export type PluginConfigurationState = "compatibility" | "configured" | "disabled";
 export type PluginStatusHealth =
@@ -14,6 +18,7 @@ export interface WebUiPluginStatus {
   bindingsObservable: boolean;
   capabilities: readonly string[];
   configurationState: PluginConfigurationState;
+  description?: PluginDescriptionManifest;
   health: PluginStatusHealth;
   hosts: readonly PluginHost[];
   id: string;

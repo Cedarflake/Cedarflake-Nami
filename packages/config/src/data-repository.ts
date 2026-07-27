@@ -24,6 +24,7 @@ export interface DataRepositoryReadOptions {
 }
 
 export interface DataRepositoryWriteInput {
+  actorGitHubUserId?: string
   content: string
   credential?: string
   expectedRevision: string
@@ -34,6 +35,80 @@ export interface DataRepositoryWriteInput {
 export interface DataRepositoryWriteResult {
   revision: string
   revisionUrl?: string
+}
+
+export type DataDocumentRevisionOperation =
+  | "import"
+  | "initialize"
+  | "migration"
+  | "rollback"
+  | "save"
+
+export interface DataDocumentRevisionSummary {
+  actorGitHubUserId?: string
+  checksum: string
+  createdAt: string
+  kind: DataDocumentKind
+  operation: DataDocumentRevisionOperation
+  revision: string
+}
+
+export interface DataDocumentRevision extends DataDocumentRevisionSummary {
+  content: string
+}
+
+export type DataRepositorySetupState =
+  | {
+      state: "migration-required"
+    }
+  | {
+      existingKinds: readonly DataDocumentKind[]
+      state: "empty" | "partial"
+    }
+  | {
+      state: "initialized"
+    }
+
+export interface DataRepositoryInitializeInput {
+  actorGitHubUserId?: string
+  configContent: string
+  redirectsContent: string
+}
+
+export interface DataRepositoryImportInput
+  extends DataRepositoryInitializeInput {
+  expectedConfigRevision: string
+  expectedRedirectsRevision: string
+}
+
+export interface DataRepositoryRevisionListInput {
+  beforeRevision?: string
+  kind: DataDocumentKind
+  limit?: number
+}
+
+export interface DataRepositoryRevisionReadInput {
+  kind: DataDocumentKind
+  revision: string
+}
+
+export interface DataRepositoryRestoreInput
+  extends DataRepositoryRevisionReadInput {
+  actorGitHubUserId?: string
+  expectedRevision: string
+}
+
+export interface DataRepositoryManagement {
+  importSnapshot(input: DataRepositoryImportInput): Promise<DataRepositorySnapshot>
+  initialize(input: DataRepositoryInitializeInput): Promise<DataRepositorySnapshot>
+  inspectSetupState(): Promise<DataRepositorySetupState>
+  listRevisions(
+    input: DataRepositoryRevisionListInput,
+  ): Promise<readonly DataDocumentRevisionSummary[]>
+  readRevision(
+    input: DataRepositoryRevisionReadInput,
+  ): Promise<DataDocumentRevision>
+  restore(input: DataRepositoryRestoreInput): Promise<DataRepositoryWriteResult>
 }
 
 export class DataDocumentNotFoundError extends Error {
@@ -57,5 +132,14 @@ export class DataRepositoryConflictError extends Error {
       `The ${kind} data document changed from revision ${expectedRevision} to ${actualRevision}`,
     )
     this.name = "DataRepositoryConflictError"
+  }
+}
+
+export class DataRepositoryInitializationError extends Error {
+  readonly code = "DATA_REPOSITORY_INITIALIZATION_FAILED"
+
+  constructor(message: string) {
+    super(message)
+    this.name = "DataRepositoryInitializationError"
   }
 }

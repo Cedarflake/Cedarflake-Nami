@@ -7,11 +7,12 @@ without coupling the Runtime to PostgreSQL.
 ## Requirements
 
 - PostgreSQL compatible with the `postgres` client.
-- `DATA_REPOSITORY_DATABASE_URL` for the migration command and the WebUI
-  bootstrap binding.
+- `DATABASE_URL` for deliberate migration and seed commands.
+- The configured WebUI bootstrap database binding, `DATABASE_URL` by default;
+  both variables may point to the same database.
 - Applied migrations from this package before selecting the plugin.
-- Both documents seeded before the WebUI or Runtime snapshot endpoint reads
-  them.
+- Both documents initialized through the WebUI setup flow or the optional
+  non-interactive seed command before the Runtime snapshot endpoint reads them.
 
 ## Commands
 
@@ -23,8 +24,12 @@ pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json
 ```
 
 The migration and seed commands mutate the configured database. Do not use
-them as validation commands. Seeding validates both files and creates only
-missing documents in one transaction; it never overwrites existing content.
+them as validation commands. The normal first-run flow applies migrations,
+then lets the WebUI create both documents atomically after GitHub
+authentication and shared instance-secret verification. Seeding remains
+available for controlled non-interactive migrations; it validates both files,
+creates only missing documents in one transaction, and never overwrites
+existing content.
 The seed `config.json` must enable the PostgreSQL Repository and HTTP Snapshot
 Source declarations selected by the build.
 
@@ -34,5 +39,7 @@ Source declarations selected by the build.
 - Later writes must provide the current numeric revision.
 - A stale revision is rejected instead of overwriting newer content.
 - Snapshot reads return both documents from one repeatable-read transaction.
+- Every initialization, save, import, migration, and restore writes immutable
+  history. Restoring old content creates a new head revision.
 - This package has its own migration table and does not share analytics
   migrations.

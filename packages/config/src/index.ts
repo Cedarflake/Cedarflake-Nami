@@ -3,6 +3,7 @@ export { assertBootstrapConfigCompatibility } from "./bootstrap-validation"
 export {
   DataDocumentNotFoundError,
   DataRepositoryConflictError,
+  DataRepositoryInitializationError,
   dataDocumentKinds,
 } from "./data-repository"
 export { validateRedirectsConfig } from "./redirects-validation"
@@ -10,7 +11,17 @@ export { isPluginInstanceConfig, validateDataConfig } from "./validation"
 export type {
   DataDocument,
   DataDocumentKind,
+  DataDocumentRevision,
+  DataDocumentRevisionOperation,
+  DataDocumentRevisionSummary,
+  DataRepositoryImportInput,
+  DataRepositoryInitializeInput,
+  DataRepositoryManagement,
   DataRepositoryReadOptions,
+  DataRepositoryRestoreInput,
+  DataRepositoryRevisionListInput,
+  DataRepositoryRevisionReadInput,
+  DataRepositorySetupState,
   DataRepositorySnapshot,
   DataRepositoryWriteInput,
   DataRepositoryWriteResult,

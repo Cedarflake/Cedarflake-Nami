@@ -2,6 +2,8 @@ import GitHubProvider from "next-auth/providers/github";
 
 import { bootstrapConfig } from "@i0c/config";
 
+import { requireInstanceSecret } from "@/lib/configuration/instance-secret";
+
 import {
   applyWebUiTokenAuthorization,
   canGitHubUserSignIn,
@@ -20,16 +22,13 @@ type NextAuthHandler = typeof import("next-auth/next")["default"];
 type AuthConfig = Parameters<NextAuthHandler>[2];
 
 export const authOptions = {
-  secret: requireEnv("NEXTAUTH_SECRET"),
+  secret: requireInstanceSecret(),
   providers: [
     GitHubProvider({
       clientId: requireEnv("GITHUB_CLIENT_ID"),
       clientSecret: requireEnv("GITHUB_CLIENT_SECRET"),
       authorization: {
         params: {
-          // Default GitHub OAuth scopes are usually "read:user user:email".
-          // We additionally need repo contents access for reading/writing redirects config.
-          // Use the narrowest scope possible for your use case.
           scope: bootstrapConfig.webui.githubOAuthScope
         }
       },

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   DataDocumentNotFoundError,
   DataRepositoryConflictError,
+  DataRepositoryInitializationError,
 } from "@i0c/config";
 
 import { createDataRepositoryErrorResponse } from "../src/lib/data/errors";
@@ -38,4 +39,18 @@ test("leaves unrelated repository failures to the caller", () => {
     createDataRepositoryErrorResponse(new Error("connection failed")),
     null,
   );
+});
+
+test("maps repeated initialization to a conflict response", async () => {
+  const response = createDataRepositoryErrorResponse(
+    new DataRepositoryInitializationError(
+      "The data repository has already been initialized",
+    ),
+  );
+
+  assert.ok(response);
+  assert.equal(response.status, 409);
+  assert.deepEqual(await response.json(), {
+    error: "The data repository has already been initialized",
+  });
 });

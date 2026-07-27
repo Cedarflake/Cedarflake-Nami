@@ -1,5 +1,6 @@
 import type {
   DataDocument,
+  DataRepositoryManagement,
   DataRepositoryWriteInput,
   DataRepositoryWriteResult,
 } from "@i0c/config";
@@ -15,10 +16,11 @@ export type DataDocumentUpdateInput = Omit<
   "credential"
 >;
 
-let appDataRepository: AppDataRepository | null = null;
+let appDataRepositoryPromise: Promise<AppDataRepository> | null = null;
 
-export function getAppDataSnapshot() {
-  return getAppDataRepository().readSnapshot({
+export async function getAppDataSnapshot() {
+  const repository = await getAppDataRepository();
+  return repository.readSnapshot({
     cacheTags: [
       APP_DATA_CONFIG_CACHE_TAG,
       APP_DATA_SNAPSHOT_CACHE_TAG,
@@ -26,40 +28,56 @@ export function getAppDataSnapshot() {
   });
 }
 
-export function getRedirectsDocument(
+export async function getRedirectsDocument(
   credential: string | undefined,
   options?: { sourceUrl?: string | null },
 ): Promise<DataDocument> {
-  return getAppDataRepository().read("redirects", {
+  const repository = await getAppDataRepository();
+  return repository.read("redirects", {
     credential,
     sourceUrl: options?.sourceUrl,
   });
 }
 
-export function getAppDataConfigDocument(
+export async function getAppDataConfigDocument(
   credential?: string,
 ): Promise<DataDocument> {
-  return getAppDataRepository().read("config", {
+  const repository = await getAppDataRepository();
+  return repository.read("config", {
     credential,
     cacheTags: [APP_DATA_CONFIG_CACHE_TAG],
   });
 }
 
-export function updateRedirectsDocument(
+export async function updateRedirectsDocument(
   credential: string,
   input: DataDocumentUpdateInput,
 ): Promise<DataRepositoryWriteResult> {
-  return getAppDataRepository().write("redirects", { ...input, credential });
+  const repository = await getAppDataRepository();
+  return repository.write("redirects", { ...input, credential });
 }
 
-export function updateAppDataConfigDocument(
+export async function updateAppDataConfigDocument(
   credential: string,
   input: DataDocumentUpdateInput,
 ): Promise<DataRepositoryWriteResult> {
-  return getAppDataRepository().write("config", { ...input, credential });
+  const repository = await getAppDataRepository();
+  return repository.write("config", { ...input, credential });
 }
 
-function getAppDataRepository(): AppDataRepository {
-  appDataRepository ??= webUiPluginInstallations.dataRepository.create();
-  return appDataRepository;
+export async function getAppDataRepositoryManagement(): Promise<
+  DataRepositoryManagement | null
+> {
+  const repository = await getAppDataRepository();
+  return repository.management ?? null;
+}
+
+function getAppDataRepository(): Promise<AppDataRepository> {
+  appDataRepositoryPromise ??= Promise.resolve(
+    webUiPluginInstallations.dataRepository.create(),
+  ).catch((error: unknown) => {
+    appDataRepositoryPromise = null;
+    throw error;
+  });
+  return appDataRepositoryPromise;
 }

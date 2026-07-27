@@ -25,13 +25,15 @@ export interface WebUiAnalyticsStoreCreateContext {
 export interface WebUiDataRepositoryInstallation {
   enabledByDefault: boolean;
   manifest: PluginManifest<"data-repository", "webui">;
-  create(): AppDataRepository;
+  create(): AppDataRepository | Promise<AppDataRepository>;
 }
 
 export interface WebUiAnalyticsStoreInstallation {
   enabledByDefault: boolean;
   manifest: PluginManifest<"analytics-store", "webui" | "collector">;
-  create(context: WebUiAnalyticsStoreCreateContext): WebUiAnalyticsStore | null;
+  create(
+    context: WebUiAnalyticsStoreCreateContext,
+  ): WebUiAnalyticsStore | null | Promise<WebUiAnalyticsStore | null>;
 }
 
 export interface WebUiPluginInstallations {

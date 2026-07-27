@@ -29,23 +29,19 @@ Runtime 不直接连接 PostgreSQL。事件通过各平台的后台执行能力�
 每套 Runtime 部署只需要配置共用的签名密钥：
 
 ```dotenv
-ANALYTICS_WRITE_KEY="replace-with-a-32-byte-random-secret"
+I0C_SECRET="replace-with-a-32-byte-random-secret"
 ```
 
 WebUI 部署配置：
 
 ```dotenv
 DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
-ANALYTICS_INGEST_SECRET="replace-with-a-32-byte-random-secret"
-CRON_SECRET="replace-with-a-32-byte-random-secret"
+I0C_SECRET="the-same-value-as-every-Runtime"
 ```
 
 Runtime 与 WebUI 不再读取原有非敏感统计环境变量。平台后台遗留的旧值会被忽略；需要修改时应编辑经过校验的远程 `config.json`，不需要重新构建应用。
 
-`ANALYTICS_WRITE_KEY` 与 `ANALYTICS_INGEST_SECRET` 必须是完全相同的密钥。不要复用 GitHub OAuth、NextAuth 或数据库凭据。
-
-`CRON_SECRET` 单独用于保护每日数据保留端点。Vercel 会把它放在定时请求的
-`Authorization` 请求头中；不要复用其他应用密钥。
+`I0C_SECRET` 是 WebUI 与所有 Runtime 平台共用的唯一实例密钥，用于签名 WebUI 会话、初始化授权、统计投递和归因数据。轮换它会使现有 WebUI 会话失效，并要求重新部署所有 Runtime。
 
 `analytics.sourceId` 同时表示逻辑统计命名空间和基础域名，并会归一化为小写。使用 `i0c.cc` 时，事件可以报告 `i0c.cc` 及其子域名；其他域名统一存为 `unknown`。这样无需再配置一份域名列表，也能限制入口域名维度无限增长。
 
@@ -185,11 +181,12 @@ pnpm analytics:migrate
 5. 配置并部署 Netlify Runtime。
 6. 检查 Collector 错误、`unknown` 入口域名、观测/估算比例及全部域名求和结果。
 
-Vercel 每天调用一次 `/api/analytics/retention`。通过鉴权的端点会删除数据库接收时间超过
-181 天的短链接事件、Runtime 事件、幂等收据和过期上游声明。小时与天级聚合表长期保留，
-因此历史趋势和上一周期对比不依赖无限期保存原始请求。WebUI 构建过程不会执行保留清理或数据库迁移。
+统计事件成功写入后，WebUI 会在后台安排数据保留，每个运行实例每天最多执行一次。它会
+删除数据库接收时间超过 181 天的短链接事件、Runtime 事件、幂等收据和过期上游声明。
+小时与天级聚合表长期保留，因此历史趋势和上一周期对比不依赖无限期保存原始请求。
+WebUI 构建过程不会执行保留清理或数据库迁移。
 
-WebUI 提供 1、7、30 和 90 天范围。1 天趋势是滚动 24 小时窗口，底层继续使用 UTC 小时桶，并按设备时区显示；更长范围的查询边界和趋势日桶按当前设备的 IANA 时区对齐。小时与天级聚合表仍以 UTC 存储；对于非 UTC 时区下会受到日期边界影响的细分数据，查询会使用保留的原始事件，确保卡片、趋势与细分覆盖同一时间区间。181 天的原始事件窗口可覆盖两个完整 90 天周期，并额外留出一天处理日期边界和每日清理调度偏差。该窗口为未来重建聚合提供原始数据基础，但不会自动执行重建。
+WebUI 提供 1、7、30 和 90 天范围。1 天趋势是滚动 24 小时窗口，底层继续使用 UTC 小时桶，并按设备时区显示；更长范围的查询边界和趋势日桶按当前设备的 IANA 时区对齐。小时与天级聚合表仍以 UTC 存储；对于非 UTC 时区下会受到日期边界影响的细分数据，查询会使用保留的原始事件，确保卡片、趋势与细分覆盖同一时间区间。181 天的原始事件窗口可覆盖两个完整 90 天周期，并额外留出一天处理日期边界和清理间隔。该窗口为未来重建聚合提供原始数据基础，但不会自动执行重建。
 
 ## 验收场景
 

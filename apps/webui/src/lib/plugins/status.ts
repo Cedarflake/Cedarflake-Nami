@@ -19,8 +19,6 @@ import type {
 const POSTGRES_ANALYTICS_STORE_PLUGIN_ID = "@i0c/analytics-store-postgres";
 const D1_ANALYTICS_STORE_PLUGIN_ID = "@i0c/analytics-store-d1";
 const compatibilityEnabledPluginIds = new Set([
-  "@i0c/github-raw-source",
-  "@i0c/github-contents-repository",
   ...runtimePlatformManifests.map((manifest) => manifest.id),
   "@i0c/analytics-sink-http",
   "@i0c/feature-bot-classifier",
@@ -84,6 +82,7 @@ function createPluginStatus(
     bindingsObservable,
     capabilities: manifest.capabilities,
     configurationState,
+    description: manifest.description,
     health,
     hosts: manifest.hosts,
     id: manifest.id,

@@ -1,9 +1,9 @@
 import { createPostgresDataRepositoryMigrationProvider } from "../src/migrations"
 
-const connectionString = process.env.DATA_REPOSITORY_DATABASE_URL?.trim()
+const connectionString = process.env.DATABASE_URL?.trim()
 if (!connectionString) {
   throw new Error(
-    "DATA_REPOSITORY_DATABASE_URL is required to run PostgreSQL data repository migrations",
+    "DATABASE_URL is required to run PostgreSQL data repository migrations",
   )
 }
 

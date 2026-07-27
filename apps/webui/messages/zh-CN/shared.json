@@ -11,6 +11,35 @@
     "accessDeniedDescription": "当前 GitHub 账号不在此部署允许访问的用户范围内。",
     "signOutAndReturn": "退出并返回"
   },
+  "setup": {
+    "title": "初始化此部署",
+    "description": "在 PostgreSQL 中创建第一份实例配置和空规则集。当前登录的 GitHub 账号将成为首位管理员。",
+    "secret": "实例密钥",
+    "secretHelp": "输入 WebUI 与所有 Runtime 部署共用的 I0C_SECRET。",
+    "webUiOrigin": "WebUI 地址",
+    "runtimeOrigin": "Runtime 地址",
+    "runtimePlatforms": "已部署的 Runtime 平台",
+    "providers": {
+      "cloudflare": "Cloudflare",
+      "vercel": "Vercel",
+      "netlify": "Netlify"
+    },
+    "analytics": "启用统计",
+    "analyticsHelp": "启用 Runtime 签名事件投递和 PostgreSQL 统计存储。",
+    "sourceId": "统计来源 ID",
+    "sourceIdHelp": "填写所有 Runtime 域名共用的小写基础主机名。",
+    "initialize": "初始化部署",
+    "initializing": "正在初始化……",
+    "unknownError": "初始化失败，请检查填写内容后重试。",
+    "migrationRequired": "需要执行数据库迁移",
+    "migrationRequiredHelp": "请先应用 PostgreSQL 数据 Repository 迁移，然后重新打开初始化页面。",
+    "partial": "检测到不完整初始化",
+    "partialHelp": "当前只存在一份必要数据文档。初始化不会覆盖它，请明确修复或清理不完整状态。",
+    "unsupported": "无法进行初始化",
+    "unsupportedHelp": "当前选择的数据 Repository 没有提供初始化能力。",
+    "secretMissing": "尚未配置实例密钥",
+    "secretMissingHelp": "请在 WebUI 部署环境中添加至少 32 字符的 I0C_SECRET，然后重新加载此页面。"
+  },
   "notFound": {
     "title": "404 · 页面未找到",
     "description": "你访问的页面不存在或可能已被移动。",

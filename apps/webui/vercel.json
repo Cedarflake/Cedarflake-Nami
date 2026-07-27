@@ -1,9 +1,3 @@
 {
-  "buildCommand": "pnpm build",
-  "crons": [
-    {
-      "path": "/api/analytics/retention",
-      "schedule": "15 3 * * *"
-    }
-  ]
+  "buildCommand": "pnpm build"
 }

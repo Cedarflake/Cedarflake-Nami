@@ -56,7 +56,7 @@ The remote declaration shape is:
         "requestTimeoutMs": 5000
       },
       "secrets": {
-        "writeKey": "ANALYTICS_WRITE_KEY"
+        "writeKey": "I0C_SECRET"
       }
     }
   }
@@ -103,7 +103,7 @@ The production installation keeps these slots empty except for the host-owned pl
 
 `AtomicVersionedDataRepository` exposes document reads, optimistic writes, and an atomic two-document snapshot. GitHub maps its commit SHA to the repository revision and resolves both documents at one commit. PostgreSQL uses a repeatable-read transaction, numeric document revisions, and checksums.
 
-PostgreSQL Repository migrations live in `plugins/repository/postgres/migrations` and use their own migration table and advisory lock. Builds, application startup, Runtime requests, and WebUI health checks never apply them automatically. Selecting PostgreSQL also requires `DATA_REPOSITORY_DATABASE_URL` or the configured binding name. Its explicit seed command validates local `config.json` and `redirects.json`, creates only missing documents in one transaction, and never overwrites existing content. The repository must be paired with the HTTP Snapshot Runtime Source so saved database state reaches edge deployments without giving them database credentials; incompatible bootstrap selections fail the build.
+PostgreSQL Repository migrations live in `plugins/repository/postgres/migrations` and use their own migration table and advisory lock. Builds, application startup, Runtime requests, and WebUI health checks never apply them automatically. Selecting PostgreSQL requires `DATABASE_URL`. Its explicit seed command validates local `config.json` and `redirects.json`, creates only missing documents in one transaction, and never overwrites existing content. The repository must be paired with the HTTP Snapshot Runtime Source so saved database state reaches edge deployments without giving them database credentials; incompatible bootstrap selections fail the build.
 
 ## Analytics stores and migrations
 

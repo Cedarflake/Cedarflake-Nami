@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import type { DataConfig, RobotsPolicy, WebUiAccessMode } from "@i0c/config";
 
 import { PluginStatusPanel } from "@/components/plugins/plugin-status-panel";
+import { DataManagementPanel } from "@/components/settings/data-management-panel";
 import { Button } from "@/components/ui/controls/button";
 import { DropdownSelect } from "@/components/ui/controls/dropdown-select";
 import {
@@ -17,6 +18,7 @@ import { NumberInput } from "@/components/ui/controls/number-input";
 import { validateInstanceDataConfig } from "@/lib/configuration/validation";
 
 interface InstanceSettingsEditorProps {
+  hasUnsavedChanges: boolean;
   isReadOnly: boolean;
   onChange: (value: DataConfig) => void;
   value: DataConfig;
@@ -32,9 +34,11 @@ type SettingsCategory =
   | "runtime"
   | "analytics"
   | "access"
-  | "installed-plugins";
+  | "installed-plugins"
+  | "data";
 
 export function InstanceSettingsEditor({
+  hasUnsavedChanges,
   isReadOnly,
   onChange,
   value,
@@ -228,6 +232,12 @@ export function InstanceSettingsEditor({
             >
               {t("sections.installedPlugins.title")}
             </SettingsCategoryButton>
+            <SettingsCategoryButton
+              isSelected={selectedCategory === "data"}
+              onClick={() => setSelectedCategory("data")}
+            >
+              {t("sections.data.title")}
+            </SettingsCategoryButton>
           </div>
         </nav>
 
@@ -415,6 +425,13 @@ export function InstanceSettingsEditor({
               value={value.plugins}
               isReadOnly={isReadOnly}
               onChange={(plugins) => onChange({ ...value, plugins })}
+            />
+          ) : null}
+
+          {selectedCategory === "data" ? (
+            <DataManagementPanel
+              hasUnsavedChanges={hasUnsavedChanges}
+              isReadOnly={isReadOnly}
             />
           ) : null}
         </div>

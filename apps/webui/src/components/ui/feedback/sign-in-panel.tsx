@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/controls/button";
 import { CenteredPanel } from "@/components/ui/layout/centered-panel";
 import { LanguageSwitcher } from "@/components/ui/controls/language-switcher";
 
-export function SignInPanel({ hasError = false }: { hasError?: boolean }) {
+export function SignInPanel({
+  callbackUrl,
+  hasError = false,
+}: {
+  callbackUrl?: string;
+  hasError?: boolean;
+}) {
   const t = useTranslations("auth");
 
   return (
@@ -26,7 +32,10 @@ export function SignInPanel({ hasError = false }: { hasError?: boolean }) {
       ) : null}
 
       <Button
-        onClick={() => signIn("github")}
+        onClick={() => signIn(
+          "github",
+          callbackUrl ? { callbackUrl } : undefined,
+        )}
         className="mt-8 w-full"
         variant="primary"
       >

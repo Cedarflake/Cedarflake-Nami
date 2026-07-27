@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import {
   DataDocumentNotFoundError,
   DataRepositoryConflictError,
+  DataRepositoryInitializationError,
 } from "@i0c/config";
 
 export function createDataRepositoryErrorResponse(
@@ -21,6 +22,12 @@ export function createDataRepositoryErrorResponse(
     return NextResponse.json(
       { error: `The ${error.kind} data document has not been initialized.` },
       { status: 404 },
+    );
+  }
+  if (error instanceof DataRepositoryInitializationError) {
+    return NextResponse.json(
+      { error: error.message },
+      { status: 409 },
     );
   }
   return null;

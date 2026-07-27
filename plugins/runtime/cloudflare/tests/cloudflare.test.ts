@@ -19,8 +19,8 @@ test("declares a valid manifest and adapts Cloudflare requests", async () => {
     async (_request, context) => {
       assert.equal(context.provider, "cloudflare")
       assert.equal(context.country, "CN")
-      assert.equal(context.envBindings?.ANALYTICS_WRITE_KEY, "test-key")
-      assert.equal(context.readEnvironment?.("ANALYTICS_WRITE_KEY"), "test-key")
+      assert.equal(context.envBindings?.I0C_SECRET, "test-key")
+      assert.equal(context.readEnvironment?.("I0C_SECRET"), "test-key")
       assert.equal(typeof context.waitUntil, "function")
       return new Response("ok")
     },
@@ -39,7 +39,7 @@ test("declares a valid manifest and adapts Cloudflare requests", async () => {
     adapter,
     args: [
       request,
-      { ANALYTICS_WRITE_KEY: "test-key" },
+      { I0C_SECRET: "test-key" },
       executionContext,
     ],
     expectedStatus: 200,

@@ -56,7 +56,7 @@ i0c.cc 使用轻量的静态注册插件架构，让重定向核心不直接绑�
         "requestTimeoutMs": 5000
       },
       "secrets": {
-        "writeKey": "ANALYTICS_WRITE_KEY"
+        "writeKey": "I0C_SECRET"
       }
     }
   }
@@ -103,7 +103,7 @@ WebUI 提供四个静态注册扩展插槽：
 
 `AtomicVersionedDataRepository` 提供文档读取、乐观并发写入和两份文档的原子快照。GitHub 把 commit SHA 作为 Repository revision，并在同一 commit 上读取两份文档；PostgreSQL 使用只读可重复读事务、数字文档版本与校验和。
 
-PostgreSQL Repository 迁移位于 `plugins/repository/postgres/migrations`，使用独立迁移表和 advisory lock。构建、应用启动、Runtime 请求与 WebUI 健康检查都不会自动执行迁移。选择 PostgreSQL 时还需要配置 `DATA_REPOSITORY_DATABASE_URL` 或指定的 binding 名称。它的显式初始化命令会校验本地 `config.json` 与 `redirects.json`，在同一个事务中只创建缺失文档，并且不会覆盖已有内容。该 Repository 必须搭配 HTTP Snapshot Runtime Source，让数据库中保存的状态能到达边缘部署，同时不向 Runtime 提供数据库凭据；不兼容的启动选择会让构建失败。
+PostgreSQL Repository 迁移位于 `plugins/repository/postgres/migrations`，使用独立迁移表和 advisory lock。构建、应用启动、Runtime 请求与 WebUI 健康检查都不会自动执行迁移。选择 PostgreSQL 时需要配置 `DATABASE_URL`。它的显式初始化命令会校验本地 `config.json` 与 `redirects.json`，在同一个事务中只创建缺失文档，并且不会覆盖已有内容。该 Repository 必须搭配 HTTP Snapshot Runtime Source，让数据库中保存的状态能到达边缘部署，同时不向 Runtime 提供数据库凭据；不兼容的启动选择会让构建失败。
 
 ## Analytics Store 与迁移
 

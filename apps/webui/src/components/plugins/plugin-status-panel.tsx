@@ -184,7 +184,7 @@ function PluginStatusContent({
             (candidate) => candidate.id === plugin.id,
           );
           const summary = resolveLocalizedText(
-            manifest?.description?.summary,
+            plugin.description?.summary,
             locale,
           );
           const canEditConfig = Boolean(manifest && value && onChange);
