@@ -4,11 +4,11 @@ export function assertBootstrapConfigCompatibility(
   config: BootstrapConfig,
 ): void {
   if (
-    config.data.repository.provider === "postgres"
+    config.data.repository.provider !== "github"
     && config.data.source.provider !== "http"
   ) {
     throw new TypeError(
-      "The PostgreSQL data repository requires the HTTP Runtime data source",
+      "Database-backed data repositories require the HTTP Runtime data source",
     )
   }
 }

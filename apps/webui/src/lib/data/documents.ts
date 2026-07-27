@@ -17,6 +17,15 @@ export type DataDocumentUpdateInput = Omit<
 >;
 
 let appDataRepositoryPromise: Promise<AppDataRepository> | null = null;
+const appDataRepositoryBindings = new Map<string, unknown>();
+
+export function configureAppDataRepositoryBinding(
+  pluginId: string,
+  binding: unknown,
+): void {
+  appDataRepositoryBindings.set(pluginId, binding);
+  appDataRepositoryPromise = null;
+}
 
 export async function getAppDataSnapshot() {
   const repository = await getAppDataRepository();
@@ -74,7 +83,10 @@ export async function getAppDataRepositoryManagement(): Promise<
 
 function getAppDataRepository(): Promise<AppDataRepository> {
   appDataRepositoryPromise ??= Promise.resolve(
-    webUiPluginInstallations.dataRepository.create(),
+    webUiPluginInstallations.dataRepository.create({
+      bindings: appDataRepositoryBindings,
+      readEnvironment: (name) => process.env[name],
+    }),
   ).catch((error: unknown) => {
     appDataRepositoryPromise = null;
     throw error;

@@ -1,5 +1,18 @@
 import type { BootstrapConfig, DataConfig } from "./types"
 
+function resolveDataRepositoryPluginId(
+  repository: BootstrapConfig["data"]["repository"],
+): string {
+  switch (repository.provider) {
+    case "d1":
+      return "@i0c/data-repository-d1"
+    case "github":
+      return "@i0c/github-contents-repository"
+    case "postgres":
+      return "@i0c/data-repository-postgres"
+  }
+}
+
 export const bootstrapConfig: BootstrapConfig = {
   data: {
     github: {
@@ -56,9 +69,7 @@ export const defaultDataConfig: DataConfig = {
       enabled: true,
       version: 1,
     },
-    [bootstrapConfig.data.repository.provider === "postgres"
-      ? "@i0c/data-repository-postgres"
-      : "@i0c/github-contents-repository"]: {
+    [resolveDataRepositoryPluginId(bootstrapConfig.data.repository)]: {
       enabled: true,
       version: 1,
     },

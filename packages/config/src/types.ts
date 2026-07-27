@@ -34,7 +34,12 @@ export interface PostgresDataRepositoryBootstrapConfig {
   connectTimeoutSeconds: number
 }
 
+export interface D1DataRepositoryBootstrapConfig {
+  provider: "d1"
+}
+
 export type DataRepositoryBootstrapConfig =
+  | D1DataRepositoryBootstrapConfig
   | GitHubDataRepositoryBootstrapConfig
   | PostgresDataRepositoryBootstrapConfig
 

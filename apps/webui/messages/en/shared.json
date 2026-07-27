@@ -13,7 +13,7 @@
   },
   "setup": {
     "title": "Initialize this deployment",
-    "description": "Create the first instance configuration and an empty rule set in PostgreSQL. Your signed-in GitHub account becomes the first manager.",
+    "description": "Create the first instance configuration and an empty rule set in the selected data repository. Your signed-in GitHub account becomes the first manager.",
     "secret": "Instance secret",
     "secretHelp": "Enter the shared I0C_SECRET configured in this WebUI and every Runtime deployment.",
     "webUiOrigin": "WebUI origin",
@@ -32,7 +32,8 @@
     "initializing": "Initializing...",
     "unknownError": "Initialization failed. Check the values and try again.",
     "migrationRequired": "Database migration required",
-    "migrationRequiredHelp": "Apply the PostgreSQL data repository migrations before opening setup again.",
+    "migrationRequiredHelp": "Apply the selected data repository migrations before opening setup again.",
+    "migrationRequiredD1Detail": "Apply plugins/repository/d1/migrations/*.sql to the bound D1 database.",
     "partial": "Partial initialization detected",
     "partialHelp": "Only one required data document exists. Setup will not overwrite it; repair or clear the partial state explicitly.",
     "unsupported": "Setup is unavailable",

@@ -1,0 +1,49 @@
+{
+  "name": "@i0c/plugin-data-repository-d1",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Revaea/i0c.cc.git"
+  },
+  "exports": {
+    "./config": {
+      "types": "./src/config.ts",
+      "default": "./src/config.ts"
+    },
+    "./d1": {
+      "types": "./src/d1.ts",
+      "default": "./src/d1.ts"
+    },
+    "./manifest": {
+      "types": "./src/manifest.ts",
+      "default": "./src/manifest.ts"
+    },
+    "./migrations": {
+      "types": "./src/migrations.ts",
+      "default": "./src/migrations.ts"
+    },
+    "./repository": {
+      "types": "./src/repository.ts",
+      "default": "./src/repository.ts"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc --noEmit",
+    "check": "tsc --noEmit",
+    "test": "tsx --test tests/**/*.test.ts"
+  },
+  "dependencies": {
+    "@i0c/config": "workspace:*",
+    "@i0c/plugin-api": "workspace:*"
+  },
+  "devDependencies": {
+    "@i0c/plugin-testkit": "workspace:*",
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}

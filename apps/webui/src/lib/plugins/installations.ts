@@ -22,10 +22,17 @@ export interface WebUiAnalyticsStoreCreateContext {
   readEnvironment(name: string): string | undefined;
 }
 
+export interface WebUiDataRepositoryCreateContext {
+  bindings: ReadonlyMap<string, unknown>;
+  readEnvironment(name: string): string | undefined;
+}
+
 export interface WebUiDataRepositoryInstallation {
   enabledByDefault: boolean;
   manifest: PluginManifest<"data-repository", "webui">;
-  create(): AppDataRepository | Promise<AppDataRepository>;
+  create(
+    context: WebUiDataRepositoryCreateContext,
+  ): AppDataRepository | Promise<AppDataRepository>;
 }
 
 export interface WebUiAnalyticsStoreInstallation {
