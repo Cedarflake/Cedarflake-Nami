@@ -1,6 +1,6 @@
 # i0c.cc Runtime
 
-面向 Cloudflare Workers、Vercel Edge Functions、Netlify Edge Functions 等 fetch 兼容边缘平台的可选式重定向运行时。它会强制 HTTPS、返回 favicon，从远程 `config.json` 加载非敏感实例配置，并根据远程 `redirects.json` 中的规则执行重定向或代理。部署时选择适合的平台适配器即可，三个平台不要求同时运行。
+面向 Cloudflare Workers、Vercel Edge Functions、Netlify Edge Functions 等 fetch 兼容边缘平台的可选式重定向运行时。它会强制 HTTPS、返回 favicon，并通过所选 Data Source 加载非敏感实例配置与重定向规则。部署时选择适合的平台适配器即可，三个平台不要求同时运行。
 
 在线预览：
 
@@ -32,7 +32,7 @@
 
 部署完成后：
 
-- 非敏感配置或规则变化时，编辑 `data` 分支的 `config.json` 或 `redirects.json`。内置适配器会在对应缓存时间结束后获取有效更新，不需要重新构建。
+- 非敏感配置或规则变化时，通过所选 WebUI Repository 保存 `config.json` 或 `redirects.json`。默认 Git 方案使用 `data` 分支；内置 Source 会在对应缓存时间结束后获取有效更新，不需要重新构建。
 - 在需要投递统计事件的每个平台设置 `ANALYTICS_WRITE_KEY`。
 - 更新公共重定向逻辑后重新执行包构建，然后再部署。
 
@@ -44,11 +44,11 @@
 
 需要自定义平台或 Runtime Feature？在 workspace 中新增提供 Manifest 与类型化工厂或 `./installation` 入口的包，再把它加入 `i0c.runtime.config.ts` 即可。Runtime 宿主源码和官方 Catalog 不需要增加插件专属改动。外部 fixture 会构建自定义平台与 Feature，并在生成产物中验证 Feature 标记。当前契约证明的是源码 workspace 内的接入能力；共享插件包尚未作为公共 npm SDK 发布。程序化消费者仍可从 [src/lib/handler.ts](src/lib/handler.ts) 引入 `handleRedirectRequest`。稳定的插件 Manifest 与适配器契约位于 [../../packages/plugin-api](../../packages/plugin-api)。
 
-每次构建只注入所选 Runtime 适配器，并通过同一份根安装配置装配 Data Source、Analytics Sink 与 Feature。远程声明会控制可选插件的启停、配置和 Secret 绑定名称。已安装包与初始 Git 数据位置必须在读取 `config.json` 前可用，因此仍属于启动配置。包结构与故障边界详见 [../../docs/plugins.zh-CN.md](../../docs/plugins.zh-CN.md)。
+每次构建只注入所选 Runtime 适配器，并通过同一份根安装配置装配 Data Source、Analytics Sink 与 Feature。远程声明会控制可选插件的启停、配置和 Secret 绑定名称。已安装包与所选 Source 的初始连接设置必须在读取 `config.json` 前可用，因此仍属于启动配置。包结构与故障边界详见 [../../docs/plugins.zh-CN.md](../../docs/plugins.zh-CN.md)。
 
 ## 环境变量与配置
 
-非敏感实例配置统一维护在 `data/config.json`。[../../packages/config](../../packages/config) 负责 schema、校验、启动地址和安全回退值。Runtime 不会再把旧环境变量作为覆盖值或回退值读取，平台后台遗留的旧值会被忽略。
+非敏感实例配置统一维护在所选 Repository 的 `config.json`。[../../packages/config](../../packages/config) 负责 schema、校验、构建期 Source 选择和安全回退值。Runtime 不会再把旧环境变量作为覆盖值或回退值读取，平台后台遗留的旧值会被忽略。
 
 ### 远程 Runtime 配置
 
@@ -62,7 +62,25 @@
 - `analytics.sourceId`：所有平台共用的小写基础域名和稳定统计命名空间。
 - `plugins`：按命名空间隔离的非敏感插件设置，以及环境变量密钥绑定名称。
 
-Runtime 会分别缓存两份文档，合并进行中的重复加载，在可用时使用 ETag，并在刷新失败时保留最后一次有效的内存或平台缓存值。无效的远程实例配置不会替换当前配置。程序化消费者仍可通过 `HandlerOptions` 传入明确地址或注入完整数据源。
+### 选择 Data Source
+
+GitHub Raw 是默认 Source，保留现有分别缓存 `config.json` 与 `redirects.json` 的行为。在 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 中使用 `data.source.provider: "github"` 选择它。
+
+HTTP Snapshot Source 会从 WebUI 原子读取两份文档：
+
+```ts
+source: {
+  provider: "http",
+  snapshotUrl: "https://u.example.com/api/runtime/snapshot",
+  requestTimeoutMs: 5_000,
+  maximumFetchAttempts: 2,
+  failureBackoffSeconds: 30,
+}
+```
+
+它会合并并发加载、使用 ETag、限制超时和瞬时错误重试次数，并在刷新失败时保留最后一次通过宿主校验的内存或平台缓存快照。无效快照结构、数据文档或必需插件声明都不会替换当前版本。PostgreSQL Repository 应搭配该 Source，让 Runtime 接收数据库中保存的状态，但不获得数据库凭据。Source 选择属于构建期启动配置，修改后需要重新构建 Runtime。
+
+程序化消费者仍可通过 `HandlerOptions` 传入兼容 GitHub 地址或注入完整数据源。
 
 ### 配置统计密钥
 

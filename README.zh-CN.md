@@ -1,13 +1,13 @@
 # i0c.cc
 
-i0c.cc 是一个个人使用、由 Git 驱动的边缘重定向实验项目。重定向规则在 Git 中版本化，同一套核心可以通过不同边缘平台适配器运行，并提供自用的 WebUI 与可选统计功能。
+i0c.cc 是一个个人使用、默认采用 Git 数据后端的边缘重定向实验项目。同一套核心可以通过不同边缘平台适配器运行，并提供自用的 WebUI 与可选统计功能。
 
 ## 项目定位
 
 这个仓库面向个人使用和工程实验，不准备成为托管短链接服务或企业级重定向平台。
 
 - 按部署环境选择所需的 Runtime 适配器；Cloudflare、Vercel 与 Netlify 是可选方案，不要求同时运行。
-- 以 Git 中的 `redirects.json` 作为可审查、可回退的规则来源。
+- 默认继续使用简单、可审查的 Git 工作流；需要数据库即时保存时也可以选择 PostgreSQL Repository。
 - WebUI 与统计功能服务于个人工作流；后续路线优先保证清晰和可靠，不追求与商业产品功能对齐。
 
 ## 项目
@@ -22,9 +22,9 @@ i0c.cc 是一个个人使用、由 Git 驱动的边缘重定向实验项目。�
 | 插件目录 | [packages/plugin-catalog](packages/plugin-catalog) | 可选的官方预设与按宿主执行的插件配置校验。 |
 | Runtime 宿主 | [packages/runtime-host](packages/runtime-host) | 平台无关的 Runtime 部署与可执行插件安装契约。 |
 | Runtime 构建 | [packages/runtime-build](packages/runtime-build) | 构建期安装校验、根配置绑定与所选适配器 Bundle 生成。 |
-| 官方插件 | [plugins](plugins) | Git 数据、三个 Runtime 适配器、HTTP 统计投递、PostgreSQL、用于协议验证的 D1 Store，以及机器人分类。 |
+| 官方插件 | [plugins](plugins) | Git 与 PostgreSQL 数据后端、HTTP Runtime 快照源、三个 Runtime 适配器、统计投递与存储，以及机器人分类。 |
 
-可执行插件在构建期选择：Runtime 安装位于 [i0c.runtime.config.ts](i0c.runtime.config.ts)，WebUI 服务端安装位于 [i0c.webui.config.ts](i0c.webui.config.ts)，客户端安全的 WebUI Renderer 位于 [apps/webui/webui.extensions.ts](apps/webui/webui.extensions.ts)。远程 `data/config.json` 只能配置已安装代码，不会下载或执行新包。
+可执行插件在构建期选择：Runtime 安装位于 [i0c.runtime.config.ts](i0c.runtime.config.ts)，WebUI 服务端安装位于 [i0c.webui.config.ts](i0c.webui.config.ts)，客户端安全的 WebUI Renderer 位于 [apps/webui/webui.extensions.ts](apps/webui/webui.extensions.ts)。远程 `config.json` 文档只能配置已安装代码，不会下载或执行新包。
 
 ## 在线预览
 
@@ -55,7 +55,7 @@ i0c.cc 是一个个人使用、由 Git 驱动的边缘重定向实验项目。�
 | Vercel | `apps/runtime` | `pnpm build:vc` | `.vercel/output` |
 | Netlify | `apps/runtime` | `pnpm build:nf` | `dist` |
 
-构建时必须使用完整的 monorepo 检出，确保 Runtime 可以导入共享 workspace 包。Vercel 需要保持开启 **Include source files outside of the Root Directory in the Build Step**。Runtime 的实例配置与重定向规则会从 `data` 分支读取；启用统计投递时，每个平台只需要设置 `ANALYTICS_WRITE_KEY` 密钥。
+构建时必须使用完整的 monorepo 检出，确保 Runtime 可以导入共享 workspace 包。Vercel 需要保持开启 **Include source files outside of the Root Directory in the Build Step**。默认 Runtime Source 从 `data` 分支读取；可选的 HTTP Snapshot Source 会从 WebUI 读取一份原子快照。启用统计投递时，每个平台只需要设置 `ANALYTICS_WRITE_KEY` 密钥。
 
 ### WebUI
 
@@ -76,14 +76,16 @@ Vercel 需要保持开启 **Include source files outside of the Root Directory i
 
 ## 应用配置
 
-`data` 分支包含两份可独立编辑的文档：
+所选 WebUI Repository 包含两份可独立编辑的文档：
 
 - `config.json` 存放非敏感实例配置，包括 Runtime 规范域名、缓存时间、robots 策略、统计命名空间与收集端地址、WebUI 访问策略，以及按命名空间隔离的插件配置。
 - `redirects.json` 存放重定向规则。
 
-Runtime 与 WebUI 会远程读取这两份文档，缓存最后一次有效值，并在无需重新构建应用的情况下获取更新。WebUI 可以编辑两份文件；即使 `config.json` 写坏，管理员仍能看到原文并修复，而应用消费者会继续使用最后一次有效值或仓库内置的安全默认值。
+GitHub Contents 仍是默认 Repository，并在 `data` 分支保留 commit。可选的 PostgreSQL Repository 使用乐观文档版本，并提供两份文档的原子快照。WebUI 可以编辑两份文档；即使 `config.json` 写坏，管理员仍能看到原文并修复。
 
-[packages/config](packages/config) 负责 schema、校验、安全默认值以及 `data` 分支的启动地址。只有迁移数据源本身时，才需要在代码中修改启动仓库、分支、路径或 GitHub OAuth scope；这类改动仍需要重新构建。
+默认 GitHub Runtime Source 会分别缓存两份 Raw 文档。可选的 HTTP Snapshot Source 从 WebUI 读取一份经过校验的快照，确保配置和规则来自同一个 Repository revision；它使用 ETag、有限重试与超时，并保留最后一次有效的内存或平台缓存。Runtime 部署不会获得 PostgreSQL 凭据。
+
+[packages/config](packages/config) 负责 schema、校验、安全默认值，以及构建期 Repository 与 Source 选择。修改 GitHub 路径、PostgreSQL 连接策略、HTTP 快照地址或 GitHub OAuth scope 等启动配置后仍需重新构建。PostgreSQL Repository 迁移属于明确的外部写入，构建与应用启动都不会自动执行。
 
 原有非敏感环境变量不再作为覆盖值或回退值读取。平台后台遗留的旧值会被忽略，确认新部署正常后即可删除。密钥和与部署绑定的值继续保留在各应用的环境变量示例中。
 
@@ -137,16 +139,16 @@ pnpm webui:test
 pnpm check
 ```
 
-## Data 分支
+## 数据文档
 
-Runtime 会从本仓库的 `data` 分支读取 `config.json` 与 `redirects.json`。两份 schema 位于：
+两种 Repository 实现共用下面的文档 schema：
 
 ```text
 packages/config/config.schema.json
 packages/config/redirects.schema.json
 ```
 
-两份文件分别通过 `$schema` 声明自己的 schema。使用下面的命令校验本地 `origin/data` Git 引用中的两份数据：
+两份文件分别通过 `$schema` 声明自己的 schema。默认 Git 工作流可以使用下面的命令校验本地 `origin/data` Git 引用中的两份数据：
 
 ```bash
 pnpm data:validate

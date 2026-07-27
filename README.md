@@ -1,13 +1,13 @@
 # <img src="./logo.webp" alt="i0c.cc" width="420">
 
-i0c.cc is a personal, Git-driven edge redirect playground. It keeps redirect rules versioned in Git, runs the same core through optional edge-platform adapters, and provides a WebUI with optional analytics for my own use.
+i0c.cc is a personal edge redirect playground with Git as its default data backend. It runs the same core through optional edge-platform adapters and provides a WebUI with optional analytics for my own use.
 
 ## Positioning
 
 This repository is maintained for personal use and engineering experimentation. It is not intended to be a hosted URL-shortening service or an enterprise redirect platform.
 
 - Deploy whichever Runtime adapter fits the environment; Cloudflare, Vercel, and Netlify are supported alternatives rather than required replicas.
-- Keep `redirects.json` in Git as the reviewable and reversible source of truth.
+- Keep Git as the simple default, or select the PostgreSQL Repository when immediate database-backed saves are more useful.
 - Use the WebUI and analytics when they help the personal workflow; the roadmap prioritizes clarity and reliability over feature parity with commercial products.
 
 ## Projects
@@ -22,9 +22,9 @@ This repository is maintained for personal use and engineering experimentation. 
 | Plugin Catalog | [packages/plugin-catalog](packages/plugin-catalog) | Optional official presets and host-specific plugin configuration validation. |
 | Runtime Host | [packages/runtime-host](packages/runtime-host) | Platform-neutral Runtime deployment and executable-plugin installation contracts. |
 | Runtime Build | [packages/runtime-build](packages/runtime-build) | Build-time installation validation, root-config binding, and selected-adapter bundling. |
-| Official plugins | [plugins](plugins) | Git data, three Runtime adapters, HTTP analytics delivery, PostgreSQL, a D1 protocol-validation store, and bot classification. |
+| Official plugins | [plugins](plugins) | Git and PostgreSQL data backends, an HTTP Runtime snapshot source, three Runtime adapters, analytics delivery and storage, and bot classification. |
 
-Executable plugins are selected at build time: Runtime installations live in [i0c.runtime.config.ts](i0c.runtime.config.ts), WebUI server installations in [i0c.webui.config.ts](i0c.webui.config.ts), and client-safe WebUI renderers in [apps/webui/webui.extensions.ts](apps/webui/webui.extensions.ts). Remote `data/config.json` configures installed code but never downloads or executes new packages.
+Executable plugins are selected at build time: Runtime installations live in [i0c.runtime.config.ts](i0c.runtime.config.ts), WebUI server installations in [i0c.webui.config.ts](i0c.webui.config.ts), and client-safe WebUI renderers in [apps/webui/webui.extensions.ts](apps/webui/webui.extensions.ts). The remote `config.json` document configures installed code but never downloads or executes new packages.
 
 ## Live previews
 
@@ -55,7 +55,7 @@ Use these settings when the platform asks for project or build configuration:
 | Vercel | `apps/runtime` | `pnpm build:vc` | `.vercel/output` |
 | Netlify | `apps/runtime` | `pnpm build:nf` | `dist` |
 
-Build from a full monorepo checkout so the Runtime can import the shared workspace packages. On Vercel, keep **Include source files outside of the Root Directory in the Build Step** enabled. Runtime instance settings and redirect rules are loaded from the `data` branch; analytics delivery only requires the `ANALYTICS_WRITE_KEY` secret on each provider.
+Build from a full monorepo checkout so the Runtime can import the shared workspace packages. On Vercel, keep **Include source files outside of the Root Directory in the Build Step** enabled. The default Runtime Source reads the `data` branch; the optional HTTP Snapshot Source reads one atomic snapshot from the WebUI. Analytics delivery only requires the `ANALYTICS_WRITE_KEY` secret on each provider.
 
 ### WebUI
 
@@ -76,14 +76,16 @@ Keep **Include source files outside of the Root Directory in the Build Step** en
 
 ## Application configuration
 
-The `data` branch contains two independently editable documents:
+The selected WebUI Repository contains two independently editable documents:
 
 - `config.json` stores non-sensitive instance settings such as the canonical Runtime origin, cache TTLs, robots policy, analytics namespace and collector endpoint, WebUI access policy, and namespaced plugin configuration.
 - `redirects.json` stores redirect rules.
 
-The Runtime and WebUI fetch these documents remotely, cache the last valid values, and pick up changes without an application rebuild. The WebUI can edit both files; invalid `config.json` content remains visible to managers so it can be repaired, while consumers keep using the last valid value or the checked-in safe default.
+GitHub Contents remains the default Repository and preserves commits on the `data` branch. The optional PostgreSQL Repository uses optimistic document revisions and exposes an atomic two-document snapshot. The WebUI can edit both documents; invalid `config.json` content remains visible to managers so it can be repaired.
 
-[packages/config](packages/config) owns the schemas, validation, safe defaults, and the bootstrap location of the `data` branch. Change the bootstrap repository, branch, paths, or GitHub OAuth scope in code only when moving the data source itself; that kind of change still requires rebuilding.
+The default GitHub Runtime Source reads both Raw documents with independent caches. The optional HTTP Snapshot Source reads one validated WebUI snapshot so config and rules always come from the same Repository revision. It uses ETags, bounded retries and timeouts, and the last valid memory or platform cache. Runtime deployments never receive PostgreSQL credentials.
+
+[packages/config](packages/config) owns schemas, validation, safe defaults, and the build-time Repository and Source selection. Bootstrap changes such as GitHub paths, PostgreSQL connection policy, HTTP snapshot URL, or GitHub OAuth scope require rebuilding. PostgreSQL Repository migrations are deliberate external writes and never run during a build or application startup.
 
 The former non-sensitive environment variables are not read as overrides or fallbacks. Existing values left in a provider dashboard are ignored and can be removed after the new deployment is verified. Secrets and deployment-specific bindings remain in each application's environment example.
 
@@ -137,16 +139,16 @@ Run the full local validation before committing:
 pnpm check
 ```
 
-## Data branch
+## Data documents
 
-The Runtime reads `config.json` and `redirects.json` from the `data` branch of this repository. Their schemas live at:
+The two Repository implementations use the same document schemas:
 
 ```text
 packages/config/config.schema.json
 packages/config/redirects.schema.json
 ```
 
-Each file declares its own schema through `$schema`. Validate both data documents from the local `origin/data` Git ref with:
+Each file declares its own schema through `$schema`. The default Git workflow can validate both documents from the local `origin/data` Git ref with:
 
 ```bash
 pnpm data:validate

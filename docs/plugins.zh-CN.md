@@ -2,7 +2,7 @@
 
 ## 范围
 
-i0c.cc 使用轻量的静态注册插件架构，让重定向核心不直接绑定某个边缘平台、Git 传输方式、统计投递路径或统计数据库，同时避免把个人项目扩展成动态插件平台。
+i0c.cc 使用轻量的静态注册插件架构，让重定向核心不直接绑定某个边缘平台、数据仓库或传输方式、统计投递路径或统计数据库，同时避免把个人项目扩展成动态插件平台。
 
 插件是构建时选定的 workspace 包。远程 `config.json` 可以配置或关闭已经安装的可选插件，但不能发现、下载、安装或执行新代码。
 
@@ -17,6 +17,8 @@ i0c.cc 使用轻量的静态注册插件架构，让重定向核心不直接绑�
 | Runtime 宿主 | `@i0c/runtime-host` | 平台无关的部署装配与宿主上下文补充 |
 | Runtime 构建 | `@i0c/runtime-build` | 构建期安装配置校验与所选平台 Bundle 生成 |
 | Git 数据 | `@i0c/plugin-github-data` | GitHub Raw Runtime Source 与 GitHub Contents WebUI Repository |
+| HTTP 数据源 | `@i0c/plugin-http-snapshot-source` | 通过 HTTPS 原子读取 Runtime 配置与规则快照 |
+| 数据仓库 | `@i0c/plugin-data-repository-postgres` | 在 PostgreSQL 中以乐观并发和原子快照持久化配置与规则 |
 | Runtime | `@i0c/plugin-runtime-cloudflare`、`@i0c/plugin-runtime-vercel`、`@i0c/plugin-runtime-netlify` | 平台请求、环境、缓存、国家信息与后台任务适配 |
 | Sink | `@i0c/plugin-analytics-sink-http` | 带签名、尽力而为的 HTTP 统计投递 |
 | Store | `@i0c/plugin-analytics-store-postgres`、`@i0c/plugin-analytics-store-d1` | 统计写入、查询、重算、保留、健康检查和自有迁移 |
@@ -26,14 +28,16 @@ i0c.cc 使用轻量的静态注册插件架构，让重定向核心不直接绑�
 
 ## 数据文档与启动边界
 
-`data` 分支继续作为可编辑的非敏感数据平面：
+可编辑的非敏感数据平面包含两份文档：
 
 - `config.json` 存放版本化实例设置和已安装插件声明。
 - `redirects.json` 存放重定向规则。
 
-Runtime 分别读取和缓存两个文档，合并并发刷新，使用 ETag，并在刷新失败时保留最后一次有效值。WebUI 通过版本化 Repository 契约分别读写这两个文件。
+GitHub Contents 仍是默认 WebUI Repository，并保留现有 `data` 分支工作流。可选的 PostgreSQL Repository 以乐观版本写入两份文档，并提供原子读取快照；它的迁移历史与统计迁移相互独立。
 
-有些值必须在读取远程文档之前存在。GitHub 所有者、仓库、分支、路径、OAuth scope、初始 Raw URL 和已安装插件包因此属于**启动配置**，不是远程插件配置。默认值位于 `@i0c/config`；Runtime 可执行安装位于根目录 `i0c.runtime.config.ts`，WebUI 服务端安装位于根目录 `i0c.webui.config.ts`，客户端安全的 WebUI 扩展位于 `apps/webui/webui.extensions.ts`。修改安装项后需要重新构建。Git 与 Runtime Manifest 会明确拒绝在 `plugins.*.config` 中填写这些启动字段，避免出现“能通过校验，却无法初始化自身加载器”的假配置。
+GitHub Raw 仍是默认 Runtime Source，会分别读取两份文档。HTTP Snapshot Source 则从 WebUI 一次读取经过校验的 `{ revision, config, redirects }`，合并并发加载、使用 ETag 重新验证，并在刷新失败时保留最后一次通过宿主校验的快照。Runtime 不会直接连接 PostgreSQL Repository。
+
+有些值必须在读取远程文档之前存在。所选 Repository 与 Source、GitHub 所有者、仓库、分支和路径、OAuth scope、PostgreSQL binding 与连接策略、HTTP 快照地址与重试策略，以及已安装插件包因此属于**启动配置**，不是远程插件配置。默认值位于 `@i0c/config`；Runtime 可执行安装位于根目录 `i0c.runtime.config.ts`，WebUI 服务端安装位于根目录 `i0c.webui.config.ts`，客户端安全的 WebUI 扩展位于 `apps/webui/webui.extensions.ts`。修改安装项后需要重新构建。插件 Manifest 会明确拒绝在 `plugins.*.config` 中填写这些启动字段，避免出现“能通过校验，却无法初始化自身加载器”的假配置。
 
 ## Manifest 与配置模型
 
@@ -62,17 +66,17 @@ Runtime 分别读取和缓存两个文档，合并并发刷新，使用 ETag，�
 - `config` 只存放 JSON 安全的公开值，并由所选插件自己的 Schema 校验。
 - 插件 Schema 使用 `@i0c/plugin-api` 记录的受校验子集；未支持的关键字和非 JSON 字面量会让 Manifest 注册失败，不会被静默忽略。
 - HTTP Sink 会将 `requestTimeoutMs` 应用到每次投递尝试；省略时使用插件的 5 秒默认值。
-- `secrets` 把插件内名称映射到环境变量或平台绑定名称；Secret 值不会进入 data 分支。
+- `secrets` 把插件内名称映射到环境变量或平台绑定名称；Secret 值不会进入数据文档。
 - 未安装插件、不兼容配置版本、未声明的 Secret 名称、不支持的宿主和单例插槽冲突都会被拒绝。
 - Runtime 构建只选择一个平台适配器。共享文档可以同时声明其他受支持平台，但它们不会进入当前构建的装配结果。
-- Git Runtime Source、Git WebUI Repository 与当前 Runtime 平台属于必需的启动能力；显式关闭会让对应宿主拒绝配置。
+- 所选 Runtime Source、所选 WebUI Repository 与当前 Runtime 平台属于必需的启动能力；显式关闭会让对应宿主拒绝配置。
 - HTTP Sink、机器人分类器和 Analytics Store 是可选能力；关闭后会分别移除投递、Feature 注册或统计存储。
 
 第一阶段迁移中，缺少声明时会使用兼容默认值。发布显式声明后，`enabled`、插件配置和 Secret 映射会真实驱动工厂与 Feature 管线。
 
 ## 编译期安装
 
-Runtime 插件不会硬编码在 `apps/runtime` 中。根目录 `i0c.runtime.config.ts` 安装 Data Source、Analytics Sink、Feature 与平台适配器。平台包导出 `./manifest`、`./runtime` 与 `./installation`，Installation 入口声明包模块、需要打包的依赖、Provider 标识、构建键和输出路径；Source、Sink 与 Feature 则把 Manifest 和工厂直接交给同一份根配置。
+Runtime 插件不会硬编码在 `apps/runtime` 中。根目录 `i0c.runtime.config.ts` 安装 Data Source、Analytics Sink、Feature 与平台适配器。平台包导出 `./manifest`、`./runtime` 与 `./installation`，Installation 入口声明包模块、需要打包的依赖、Provider 标识、构建键和输出路径。Source Installation 还会提供由插件拥有的不透明启动对象和诊断端点；`apps/runtime` 只把该对象交给所选工厂，不定义数据源专属字段。Sink 与 Feature 也把 Manifest 和工厂交给同一份根配置。
 
 `apps/runtime/src/entry.ts` 只导入由 `@i0c/runtime-build` 生成的虚拟所选平台模块。构建会绑定指定的根配置、注入所选适配器、打包其声明的 Runtime 插件，并在外部 fixture 产物中验证插件标记。因此新增 workspace 内的第三方 Runtime Platform 或 Feature 只需把包加入 workspace 与根安装配置，无需修改 `apps/runtime`、统计事件类型或官方 Catalog。共享插件包目前仍是私有的源码 workspace 包，不是已发布的 npm SDK。
 
@@ -94,6 +98,12 @@ WebUI 提供四个静态注册扩展插槽：
 当前生产安装除宿主自带的插件状态面板外，暂未向这些插槽注册内容。它们是编译期 UI 扩展的真实渲染点，不是在线安装机制。插件状态文案只会在面板挂载时动态导入。
 
 `GET /api/plugins/status` 展示已安装 Manifest、配置状态、能力、宿主可观测的 Secret 绑定、所选 Store 健康状态和缺失前提。端点要求 WebUI 读取权限、禁止响应缓存、用超时限制健康检查，并且不会暴露原始数据库错误或 Secret 值。
+
+## Data Repository 与迁移
+
+`AtomicVersionedDataRepository` 提供文档读取、乐观并发写入和两份文档的原子快照。GitHub 把 commit SHA 作为 Repository revision，并在同一 commit 上读取两份文档；PostgreSQL 使用只读可重复读事务、数字文档版本与校验和。
+
+PostgreSQL Repository 迁移位于 `plugins/repository/postgres/migrations`，使用独立迁移表和 advisory lock。构建、应用启动、Runtime 请求与 WebUI 健康检查都不会自动执行迁移。选择 PostgreSQL 时还需要配置 `DATA_REPOSITORY_DATABASE_URL` 或指定的 binding 名称。它的显式初始化命令会校验本地 `config.json` 与 `redirects.json`，在同一个事务中只创建缺失文档，并且不会覆盖已有内容。该 Repository 必须搭配 HTTP Snapshot Runtime Source，让数据库中保存的状态能到达边缘部署，同时不向 Runtime 提供数据库凭据；不兼容的启动选择会让构建失败。
 
 ## Analytics Store 与迁移
 
@@ -132,17 +142,17 @@ Plugin CI 检查类型、Manifest、契约、独立插件包、PostgreSQL 集成
 5. Runtime 可执行安装加入 `i0c.runtime.config.ts`，WebUI 服务端安装加入 `i0c.webui.config.ts`，客户端 Renderer 加入 `apps/webui/webui.extensions.ts`。Runtime 平台还要导出带构建描述符的 `./installation`。
 6. 复用 Plugin Testkit 契约，并添加实现特有测试。
 7. 新增表面时同步扩展依赖边界检查和路径触发 CI。
-8. 先合并并部署理解新声明的代码，再发布对应的 `data/config.json` 修改。
+8. 先合并并部署理解新声明的代码，再通过所选 Repository 发布对应的 `config.json` 修改。
 
 ## 故障与发布顺序
 
-无效远程配置不会替换有效缓存。热实例保留最后一次有效配置，冷实例使用仓库内置的兼容默认值。WebUI 会向已认证管理员保留无效文档原文，以便修复。
+无效远程配置或快照不会替换有效缓存。热实例保留最后一次有效数据；冷实例没有有效平台缓存时使用仓库内置的兼容默认值。WebUI 会向已认证管理员保留无效文档原文，以便修复。
 
 发布顺序：
 
 1. 合并代码与 Schema 修改。
 2. 部署受影响宿主。
-3. 发布已校验的 `data/config.json` 与 `data/redirects.json` 修改。
+3. 通过所选 Repository 发布已校验的 `config.json` 与 `redirects.json` 修改。
 4. 等待配置缓存时间，然后验证 WebUI 与选中的 Runtime 平台。
 5. 完成生产验证后，才删除失效的非敏感 Dashboard 变量。
 
@@ -151,6 +161,6 @@ Plugin CI 检查类型、Manifest、契约、独立插件包、PostgreSQL 集成
 - 不在运行时加载 npm 包或 URL 插件。
 - 不提供公开插件市场或在线安装、卸载 UI。
 - 不实现不受信任插件沙箱。
-- 不在 data 分支保存 Secret 值。
+- 不在数据文档中保存 Secret 值。
 - 不要求同时部署全部 Runtime 适配器。
 - 不设计超出已实现、已通过契约测试能力的万能数据库或平台抽象。

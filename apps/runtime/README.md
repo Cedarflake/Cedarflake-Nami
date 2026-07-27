@@ -1,6 +1,6 @@
 # i0c.cc Runtime
 
-Provider-selectable redirect runtime for fetch-compatible edge platforms: Cloudflare Workers, Vercel Edge Functions, and Netlify Edge Functions. It enforces HTTPS, serves a favicon, and loads non-sensitive instance settings from remote `config.json` plus rules from remote `redirects.json`. Choose the adapter that fits the deployment; the three providers do not need to run together.
+Provider-selectable redirect runtime for fetch-compatible edge platforms: Cloudflare Workers, Vercel Edge Functions, and Netlify Edge Functions. It enforces HTTPS, serves a favicon, and loads non-sensitive instance settings plus redirect rules through the selected Data Source. Choose the adapter that fits the deployment; the three providers do not need to run together.
 
 Live previews:
 
@@ -32,7 +32,7 @@ The package-level `pnpm build` command generates and retains all three provider 
 
 After deploying:
 
-- Edit `config.json` or `redirects.json` on the `data` branch when non-sensitive settings or rules change. Built-in adapters pick up valid updates after their configured cache TTL without a rebuild.
+- Save `config.json` or `redirects.json` through the selected WebUI Repository when non-sensitive settings or rules change. The default Git setup uses the `data` branch. Built-in Sources pick up valid updates after their configured cache TTL without a rebuild.
 - Set `ANALYTICS_WRITE_KEY` on every provider that should deliver analytics events.
 - Re-run the package build after updating shared redirect logic, then redeploy.
 
@@ -44,11 +44,11 @@ After deploying:
 
 Need a custom platform or Runtime feature? Add a workspace package with its Manifest and typed factory or `./installation` entry, then add it to `i0c.runtime.config.ts`. The Runtime host source and official catalog do not need plugin-specific changes. The external fixture builds a custom platform and Feature and verifies the Feature marker in the emitted artifact. The current contract proves source-workspace integration; the shared plugin packages are not yet published as a public npm SDK. Programmatic consumers can still import `handleRedirectRequest` from [src/lib/handler.ts](src/lib/handler.ts). Stable plugin manifests and adapter contracts live in [../../packages/plugin-api](../../packages/plugin-api).
 
-Each build injects only the selected Runtime adapter and uses the same root installation configuration to assemble its Data Source, Analytics Sink, and Features. Remote declarations control optional enablement, configuration, and Secret binding names. Installed packages and the initial Git data location remain bootstrap settings because they are required before `config.json` can be read. See [../../docs/plugins.md](../../docs/plugins.md) for the package and failure boundaries.
+Each build injects only the selected Runtime adapter and uses the same root installation configuration to assemble its Data Source, Analytics Sink, and Features. Remote declarations control optional enablement, configuration, and Secret binding names. Installed packages and the selected Source's initial connection settings remain bootstrap configuration because they are required before `config.json` can be read. See [../../docs/plugins.md](../../docs/plugins.md) for the package and failure boundaries.
 
 ## Environment variables and configuration
 
-Non-sensitive instance settings are versioned in `data/config.json`. [../../packages/config](../../packages/config) owns its schema, validation, bootstrap location, and safe fallback. The Runtime does not read legacy environment variables as overrides or fallbacks; values left in provider dashboards are ignored.
+Non-sensitive instance settings are versioned in the selected Repository's `config.json`. [../../packages/config](../../packages/config) owns its schema, validation, build-time Source selection, and safe fallback. The Runtime does not read legacy environment variables as overrides or fallbacks; values left in provider dashboards are ignored.
 
 ### Remote Runtime configuration
 
@@ -62,7 +62,25 @@ Non-sensitive instance settings are versioned in `data/config.json`. [../../pack
 - `analytics.sourceId`: Lowercase base hostname and stable statistics namespace shared by all providers.
 - `plugins`: Namespaced, non-sensitive plugin settings and references to environment-variable secret bindings.
 
-The Runtime caches each document independently, deduplicates in-flight loads, uses ETags where available, and retains the last valid in-memory or platform-cached value when a refresh fails. Invalid remote instance settings never replace the active configuration. Programmatic consumers can still pass explicit URLs or inject a complete data source through `HandlerOptions`.
+### Choose a Data Source
+
+GitHub Raw is the default Source and keeps the existing independent `config.json` and `redirects.json` cache behavior. Select it with `data.source.provider: "github"` in [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts).
+
+The HTTP Snapshot Source reads both documents atomically from the WebUI:
+
+```ts
+source: {
+  provider: "http",
+  snapshotUrl: "https://u.example.com/api/runtime/snapshot",
+  requestTimeoutMs: 5_000,
+  maximumFetchAttempts: 2,
+  failureBackoffSeconds: 30,
+}
+```
+
+It deduplicates concurrent loads, uses ETags, bounds timeouts and transient retries, and retains the last host-valid in-memory or platform-cached snapshot when a refresh fails. Invalid snapshot envelopes, data documents, or required-plugin declarations never replace the active version. Use this Source with the PostgreSQL Repository so Runtime deployments receive database-backed saves without database credentials. Source selection is build-time bootstrap configuration and requires rebuilding the Runtime.
+
+Programmatic consumers can still pass legacy GitHub URLs or inject a complete data source through `HandlerOptions`.
 
 ### Configure the analytics secret
 
