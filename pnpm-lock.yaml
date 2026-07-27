@@ -53,6 +53,9 @@ importers:
       '@i0c/plugin-api':
         specifier: workspace:*
         version: link:packages/plugin-api
+      '@i0c/plugin-data-repository-d1':
+        specifier: workspace:*
+        version: link:plugins/repository/d1
       '@i0c/plugin-data-repository-postgres':
         specifier: workspace:*
         version: link:plugins/repository/postgres
@@ -153,6 +156,9 @@ importers:
       '@i0c/plugin-catalog':
         specifier: workspace:*
         version: link:../../packages/plugin-catalog
+      '@i0c/plugin-data-repository-d1':
+        specifier: workspace:*
+        version: link:../../plugins/repository/d1
       '@i0c/plugin-data-repository-postgres':
         specifier: workspace:*
         version: link:../../plugins/repository/postgres
@@ -284,6 +290,9 @@ importers:
       '@i0c/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
+      '@i0c/plugin-data-repository-d1':
+        specifier: workspace:*
+        version: link:../../plugins/repository/d1
       '@i0c/plugin-data-repository-postgres':
         specifier: workspace:*
         version: link:../../plugins/repository/postgres
@@ -318,6 +327,9 @@ importers:
 
   packages/plugin-testkit:
     dependencies:
+      '@i0c/config':
+        specifier: workspace:*
+        version: link:../config
       '@i0c/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
@@ -444,6 +456,28 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/plugin-api
     devDependencies:
+      '@types/node':
+        specifier: ^25.5.0
+        version: 25.5.0
+      tsx:
+        specifier: ^4.21.0
+        version: 4.23.1
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+
+  plugins/repository/d1:
+    dependencies:
+      '@i0c/config':
+        specifier: workspace:*
+        version: link:../../../packages/config
+      '@i0c/plugin-api':
+        specifier: workspace:*
+        version: link:../../../packages/plugin-api
+    devDependencies:
+      '@i0c/plugin-testkit':
+        specifier: workspace:*
+        version: link:../../../packages/plugin-testkit
       '@types/node':
         specifier: ^25.5.0
         version: 25.5.0

@@ -22,6 +22,9 @@ export type RightPanelProps = {
   onJsonDraftChange: (value: string) => void;
   jsonError: string | null;
   isReadOnly: boolean;
+  showSaveAction: boolean;
+  supportsJsonEditor: boolean;
+  supportsSourceOverride: boolean;
   onLoadSourceUrl: (url: string) => Promise<void>;
   onUndo: () => void;
   rulesContent: ReactNode;
@@ -42,6 +45,9 @@ export function RightPanel({
   onJsonDraftChange,
   jsonError,
   isReadOnly,
+  showSaveAction,
+  supportsJsonEditor,
+  supportsSourceOverride,
   onLoadSourceUrl,
   onUndo,
   rulesContent,
@@ -58,7 +64,7 @@ export function RightPanel({
       <div className="mb-6 flex flex-col gap-3 border-b border-line pb-5 sm:flex-row sm:items-center sm:justify-between lg:pb-4">
         {editorMode === "settings" ? (
           <h1 className="text-xl font-semibold text-ink">{tConfig("title")}</h1>
-        ) : (
+        ) : supportsJsonEditor ? (
           <div className="grid w-fit grid-cols-2 gap-1 rounded-xl bg-panel-muted p-1">
             <Button
               onClick={onEnterRulesMode}
@@ -75,17 +81,21 @@ export function RightPanel({
               {t("json")}
             </Button>
           </div>
+        ) : (
+          <h1 className="text-xl font-semibold text-ink">{t("rules")}</h1>
         )}
 
         {isReadOnly ? null : (
           <div className="flex flex-wrap items-center gap-2">
             {showRuleActions ? (
               <>
-                <RedirectSourceDialog
-                  disabled={isPending}
-                  sourceUrl={sourceUrl}
-                  onLoad={onLoadSourceUrl}
-                />
+                {supportsSourceOverride ? (
+                  <RedirectSourceDialog
+                    disabled={isPending}
+                    sourceUrl={sourceUrl}
+                    onLoad={onLoadSourceUrl}
+                  />
+                ) : null}
                 <Button
                   onClick={onUndo}
                   disabled={!canUndo || isPending}
@@ -128,14 +138,16 @@ export function RightPanel({
                 </Button>
               </>
             ) : null}
-            <Button
-              onClick={onSave}
-              disabled={isPending}
-              size="sm"
-              variant="primary"
-            >
-              {isPending ? tGroups("saving") : tGroups("save")}
-            </Button>
+            {showSaveAction ? (
+              <Button
+                onClick={onSave}
+                disabled={isPending}
+                size="sm"
+                variant="primary"
+              >
+                {isPending ? tGroups("saving") : tGroups("save")}
+              </Button>
+            ) : null}
           </div>
         )}
       </div>

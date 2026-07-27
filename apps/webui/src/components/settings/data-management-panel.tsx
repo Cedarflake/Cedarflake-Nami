@@ -3,6 +3,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ChangeEvent,
   type ReactNode,
@@ -26,6 +27,8 @@ import {
   SkeletonPulse,
 } from "@/components/ui/feedback/skeletons";
 
+import { RevisionDiff } from "./revision-diff";
+
 interface DataManagementPanelProps {
   hasUnsavedChanges: boolean;
   isReadOnly: boolean;
@@ -42,6 +45,17 @@ interface DocumentResponse {
 interface PendingRestore {
   kind: DataDocumentKind;
   revision: string;
+}
+
+interface LoadedRevisionPreview {
+  current: DataDocumentRevision;
+  previous: DataDocumentRevision | null;
+}
+
+interface RevisionPreview {
+  error: string | null;
+  loaded: LoadedRevisionPreview | null;
+  target: DataDocumentRevisionSummary;
 }
 
 const maximumDocumentSize = 1_000_000;
@@ -65,7 +79,8 @@ export function DataManagementPanel({
     useState<PendingRestore | null>(null);
   const [isImportConfirmationOpen, setIsImportConfirmationOpen] =
     useState(false);
-  const [preview, setPreview] = useState<DataDocumentRevision | null>(null);
+  const [preview, setPreview] = useState<RevisionPreview | null>(null);
+  const previewControllerRef = useRef<AbortController | null>(null);
   const dateFormatter = useMemo(
     () => new Intl.DateTimeFormat(locale, {
       dateStyle: "medium",
@@ -101,6 +116,10 @@ export function DataManagementPanel({
       controller.abort();
     };
   }, [isReadOnly, selectedKind]);
+
+  useEffect(() => () => {
+    previewControllerRef.current?.abort();
+  }, []);
 
   function handleFileChange(
     event: ChangeEvent<HTMLInputElement>,
@@ -138,19 +157,72 @@ export function DataManagementPanel({
   async function handlePreview(
     revision: DataDocumentRevisionSummary,
   ) {
+    previewControllerRef.current?.abort();
+    const controller = new AbortController();
+    previewControllerRef.current = controller;
     setError(null);
+    setPreview({
+      error: null,
+      loaded: null,
+      target: revision,
+    });
     try {
-      const response = await fetch(
-        `/api/data/history/${revision.kind}/${revision.revision}`,
-        {
-          cache: "no-store",
-        },
+      const currentRevisionPromise = fetchRevision(
+        revision.kind,
+        revision.revision,
+        controller.signal,
       );
-      const data = await readJson<DocumentResponse>(response);
-      setPreview(data.revision);
+      const revisionIndex = revisions.findIndex(
+        (candidate) => candidate.revision === revision.revision,
+      );
+      let previousSummary = revisionIndex >= 0
+        ? revisions[revisionIndex + 1]
+        : undefined;
+      if (!previousSummary) {
+        previousSummary = (
+          await fetchHistory(
+            revision.kind,
+            controller.signal,
+            revision.revision,
+          )
+        )[0];
+      }
+      const [current, previous] = await Promise.all([
+        currentRevisionPromise,
+        previousSummary
+          ? fetchRevision(
+              previousSummary.kind,
+              previousSummary.revision,
+              controller.signal,
+            )
+          : Promise.resolve(null),
+      ]);
+      if (!controller.signal.aborted) {
+        setPreview({
+          error: null,
+          loaded: { current, previous },
+          target: revision,
+        });
+      }
     } catch (caughtError) {
-      setError(resolveErrorMessage(caughtError));
+      if (!controller.signal.aborted) {
+        setPreview({
+          error: resolveErrorMessage(caughtError),
+          loaded: null,
+          target: revision,
+        });
+      }
+    } finally {
+      if (previewControllerRef.current === controller) {
+        previewControllerRef.current = null;
+      }
     }
+  }
+
+  function closePreview() {
+    previewControllerRef.current?.abort();
+    previewControllerRef.current = null;
+    setPreview(null);
   }
 
   async function handleRestore() {
@@ -445,7 +517,7 @@ export function DataManagementPanel({
 
       <AppDialog
         isOpen={preview !== null}
-        onClose={() => setPreview(null)}
+        onClose={closePreview}
         widthClassName="max-w-4xl"
       >
         <div className="p-5 sm:p-6">
@@ -453,20 +525,64 @@ export function DataManagementPanel({
             <div>
               <h2 className="text-lg font-semibold text-ink">
                 {t("history.previewTitle", {
-                  revision: preview?.revision ?? "",
+                  revision: preview?.target.revision ?? "",
                 })}
               </h2>
               <p className="mt-1 text-sm text-muted">
-                {preview ? t(`kinds.${preview.kind}`) : ""}
+                {preview ? t(`kinds.${preview.target.kind}`) : ""}
               </p>
             </div>
-            <Button onClick={() => setPreview(null)} size="sm">
+            <Button onClick={closePreview} size="sm">
               {t("close")}
             </Button>
           </div>
-          <pre className="mt-5 max-h-[65vh] overflow-auto rounded-xl border border-line bg-panel-muted p-4 text-xs leading-6 text-ink">
-            {preview?.content}
-          </pre>
+          {preview?.loaded ? (
+            <RevisionDiff
+              key={`${preview.loaded.current.kind}:${preview.loaded.current.revision}`}
+              previousRevision={preview.loaded.previous}
+              revision={preview.loaded.current}
+            />
+          ) : preview?.error ? (
+            <div
+              className="mt-4 rounded-xl border border-danger/25 bg-danger/5 p-4"
+              role="alert"
+            >
+              <p className="font-semibold text-danger">
+                {t("history.previewError")}
+              </p>
+              <p className="mt-1 text-sm text-danger">{preview.error}</p>
+            </div>
+          ) : (
+            <SkeletonPulse
+              aria-label={t("history.previewLoading")}
+              className="mt-4"
+              role="status"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <SkeletonBlock className="h-9 w-44 rounded-xl" />
+                <SkeletonBlock className="h-4 w-36" />
+              </div>
+              <div className="mt-4 overflow-hidden rounded-xl border border-line">
+                {Array.from({ length: 9 }, (_, index) => (
+                  <div
+                    key={index}
+                    className="flex h-6 border-b border-line last:border-b-0"
+                  >
+                    <SkeletonBlock className="h-full w-9 rounded-none border-r border-line" />
+                    <div className="w-7 shrink-0" />
+                    <div className="flex flex-1 items-center px-2 pr-4">
+                      <SkeletonBlock
+                        className={[
+                          "h-2.5",
+                          index % 3 === 0 ? "w-3/5" : "w-4/5",
+                        ].join(" ")}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SkeletonPulse>
+          )}
         </div>
       </AppDialog>
     </>
@@ -556,13 +672,34 @@ function HistorySkeleton() {
 async function fetchHistory(
   kind: DataDocumentKind,
   signal?: AbortSignal,
+  beforeRevision?: string,
 ): Promise<readonly DataDocumentRevisionSummary[]> {
-  const response = await fetch(`/api/data/history/${kind}`, {
+  const searchParams = new URLSearchParams();
+  if (beforeRevision) {
+    searchParams.set("beforeRevision", beforeRevision);
+  }
+  const query = searchParams.size > 0 ? `?${searchParams}` : "";
+  const response = await fetch(`/api/data/history/${kind}${query}`, {
     cache: "no-store",
     signal,
   });
   const data = await readJson<HistoryResponse>(response);
   return data.revisions;
+}
+
+async function fetchRevision(
+  kind: DataDocumentKind,
+  revision: string,
+  signal?: AbortSignal,
+): Promise<DataDocumentRevision> {
+  const response = await fetch(
+    `/api/data/history/${kind}/${revision}`,
+    {
+      cache: "no-store",
+      signal,
+    },
+  );
+  return (await readJson<DocumentResponse>(response)).revision;
 }
 
 async function readJson<T = unknown>(response: Response): Promise<T> {

@@ -1,13 +1,22 @@
 import { bootstrapConfig } from "@i0c/config"
 import { d1AnalyticsStoreManifest } from "@i0c/plugin-analytics-store-d1/manifest"
 import { postgresAnalyticsStoreManifest } from "@i0c/plugin-analytics-store-postgres/manifest"
+import { d1DataRepositoryManifest } from "@i0c/plugin-data-repository-d1/manifest"
 import { postgresDataRepositoryManifest } from "@i0c/plugin-data-repository-postgres/manifest"
 import { githubContentsRepositoryManifest } from "@i0c/plugin-github-data/manifest"
 
-const dataRepositoryManifest =
-  bootstrapConfig.data.repository.provider === "postgres"
-    ? postgresDataRepositoryManifest
-    : githubContentsRepositoryManifest
+function resolveDataRepositoryManifest() {
+  switch (bootstrapConfig.data.repository.provider) {
+    case "d1":
+      return d1DataRepositoryManifest
+    case "github":
+      return githubContentsRepositoryManifest
+    case "postgres":
+      return postgresDataRepositoryManifest
+  }
+}
+
+const dataRepositoryManifest = resolveDataRepositoryManifest()
 
 export const webUiPluginDescriptors = {
   dataRepository: {

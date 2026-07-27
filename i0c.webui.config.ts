@@ -2,11 +2,12 @@ import {
   assertBootstrapConfigCompatibility,
   bootstrapConfig,
 } from "@i0c/config"
-import type { D1Database } from "@i0c/plugin-analytics-store-d1/types"
+import type { D1Database } from "@i0c/plugin-data-repository-d1/d1"
 import type { GitHubFetch } from "@i0c/plugin-github-data/webui"
 
 import {
   defineWebUiPluginInstallations,
+  type WebUiDataRepositoryCreateContext,
 } from "./apps/webui/src/lib/plugins/installations"
 import { webUiPluginDescriptors } from "./i0c.webui.manifests"
 
@@ -68,20 +69,37 @@ export const webUiPluginInstallations = defineWebUiPluginInstallations({
   ],
 })
 
-async function createConfiguredDataRepository() {
+async function createConfiguredDataRepository(
+  context: WebUiDataRepositoryCreateContext,
+) {
   const repository = bootstrapConfig.data.repository
   if (repository.provider === "postgres") {
     const { createPostgresDataRepository } = await import(
       "@i0c/plugin-data-repository-postgres/repository"
     )
-    const connectionString =
-      process.env[repository.databaseUrlBinding]?.trim() ?? ""
+    const connectionString = context
+      .readEnvironment(repository.databaseUrlBinding)
+      ?.trim() ?? ""
     return createPostgresDataRepository({
       connectionString,
       maxConnections: repository.maxConnections,
       idleTimeoutSeconds: repository.idleTimeoutSeconds,
       connectTimeoutSeconds: repository.connectTimeoutSeconds,
     })
+  }
+  if (repository.provider === "d1") {
+    const database = context.bindings.get(
+      webUiPluginDescriptors.dataRepository.manifest.id,
+    )
+    if (!isD1Database(database)) {
+      throw new TypeError(
+        "The D1 data repository requires a D1Database host binding",
+      )
+    }
+    const { createD1DataRepository } = await import(
+      "@i0c/plugin-data-repository-d1/repository"
+    )
+    return createD1DataRepository(database)
   }
   const { createGitHubContentsRepository } = await import(
     "@i0c/plugin-github-data/webui"

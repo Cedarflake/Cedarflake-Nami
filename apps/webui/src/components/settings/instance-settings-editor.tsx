@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
 import type { DataConfig, RobotsPolicy, WebUiAccessMode } from "@i0c/config";
@@ -17,10 +17,14 @@ import {
 import { NumberInput } from "@/components/ui/controls/number-input";
 import { validateInstanceDataConfig } from "@/lib/configuration/validation";
 
+import type { SettingsCategory } from "./settings-navigation";
+
 interface InstanceSettingsEditorProps {
   hasUnsavedChanges: boolean;
   isReadOnly: boolean;
   onChange: (value: DataConfig) => void;
+  onCategoryChange: (category: SettingsCategory) => void;
+  selectedCategory: SettingsCategory;
   value: DataConfig;
 }
 
@@ -30,22 +34,15 @@ interface SettingsFieldProps {
   label: string;
 }
 
-type SettingsCategory =
-  | "runtime"
-  | "analytics"
-  | "access"
-  | "installed-plugins"
-  | "data";
-
 export function InstanceSettingsEditor({
   hasUnsavedChanges,
   isReadOnly,
   onChange,
+  onCategoryChange,
+  selectedCategory,
   value,
 }: InstanceSettingsEditorProps) {
   const t = useTranslations("instanceConfig");
-  const [selectedCategory, setSelectedCategory] =
-    useState<SettingsCategory>("runtime");
   const validation = useMemo(() => validateInstanceDataConfig(value), [value]);
   const issues = validation.status === "invalid" ? validation.issues : [];
   const validationFieldLabels: Readonly<Record<string, string>> = {
@@ -210,31 +207,31 @@ export function InstanceSettingsEditor({
           <div className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible">
             <SettingsCategoryButton
               isSelected={selectedCategory === "runtime"}
-              onClick={() => setSelectedCategory("runtime")}
+              onClick={() => onCategoryChange("runtime")}
             >
               {t("sections.runtime.title")}
             </SettingsCategoryButton>
             <SettingsCategoryButton
               isSelected={selectedCategory === "analytics"}
-              onClick={() => setSelectedCategory("analytics")}
+              onClick={() => onCategoryChange("analytics")}
             >
               {t("sections.analytics.title")}
             </SettingsCategoryButton>
             <SettingsCategoryButton
               isSelected={selectedCategory === "access"}
-              onClick={() => setSelectedCategory("access")}
+              onClick={() => onCategoryChange("access")}
             >
               {t("sections.access.title")}
             </SettingsCategoryButton>
             <SettingsCategoryButton
               isSelected={selectedCategory === "installed-plugins"}
-              onClick={() => setSelectedCategory("installed-plugins")}
+              onClick={() => onCategoryChange("installed-plugins")}
             >
               {t("sections.installedPlugins.title")}
             </SettingsCategoryButton>
             <SettingsCategoryButton
               isSelected={selectedCategory === "data"}
-              onClick={() => setSelectedCategory("data")}
+              onClick={() => onCategoryChange("data")}
             >
               {t("sections.data.title")}
             </SettingsCategoryButton>

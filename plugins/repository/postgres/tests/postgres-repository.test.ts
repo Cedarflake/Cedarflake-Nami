@@ -5,6 +5,7 @@ import postgres, { type Sql } from "postgres"
 
 import { DataRepositoryConflictError } from "@i0c/config"
 import {
+  assertManagedDataRepositoryBehaviorContract,
   assertPluginManifest,
   assertVersionedDataRepositoryContract,
 } from "@i0c/plugin-testkit"
@@ -176,11 +177,16 @@ test("initializes, imports, and restores immutable document revisions", async ()
 })
 
 const integrationConnectionString =
-  process.env.TEST_DATABASE_URL?.trim()
+  process.env.TEST_POSTGRES_URL?.trim()
+  ?? process.env.TEST_DATABASE_URL?.trim()
 
 test(
   "satisfies the versioned repository contract with PostgreSQL",
-  { skip: integrationConnectionString ? false : "TEST_DATABASE_URL is not set" },
+  {
+    skip: integrationConnectionString
+      ? false
+      : "TEST_POSTGRES_URL and TEST_DATABASE_URL are not set",
+  },
   async () => {
     const connectionString = integrationConnectionString
     assert.ok(connectionString)
@@ -202,56 +208,7 @@ test(
         { connectionString },
         { sql },
       )
-      assert.deepEqual(
-        await repository.write("config", {
-          content: "{\"schemaVersion\":1}",
-          expectedRevision: "0",
-        }),
-        { revision: "1" },
-      )
-      assert.deepEqual(
-        await repository.write("redirects", {
-          content: "{\"Slots\":{}}",
-          expectedRevision: "0",
-        }),
-        { revision: "1" },
-      )
-
-      await assertVersionedDataRepositoryContract({
-        repository,
-        kind: "config",
-        readOptions: {},
-        writeInput: {
-          content: "{\"schemaVersion\":1,\"updated\":true}",
-          expectedRevision: "1",
-        },
-        expectedBefore: {
-          content: "{\"schemaVersion\":1}",
-          revision: "1",
-        },
-        expectedWriteResult: { revision: "2" },
-        expectedAfter: {
-          content: "{\"schemaVersion\":1,\"updated\":true}",
-          revision: "2",
-        },
-      })
-
-      const snapshot = await repository.readSnapshot({})
-      assert.equal(snapshot.config.revision, "2")
-      assert.equal(snapshot.redirects.revision, "1")
-      assert.match(snapshot.revision, /^[0-9a-f]{64}$/)
-
-      await assert.rejects(
-        repository.write("config", {
-          content: "{\"schemaVersion\":1,\"stale\":true}",
-          expectedRevision: "1",
-        }),
-        (error) => {
-          assert.ok(error instanceof DataRepositoryConflictError)
-          assert.equal(error.actualRevision, "2")
-          return true
-        },
-      )
+      await assertManagedDataRepositoryBehaviorContract(repository)
     } finally {
       await sql`DELETE FROM i0c_data_document_revision`
       await sql`DELETE FROM i0c_data_document`

@@ -18,7 +18,7 @@ Plugins are workspace packages selected at build time. Remote `config.json` may 
 | Runtime build | `@i0c/runtime-build` | Build-time installation config validation and selected-platform bundling |
 | Git data | `@i0c/plugin-github-data` | GitHub Raw Runtime source and GitHub Contents WebUI repository |
 | HTTP source | `@i0c/plugin-http-snapshot-source` | Atomic Runtime config-and-rules snapshot loading over HTTPS |
-| Data repository | `@i0c/plugin-data-repository-postgres` | Optimistic, atomic config-and-rules persistence in PostgreSQL |
+| Data repositories | `@i0c/plugin-data-repository-postgres`, `@i0c/plugin-data-repository-d1` | Optimistic, atomic config-and-rules persistence in PostgreSQL or Cloudflare D1 |
 | Runtime | `@i0c/plugin-runtime-cloudflare`, `@i0c/plugin-runtime-vercel`, `@i0c/plugin-runtime-netlify` | Provider request, environment, cache, country, and background-task adaptation |
 | Sink | `@i0c/plugin-analytics-sink-http` | Signed best-effort HTTP analytics delivery |
 | Stores | `@i0c/plugin-analytics-store-postgres`, `@i0c/plugin-analytics-store-d1` | Analytics ingest, queries, rebuild, retention, health, and owned migrations |
@@ -33,11 +33,11 @@ The editable non-secret data plane contains two documents:
 - `config.json` stores versioned instance settings and installed-plugin declarations.
 - `redirects.json` stores redirect rules.
 
-The checked-in PostgreSQL Repository stores both documents with optimistic revisions and exposes an atomic read snapshot. GitHub Contents remains available and preserves the existing `data` branch workflow. Repository migration history is independent from analytics migrations.
+The PostgreSQL and D1 Repositories store both documents with optimistic revisions, atomic snapshots, immutable history, and rollback. The checked-in deployment selects PostgreSQL. GitHub Contents remains available and preserves the archived `data` branch workflow. Repository migration history is independent from analytics migrations.
 
-The checked-in HTTP Snapshot Source reads one validated `{ revision, config, redirects }` response from the WebUI, deduplicates concurrent loads, revalidates with an ETag, and retains the last host-valid snapshot after a failed refresh. GitHub Raw remains available and reads both Git-backed documents independently. Runtime never connects directly to the PostgreSQL Repository.
+The checked-in HTTP Snapshot Source reads one validated `{ revision, config, redirects }` response from the WebUI, deduplicates concurrent loads, revalidates with an ETag, and retains the last host-valid snapshot after a failed refresh. GitHub Raw remains available and reads both Git-backed documents independently. Runtime never connects directly to the selected database Repository.
 
-Some values must exist before either document can be loaded. The selected Repository and Source, GitHub owner, repository, branch and paths, OAuth scope, PostgreSQL binding and connection policy, HTTP snapshot URL and retry policy, and installed plugin packages are therefore **bootstrap configuration**, not remote plugin configuration. Defaults live in `@i0c/config`; executable Runtime installations live in the root `i0c.runtime.config.ts`, WebUI server installations live in the root `i0c.webui.config.ts`, and client-safe WebUI extensions live in `apps/webui/webui.extensions.ts`. Changing an installation requires a rebuild. Plugin manifests intentionally reject bootstrap-only fields under `plugins.*.config`; accepting them there would create settings that validate but cannot initialize their own loader.
+Some values must exist before either document can be loaded. The selected Repository and Source, GitHub owner, repository, branch and paths, OAuth scope, database binding and connection policy, HTTP snapshot URL and retry policy, and installed plugin packages are therefore **bootstrap configuration**, not remote plugin configuration. Defaults live in `@i0c/config`; executable Runtime installations live in the root `i0c.runtime.config.ts`, WebUI server installations live in the root `i0c.webui.config.ts`, and client-safe WebUI extensions live in `apps/webui/webui.extensions.ts`. Changing an installation requires a rebuild. Plugin manifests intentionally reject bootstrap-only fields under `plugins.*.config`; accepting them there would create settings that validate but cannot initialize their own loader.
 
 ## Manifest and configuration model
 
@@ -101,9 +101,9 @@ The production installation keeps these slots empty except for the host-owned pl
 
 ## Data repositories and migrations
 
-`AtomicVersionedDataRepository` exposes document reads, optimistic writes, and an atomic two-document snapshot. GitHub maps its commit SHA to the repository revision and resolves both documents at one commit. PostgreSQL uses a repeatable-read transaction, numeric document revisions, and checksums.
+`AtomicVersionedDataRepository` exposes document reads, optimistic writes, and an atomic two-document snapshot. GitHub maps its commit SHA to the repository revision and resolves both documents at one commit. PostgreSQL and D1 add the same managed contract for first-run initialization, immutable revision history, atomic import, and non-destructive restore.
 
-PostgreSQL Repository migrations live in `plugins/repository/postgres/migrations` and use their own migration table and advisory lock. Builds, application startup, Runtime requests, and WebUI health checks never apply them automatically. Selecting PostgreSQL requires `DATABASE_URL`. Its explicit seed command validates local `config.json` and `redirects.json`, creates only missing documents in one transaction, and never overwrites existing content. The repository must be paired with the HTTP Snapshot Runtime Source so saved database state reaches edge deployments without giving them database credentials; incompatible bootstrap selections fail the build.
+PostgreSQL Repository migrations live in `plugins/repository/postgres/migrations` and use their own migration table and advisory lock. D1 Repository migrations live in `plugins/repository/d1/migrations`, use checksums and continuous-history validation, and execute each migration plus its version record in an atomic D1 batch. Builds, application startup, Runtime requests, and WebUI health checks never apply them automatically. Selecting PostgreSQL requires `DATABASE_URL`; selecting D1 requires a D1-capable WebUI host to inject its binding before first use. Both database Repositories must be paired with the HTTP Snapshot Runtime Source so saved state reaches edge deployments without giving them database credentials; incompatible bootstrap selections fail the build.
 
 ## Analytics stores and migrations
 

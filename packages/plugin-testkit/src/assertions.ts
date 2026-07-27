@@ -1,9 +1,22 @@
 import assert from "node:assert/strict"
 
 import {
+  DataDocumentNotFoundError,
+  DataRepositoryConflictError,
+  DataRepositoryInitializationError,
+  type DataDocument,
+  type DataDocumentKind,
+  type DataRepositoryManagement,
+  type DataRepositoryReadOptions,
+  type DataRepositorySnapshot,
+  type DataRepositoryWriteInput,
+  type DataRepositoryWriteResult,
+} from "@i0c/config"
+import {
   type AnalyticsSink,
   type AnalyticsStore,
   type AnalyticsStoreTypes,
+  type AtomicVersionedDataRepository,
   type PluginHealthCheck,
   type PluginManifest,
   type PluginMigrationProvider,
@@ -124,6 +137,160 @@ export async function assertVersionedDataRepositoryContract<
   assert.deepEqual(before, input.expectedBefore)
   assert.deepEqual(writeResult, input.expectedWriteResult)
   assert.deepEqual(after, input.expectedAfter)
+}
+
+export type ManagedDataRepository = AtomicVersionedDataRepository<
+  DataDocumentKind,
+  DataRepositoryReadOptions,
+  DataRepositoryWriteInput,
+  DataDocument,
+  DataRepositoryWriteResult,
+  DataRepositorySnapshot
+> & {
+  management: DataRepositoryManagement
+}
+
+export async function assertManagedDataRepositoryBehaviorContract(
+  repository: ManagedDataRepository,
+): Promise<void> {
+  const actorGitHubUserId = "123"
+  const initialConfig = "{\"schemaVersion\":1}"
+  const initialRedirects = "{\"Slots\":{}}"
+  const updatedConfig = "{\"schemaVersion\":1,\"updated\":true}"
+  const importedConfig = "{\"schemaVersion\":1,\"imported\":true}"
+  const importedRedirects = "{\"Slots\":{\"/\":\"https://example.com\"}}"
+
+  assert.deepEqual(
+    await repository.management.inspectSetupState(),
+    { state: "empty", existingKinds: [] },
+  )
+
+  const initialized = await repository.management.initialize({
+    actorGitHubUserId,
+    configContent: initialConfig,
+    redirectsContent: initialRedirects,
+  })
+  assert.equal(initialized.config.revision, "1")
+  assert.equal(initialized.redirects.revision, "1")
+  assert.match(initialized.revision, /^[0-9a-f]{64}$/)
+  assert.deepEqual(
+    await repository.management.inspectSetupState(),
+    { state: "initialized" },
+  )
+  await assert.rejects(
+    repository.management.initialize({
+      actorGitHubUserId,
+      configContent: initialConfig,
+      redirectsContent: initialRedirects,
+    }),
+    DataRepositoryInitializationError,
+  )
+
+  assert.deepEqual(
+    await repository.write("config", {
+      actorGitHubUserId,
+      content: updatedConfig,
+      expectedRevision: "1",
+    }),
+    { revision: "2" },
+  )
+  await assert.rejects(
+    repository.write("config", {
+      actorGitHubUserId,
+      content: "{\"schemaVersion\":1,\"stale\":true}",
+      expectedRevision: "1",
+    }),
+    (error) => {
+      assert.ok(error instanceof DataRepositoryConflictError)
+      assert.equal(error.kind, "config")
+      assert.equal(error.expectedRevision, "1")
+      assert.equal(error.actualRevision, "2")
+      return true
+    },
+  )
+
+  const firstConfigRevision = await repository.management.readRevision({
+    kind: "config",
+    revision: "1",
+  })
+  assert.equal(firstConfigRevision.content, initialConfig)
+  assert.equal(firstConfigRevision.operation, "initialize")
+  assert.equal(firstConfigRevision.actorGitHubUserId, actorGitHubUserId)
+  assert.match(firstConfigRevision.checksum, /^[0-9a-f]{64}$/)
+  assert.ok(Number.isFinite(Date.parse(firstConfigRevision.createdAt)))
+
+  assert.deepEqual(
+    await repository.management.restore({
+      actorGitHubUserId,
+      expectedRevision: "2",
+      kind: "config",
+      revision: "1",
+    }),
+    { revision: "3" },
+  )
+  assert.equal(
+    (await repository.read("config", {})).content,
+    initialConfig,
+  )
+
+  const imported = await repository.management.importSnapshot({
+    actorGitHubUserId,
+    configContent: importedConfig,
+    expectedConfigRevision: "3",
+    expectedRedirectsRevision: "1",
+    redirectsContent: importedRedirects,
+  })
+  assert.equal(imported.config.revision, "4")
+  assert.equal(imported.redirects.revision, "2")
+  assert.equal(imported.config.content, importedConfig)
+  assert.equal(imported.redirects.content, importedRedirects)
+
+  const beforeConflict = await repository.readSnapshot({})
+  await assert.rejects(
+    repository.management.importSnapshot({
+      actorGitHubUserId,
+      configContent: "{\"schemaVersion\":1,\"mustNotPersist\":true}",
+      expectedConfigRevision: "4",
+      expectedRedirectsRevision: "1",
+      redirectsContent: "{\"Slots\":{\"/stale\":\"https://example.com\"}}",
+    }),
+    (error) => {
+      assert.ok(error instanceof DataRepositoryConflictError)
+      assert.equal(error.kind, "redirects")
+      assert.equal(error.expectedRevision, "1")
+      assert.equal(error.actualRevision, "2")
+      return true
+    },
+  )
+  assert.deepEqual(await repository.readSnapshot({}), beforeConflict)
+
+  assert.deepEqual(
+    (await repository.management.listRevisions({
+      kind: "config",
+      limit: 10,
+    })).map((revision) => [revision.revision, revision.operation]),
+    [
+      ["4", "import"],
+      ["3", "rollback"],
+      ["2", "save"],
+      ["1", "initialize"],
+    ],
+  )
+  assert.deepEqual(
+    (await repository.management.listRevisions({
+      beforeRevision: "3",
+      kind: "config",
+      limit: 10,
+    })).map((revision) => revision.revision),
+    ["2", "1"],
+  )
+  await assert.rejects(
+    repository.management.readRevision({
+      kind: "config",
+      revision: "999",
+    }),
+    DataDocumentNotFoundError,
+  )
 }
 
 export interface RuntimePlatformContractInput<

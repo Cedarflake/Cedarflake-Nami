@@ -6,10 +6,10 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
 
 服务端 Data Repository 与 Analytics Store 工厂通过 [../../i0c.webui.config.ts](../../i0c.webui.config.ts) 在构建期安装。客户端安全的 UI Renderer 使用 [webui.extensions.ts](webui.extensions.ts)，确保它们留在客户端 Bundle。workspace fixture 会覆盖两条安装链，无需在 WebUI 宿主源码中增加工厂映射；生产 Renderer 清单目前有意保持为空。
 
-该项目提供两种规则编辑方式和独立的设置界面：
+该项目默认提供可视化规则编辑和独立的设置界面：
 
 - 可视化规则编辑（分组树 + 表单）
-- 规则 JSON 编辑（右侧面板，可直接编辑 `redirects.json`）
+- 重新启用 GitHub Repository 时提供 Git 专属的规则来源切换与 JSON 编辑
 - 位于侧边栏底部的可视化实例设置（`config.json`，使用共享契约校验）
 - 数据库备份导入导出与不可变版本历史
 
@@ -60,9 +60,11 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
 
 ## Data Repository
 
-仓库当前通过 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 选择 PostgreSQL，并使用 `DATABASE_URL`。
+仓库当前通过 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 选择 PostgreSQL，并使用 `DATABASE_URL`。支持 D1 的 WebUI 宿主可以选择 `provider: "d1"`，并在首次使用 Repository 前通过 `configureAppDataRepositoryBinding` 注入 `D1Database` binding。
 
-首次初始化会在一个事务中创建两份文档，并拒绝只存在其中一份文档的半初始化数据库。每次保存都会创建不可变版本；导入会先校验两份 JSON，再原子替换；恢复则把旧内容复制为新的活动版本，不会改写历史。管理者可以在 **设置 → 数据与历史** 中导出、导入、查看和恢复版本。
+PostgreSQL 与 D1 由同一套共享行为契约约束。首次初始化会原子创建两份文档，并拒绝只存在其中一份文档的半初始化数据库。每次保存都会创建不可变版本；导入会先校验两份 JSON，再原子替换；恢复则把旧内容复制为新的活动版本，不会改写历史。管理者可以在 **设置 → 数据与历史** 中导出、导入、查看和恢复版本。
+
+D1 使用 [../../plugins/repository/d1/migrations](../../plugins/repository/d1/migrations) 中的独立迁移。打开初始化页面前，需要明确将这些迁移应用到绑定的数据库。当前 Vercel 部署仍使用 PostgreSQL，因为 Vercel 不提供原生 D1 binding。
 
 `seed` 命令继续用于受控的非交互迁移，但不再属于正常部署流程：
 
@@ -70,7 +72,7 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
 pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
 ```
 
-使用数据库文档时，还要在同一份启动配置中选择 HTTP Runtime Source，并指向 `https://<webui-domain>/api/runtime/snapshot`。这个公开端点会返回一份带 ETag、经过校验的配置与规则 revision，且不包含 Secret 值。边缘 Runtime 只读取该端点，不会获得 PostgreSQL 连接串。
+使用数据库文档时，还要在同一份启动配置中选择 HTTP Runtime Source，并指向 `https://<webui-domain>/api/runtime/snapshot`。这个公开端点会返回一份带 ETag、经过校验的配置与规则 revision，且不包含 Secret 值。边缘 Runtime 只读取该端点，不会获得数据库连接信息或 binding。
 
 GitHub Contents 与 GitHub Raw 继续保留在 workspace 中，作为归档的构建期替代方案。重新启用时，需要主动修改启动 Repository 与 Runtime Source 选择、恢复对应的 OAuth Repository scope，并重新构建两个应用；它们不属于默认首次初始化流程。
 
@@ -134,10 +136,10 @@ WebUI 不会把原有非敏感环境变量作为覆盖值或回退值读取。Ve
 
 - 通过版本化配置选择任意已登录用户、数字用户 ID 白名单或带指定管理员与可选黑名单的 GitHub 全员只读模式。
 - 可视化编辑 `redirects.json`：分组树管理 + 规则表单编辑。
-- 规则 JSON 编辑器：行号、当前行高亮、JSON 语法校验（格式错误提示）。
+- GitHub Repository 专属的规则来源切换和 JSON 编辑器，支持当前行高亮与语法校验。
 - 可视化并校验 `config.json`；只有当前文档无法安全转换为表单时，才显示原始内容恢复编辑器。
 - 数据库首次初始化，无需手写 JSON 或执行 seed。
-- 不可变文档历史、非破坏性回滚，以及原子 JSON 备份导入导出。
+- 带 Git 风格行差异的不可变文档历史、非破坏性回滚，以及原子 JSON 备份导入导出。
 - 通过认证后查看已安装 Manifest、配置状态、能力、缺失绑定和所选 Store 健康状态。
 - 表单行为对齐 Schema（规范来源：[https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json](https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json)）。
 - 支持撤销/重做，便于快速回退编辑。

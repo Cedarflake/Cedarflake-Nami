@@ -34,6 +34,11 @@ import { useDataConfigFile } from "@/composables/data-config/use-data-config-fil
 import { RouteEntriesCatalog } from "@/components/redirects-groups/manager-sidebar/manager-sidebar-catalog";
 import { RuntimeSettingsProvider } from "@/components/redirects-groups/runtime-settings-context";
 import { InstanceSettingsEditor } from "@/components/settings/instance-settings-editor";
+import {
+  shouldConfirmSettingsCategoryChange,
+  shouldShowSettingsSaveAction,
+  type SettingsCategory,
+} from "@/components/settings/settings-navigation";
 import { validateInstanceDataConfig } from "@/lib/configuration/validation";
 import { useRouter } from "@/i18n/navigation";
 
@@ -42,6 +47,8 @@ import { ManagerSidebarBody } from "./manager-sidebar/manager-sidebar-body";
 interface RedirectsGroupsManagerProps {
   initialView?: "rules" | "settings";
   isReadOnly?: boolean;
+  supportsJsonEditor?: boolean;
+  supportsSourceOverride?: boolean;
 }
 
 interface PendingLeave {
@@ -52,6 +59,8 @@ interface PendingLeave {
 export function RedirectsGroupsManager({
   initialView = "rules",
   isReadOnly = false,
+  supportsJsonEditor = false,
+  supportsSourceOverride = false,
 }: RedirectsGroupsManagerProps) {
   const tGroups = useTranslations("groups");
   const tEntries = useTranslations("entries");
@@ -112,6 +121,8 @@ export function RedirectsGroupsManager({
   const [configError, setConfigError] = useState<string | null>(null);
   const [isConfigLoaded, setIsConfigLoaded] = useState(false);
   const [isConfigLoading, setIsConfigLoading] = useState(false);
+  const [settingsCategory, setSettingsCategory] =
+    useState<SettingsCategory>("runtime");
   const [lastSaveTarget, setLastSaveTarget] = useState<"rules" | "settings">("rules");
   const [localSaveError, setLocalSaveError] = useState<string | null>(null);
   const [saveAttempt, setSaveAttempt] = useState(0);
@@ -318,6 +329,23 @@ export function RedirectsGroupsManager({
     }
     enterSettingsMode();
   }, [editorMode, enterSettingsMode, isRulesDirty]);
+
+  const handleSettingsCategoryChange = useCallback(
+    (category: SettingsCategory) => {
+      if (category === settingsCategory) {
+        return;
+      }
+      if (shouldConfirmSettingsCategoryChange(category, isSettingsDirty)) {
+        setPendingLeave({
+          kind: "settings",
+          proceed: () => setSettingsCategory(category),
+        });
+        return;
+      }
+      setSettingsCategory(category);
+    },
+    [isSettingsDirty, settingsCategory],
+  );
 
   const handleOpenRulesSection = useCallback(() => {
     runRulesAction(() => {
@@ -679,6 +707,12 @@ export function RedirectsGroupsManager({
                 onJsonDraftChange={setJsonDraft}
                 jsonError={jsonError}
                 isReadOnly={isReadOnly}
+                showSaveAction={
+                  editorMode !== "settings"
+                  || shouldShowSettingsSaveAction(settingsCategory)
+                }
+                supportsJsonEditor={supportsJsonEditor}
+                supportsSourceOverride={supportsSourceOverride}
                 sourceUrl={configSourceUrl}
                 onLoadSourceUrl={loadFromUrl}
                 settingsContent={
@@ -690,11 +724,13 @@ export function RedirectsGroupsManager({
                         hasUnsavedChanges={isRulesDirty || isSettingsDirty}
                         value={configValue}
                         isReadOnly={isReadOnly}
+                        onCategoryChange={handleSettingsCategoryChange}
                         onChange={(nextConfig) => {
                           setConfigValue(nextConfig);
                           setConfigDraft(JSON.stringify(nextConfig, null, 2));
                           setConfigError(null);
                         }}
+                        selectedCategory={settingsCategory}
                       />
                     </>
                   ) : (
