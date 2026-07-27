@@ -49,6 +49,8 @@ export const githubContentsRepositoryManifest = {
     "redirects:read",
     "redirects:write",
     "version:optimistic",
+    "ui:redirects-json-editor",
+    "ui:redirects-source-override",
   ],
   description: {
     summary: {
