@@ -12,6 +12,7 @@
 
 import { defaultDataConfig } from "@i0c/config";
 import type { DataConfig } from "@i0c/config";
+import type { JsonObject } from "@i0c/plugin-api";
 import {
   runtimePluginInstallations as defaultRuntimePluginInstallations
 } from "@i0c/runtime-config";
@@ -20,10 +21,6 @@ import { runtimePluginLogger } from "@/plugins/logger";
 import { createRuntimeFeaturePipeline } from "@/plugins/features";
 import { resolveRuntimePlugins } from "@/plugins/registry";
 
-import {
-  DEFAULT_DATA_CONFIG_URL,
-  DEFAULT_REDIRECTS_CONFIG_URL
-} from "./config";
 import { DEFAULT_CACHE_TTL_SECONDS } from "../core/constants";
 import type {
   HandlerOptions,
@@ -41,13 +38,17 @@ export function resolveRuntimeOptions(options: HandlerOptions): ResolvedRuntime 
         }) as unknown as typeof fetch));
   const now = options.now ?? (() => Date.now());
   const random = options.random ?? (() => Math.random());
+  const pluginInstallations = options.pluginInstallations
+    ?? defaultRuntimePluginInstallations;
   const redirectsConfigUrl = options.redirectsConfigUrl
     ?? options.configUrl
-    ?? DEFAULT_REDIRECTS_CONFIG_URL;
+    ?? pluginInstallations.dataSource.endpoints?.rules;
   const dataConfigUrl = options.dataConfigUrl === null
     ? undefined
     : options.dataConfigUrl
-      ?? (options.configUrl ? undefined : DEFAULT_DATA_CONFIG_URL);
+      ?? (options.configUrl
+        ? undefined
+        : pluginInstallations.dataSource.endpoints?.config);
   const dataConfigCacheTtlSeconds = options.dataConfigCacheTtlSeconds
     ?? defaultDataConfig.runtime.configCacheTtlSeconds;
   const redirectsCacheTtlSeconds = options.redirectsCacheTtlSeconds
@@ -57,18 +58,31 @@ export function resolveRuntimeOptions(options: HandlerOptions): ResolvedRuntime 
   let currentDataConfig: DataConfig = defaultDataConfig;
   const provider = options.provider ?? "unknown";
   const runtimeFeatures = options.runtimeFeatures ?? [];
-  const pluginInstallations = options.pluginInstallations
-    ?? defaultRuntimePluginInstallations;
+  const dataSourceBootstrapConfig: JsonObject = {
+    ...pluginInstallations.dataSource.bootstrapConfig
+  };
+  if (dataConfigUrl) {
+    dataSourceBootstrapConfig.dataConfigUrl = dataConfigUrl;
+  } else if (options.dataConfigUrl === null || options.configUrl) {
+    delete dataSourceBootstrapConfig.dataConfigUrl;
+  }
+  if (redirectsConfigUrl) {
+    dataSourceBootstrapConfig.redirectsConfigUrl = redirectsConfigUrl;
+  }
+  if (options.dataConfigCacheTtlSeconds !== undefined) {
+    dataSourceBootstrapConfig.dataConfigCacheTtlSeconds =
+      dataConfigCacheTtlSeconds;
+  }
+  if (
+    options.redirectsCacheTtlSeconds !== undefined
+    || options.cacheTtlSeconds !== undefined
+  ) {
+    dataSourceBootstrapConfig.redirectsCacheTtlSeconds =
+      redirectsCacheTtlSeconds;
+  }
 
   const dataSource = options.dataSource ?? pluginInstallations.dataSource.create(
-    {
-      ...(dataConfigUrl ? { dataConfigUrl } : {}),
-      redirectsConfigUrl,
-      dataConfigCacheTtlSeconds,
-      redirectsCacheTtlSeconds,
-      configFailureBackoffSeconds: 30,
-      redirectsFailureBackoffSeconds: 10
-    },
+    dataSourceBootstrapConfig,
     {
       cache: options.cache,
       fetchImpl,
@@ -91,10 +105,14 @@ export function resolveRuntimeOptions(options: HandlerOptions): ResolvedRuntime 
   );
 
   return {
-    configUrl: redirectsConfigUrl,
+    ...(redirectsConfigUrl
+      ? {
+          configUrl: redirectsConfigUrl,
+          redirectsConfigUrl
+        }
+      : {}),
     dataConfig: currentDataConfig,
     ...(dataConfigUrl ? { dataConfigUrl } : {}),
-    redirectsConfigUrl,
     dataSource,
     ...(options.analyticsSink ? { analyticsSink: options.analyticsSink } : {}),
     featurePipeline: createRuntimeFeaturePipeline(

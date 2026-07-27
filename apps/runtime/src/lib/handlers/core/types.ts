@@ -146,10 +146,10 @@ export interface HandlerOptions {
 }
 
 export interface ResolvedRuntime {
-  configUrl: string;
+  configUrl?: string;
   dataConfig: DataConfig;
   dataConfigUrl?: string;
-  redirectsConfigUrl: string;
+  redirectsConfigUrl?: string;
   dataSource: RuntimeDataSource;
   analyticsSink?: RuntimeAnalyticsSink;
   featurePipeline: RuntimeAnalyticsFeaturePipeline;

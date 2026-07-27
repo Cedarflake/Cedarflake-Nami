@@ -12,15 +12,6 @@ import {
   type RuntimeFeatureRegistration,
 } from "@i0c/plugin-api"
 
-export interface RuntimeDataSourceBootstrapConfig {
-  configFailureBackoffSeconds: number
-  dataConfigCacheTtlSeconds: number
-  dataConfigUrl?: string
-  redirectsCacheTtlSeconds: number
-  redirectsConfigUrl: string
-  redirectsFailureBackoffSeconds: number
-}
-
 export interface RuntimeDataSourceServices {
   cache?: RuntimeCache
   fetchImpl: typeof fetch
@@ -54,10 +45,15 @@ export type InstalledRuntimeAnalyticsSink = AnalyticsSink<
 >
 
 export interface RuntimeDataSourceInstallation {
+  bootstrapConfig: JsonObject
   enabledByDefault: boolean
+  endpoints?: {
+    config?: string
+    rules?: string
+  }
   manifest: PluginManifest<"data-source", "runtime">
   create(
-    config: RuntimeDataSourceBootstrapConfig,
+    config: JsonObject,
     services: RuntimeDataSourceServices,
   ): RuntimeDataSource<DataConfig, RedirectsConfig>
 }
@@ -92,6 +88,7 @@ export function defineRuntimePluginInstallations(
     "data-source",
     pluginIds,
   )
+  validateRuntimeDataSourceBootstrap(installations.dataSource)
   for (const installation of installations.analyticsSinks) {
     validateRuntimePluginInstallation(installation, "analytics-sink", pluginIds)
   }
@@ -171,4 +168,42 @@ function validateRuntimePluginInstallation(
     )
   }
   pluginIds.add(installation.manifest.id)
+}
+
+function validateRuntimeDataSourceBootstrap(
+  installation: RuntimeDataSourceInstallation,
+): void {
+  if (
+    !isPlainRecord(installation.bootstrapConfig)
+    || (
+      installation.endpoints !== undefined
+      && (
+        !isPlainRecord(installation.endpoints)
+        || (
+          installation.endpoints.config !== undefined
+          && !isNonEmptyString(installation.endpoints.config)
+        )
+        || (
+          installation.endpoints.rules !== undefined
+          && !isNonEmptyString(installation.endpoints.rules)
+        )
+      )
+    )
+  ) {
+    throw new TypeError(
+      "Runtime data-source installation has invalid bootstrap metadata",
+    )
+  }
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false
+  }
+  const prototype = Object.getPrototypeOf(value)
+  return prototype === Object.prototype || prototype === null
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && Boolean(value.trim())
 }

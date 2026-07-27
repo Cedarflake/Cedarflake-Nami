@@ -14,7 +14,20 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { defaultDataConfig } from "@i0c/config";
-import { runtimePlatformManifests } from "@i0c/runtime-config";
+import {
+  resolveHttpSnapshotSourceBootstrapConfig
+} from "@i0c/plugin-http-snapshot-source/config";
+import {
+  httpSnapshotSourceManifest
+} from "@i0c/plugin-http-snapshot-source/manifest";
+import {
+  httpSnapshotSourcePlugin
+} from "@i0c/plugin-http-snapshot-source/runtime";
+import {
+  runtimePlatformManifests,
+  runtimePluginInstallations
+} from "@i0c/runtime-config";
+import type { RuntimePluginInstallations } from "@i0c/runtime-host/installations";
 
 import {
   loadDataConfig,
@@ -186,6 +199,70 @@ test("accepts a replaceable data source without using the remote fetch adapter",
   assert.equal(await loadConfig(runtime), rules);
   assert.equal(configLoads, 1);
   assert.equal(ruleLoads, 1);
+});
+
+test("loads one atomic snapshot through an installed HTTP data source", async () => {
+  const plugins = { ...defaultDataConfig.plugins };
+  delete plugins["@i0c/github-raw-source"];
+  plugins["@i0c/http-snapshot-source"] = {
+    enabled: true,
+    version: 1
+  };
+  const snapshotConfig = {
+    ...defaultDataConfig,
+    plugins
+  };
+  const snapshotRules = {
+    Slots: {
+      Main: {
+        "/snapshot": "https://example.com/snapshot"
+      }
+    }
+  };
+  let fetchCalls = 0;
+  const httpPluginInstallations = {
+    ...runtimePluginInstallations,
+    dataSource: {
+      bootstrapConfig: {
+        snapshotUrl: "https://config.example/runtime-snapshot.json",
+        requestTimeoutMs: 1_000,
+        maximumFetchAttempts: 1,
+        failureBackoffSeconds: 30
+      },
+      enabledByDefault: true,
+      endpoints: {
+        config: "https://config.example/runtime-snapshot.json",
+        rules: "https://config.example/runtime-snapshot.json"
+      },
+      manifest: httpSnapshotSourceManifest,
+      create: (config, services) => httpSnapshotSourcePlugin.create(
+        resolveHttpSnapshotSourceBootstrapConfig(config),
+        services
+      )
+    }
+  } satisfies RuntimePluginInstallations;
+  const runtime = resolveRuntimeOptions({
+    pluginInstallations: httpPluginInstallations,
+    now: () => 0,
+    fetchImpl: async () => {
+      fetchCalls += 1;
+      return Response.json({
+        schemaVersion: 1,
+        revision: "snapshot-revision",
+        config: snapshotConfig,
+        redirects: snapshotRules
+      });
+    }
+  });
+
+  const [config, rules] = await Promise.all([
+    loadDataConfig(runtime),
+    loadConfig(runtime)
+  ]);
+
+  assert.deepEqual(config, snapshotConfig);
+  assert.deepEqual(rules, snapshotRules);
+  assert.equal(fetchCalls, 1);
 });
 
 test("revalidates expired instance configuration with an ETag", async () => {

@@ -23,6 +23,7 @@
     "@i0c/analytics-domain": "workspace:*",
     "@i0c/config": "workspace:*",
     "@i0c/plugin-catalog": "workspace:*",
+    "@i0c/plugin-data-repository-postgres": "workspace:*",
     "@i0c/plugin-github-data": "workspace:*",
     "@i0c/plugin-api": "workspace:*",
     "@i0c/plugin-analytics-store-postgres": "workspace:*",
