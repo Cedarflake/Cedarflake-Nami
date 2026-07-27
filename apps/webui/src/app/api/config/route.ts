@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -7,7 +8,12 @@ import {
   getWebUiReadRequestAuthorization,
 } from "@/auth/authorization";
 import { getEffectiveDataConfig } from "@/lib/configuration/data-config";
-import { getRedirectConfig, updateRedirectConfig } from "@/lib/github";
+import {
+  APP_DATA_SNAPSHOT_CACHE_TAG,
+  getRedirectsDocument,
+  updateRedirectsDocument,
+} from "@/lib/data/documents";
+import { createDataRepositoryErrorResponse } from "@/lib/data/errors";
 import { validateRedirectConfig } from "@/lib/redirects/config-validation";
 
 export async function GET(request: NextRequest) {
@@ -29,7 +35,7 @@ export async function GET(request: NextRequest) {
     : authorization.accessToken;
 
   try {
-    const config = await getRedirectConfig(accessToken, { sourceUrl });
+    const config = await getRedirectsDocument(accessToken, { sourceUrl });
     const dataConfig = await getEffectiveDataConfig();
     return NextResponse.json({
       config,
@@ -38,6 +44,10 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
+    const repositoryResponse = createDataRepositoryErrorResponse(error);
+    if (repositoryResponse) {
+      return repositoryResponse;
+    }
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -45,7 +55,7 @@ export async function GET(request: NextRequest) {
 
 const updateSchema = z.object({
   content: z.string().min(2, { message: "Config content is required" }),
-  sha: z.string().min(2, { message: "Missing config version (sha)" }),
+  expectedRevision: z.string().min(1, { message: "Missing config revision" }),
   message: z.string().min(1).max(200).optional(),
   sourceUrl: z.string().min(8).max(2048).optional()
 });
@@ -93,9 +103,17 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
-    const result = await updateRedirectConfig(authorization.accessToken, parsed.data);
+    const result = await updateRedirectsDocument(
+      authorization.accessToken,
+      parsed.data,
+    );
+    revalidateTag(APP_DATA_SNAPSHOT_CACHE_TAG, { expire: 0 });
     return NextResponse.json(result);
   } catch (error) {
+    const repositoryResponse = createDataRepositoryErrorResponse(error);
+    if (repositoryResponse) {
+      return repositoryResponse;
+    }
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }

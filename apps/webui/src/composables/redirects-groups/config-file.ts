@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useCallback, useRef, useState, useTransition } from "react";
 
@@ -10,19 +10,21 @@ export function useRedirectsConfigFile(options: {
   saveOkText: string;
   commitMessage: string;
 }) {
-  const [sha, setSha] = useState<string>("");
+  const [revision, setRevision] = useState("");
   const [canonicalOrigin, setCanonicalOrigin] = useState<string>("");
 
   const [sourceUrl, setSourceUrl] = useState<string | null>(null);
   const sourceUrlRef = useRef<string | null>(null);
 
   const [resultMessage, setResultMessage] = useState<string | null>(null);
+  const [resultStatus, setResultStatus] = useState<"error" | "success" | null>(null);
   const [lastCommitUrl, setLastCommitUrl] = useState<string | null>(null);
   const [lastSavedContent, setLastSavedContent] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const load = useCallback(async (nextSourceUrl?: string | null) => {
     setResultMessage(null);
+    setResultStatus(null);
     setLastCommitUrl(null);
 
     const normalizedSourceUrl = typeof nextSourceUrl === "string" ? nextSourceUrl.trim() : null;
@@ -40,7 +42,7 @@ export function useRedirectsConfigFile(options: {
       setSourceUrl(requestedSourceUrl);
     }
 
-    setSha(data.config.sha);
+    setRevision(data.config.revision);
     setCanonicalOrigin(data.runtime.canonicalOrigin);
     setLastSavedContent(data.config.content);
     return data.config.content;
@@ -51,13 +53,14 @@ export function useRedirectsConfigFile(options: {
       new Promise((resolve) => {
         startTransition(async () => {
           setResultMessage(null);
+          setResultStatus(null);
           setLastCommitUrl(null);
 
           try {
             const result = await saveRedirectsConfig(
               {
                 content,
-                sha,
+                expectedRevision: revision,
                 message: options.commitMessage,
                 ...(sourceUrl ? { sourceUrl } : {}),
               },
@@ -66,10 +69,11 @@ export function useRedirectsConfigFile(options: {
               },
             );
 
-            setSha(result.sha);
+            setRevision(result.revision);
             setLastSavedContent(content);
-            setLastCommitUrl(result.commitUrl);
+            setLastCommitUrl(result.revisionUrl ?? null);
             setResultMessage(options.saveOkText);
+            setResultStatus("success");
             resolve(true);
           } catch (error) {
             setResultMessage(
@@ -77,11 +81,18 @@ export function useRedirectsConfigFile(options: {
                 ? error.message
                 : options.fallbackSaveErrorText,
             );
+            setResultStatus("error");
             resolve(false);
           }
         });
       }),
-    [options.commitMessage, options.fallbackSaveErrorText, options.saveOkText, sha, sourceUrl]
+    [
+      options.commitMessage,
+      options.fallbackSaveErrorText,
+      options.saveOkText,
+      revision,
+      sourceUrl,
+    ],
   );
 
   return {
@@ -92,6 +103,7 @@ export function useRedirectsConfigFile(options: {
     load,
     save,
     resultMessage,
+    resultStatus,
     lastCommitUrl,
   };
 }

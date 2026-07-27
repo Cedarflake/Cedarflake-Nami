@@ -1,6 +1,14 @@
 import { Buffer } from "node:buffer"
 
-import type { VersionedDataRepository } from "@i0c/plugin-api"
+import type {
+  DataDocument,
+  DataDocumentKind,
+  DataRepositoryReadOptions,
+  DataRepositorySnapshot,
+  DataRepositoryWriteInput,
+  DataRepositoryWriteResult,
+} from "@i0c/config"
+import type { AtomicVersionedDataRepository } from "@i0c/plugin-api"
 
 import type { GitHubContentsRepositoryBootstrapConfig } from "./config"
 import { githubContentsRepositoryManifest } from "./manifest"
@@ -14,40 +22,16 @@ interface RepoTarget {
   path: string
 }
 
-export type GitHubDataDocumentKind = "config" | "redirects"
-
-export interface GitHubDataDocumentPayload {
-  content: string
-  sha: string
-  path: string
-  htmlUrl?: string
-  lastModified?: string
-}
-
-export type RedirectConfigPayload = GitHubDataDocumentPayload
-
-export interface UpdateDataDocumentInput {
-  content: string
-  sha: string
-  message?: string
-  sourceUrl?: string | null
-}
-
-export interface UpdateDataDocumentResult {
-  sha: string
-  commitUrl: string
-}
-
-export interface GitHubDataReadOptions {
-  accessToken?: string
-  cacheTags?: readonly string[]
-  cacheMode?: "default" | "no-store"
-  sourceUrl?: string | null
-}
-
-export interface GitHubDataWriteInput extends UpdateDataDocumentInput {
-  accessToken: string
-}
+export type GitHubDataDocumentKind = DataDocumentKind
+export type GitHubDataDocumentPayload = DataDocument
+export type RedirectConfigPayload = DataDocument
+export type UpdateDataDocumentInput = Omit<
+  DataRepositoryWriteInput,
+  "credential"
+>
+export type UpdateDataDocumentResult = DataRepositoryWriteResult
+export type GitHubDataReadOptions = DataRepositoryReadOptions
+export type GitHubDataWriteInput = DataRepositoryWriteInput
 
 export interface GitHubRequestInit extends RequestInit {
   next?: {
@@ -65,12 +49,13 @@ export interface GitHubContentsRepositoryServices {
   fetchImpl?: GitHubFetch
 }
 
-export type GitHubDataRepository = VersionedDataRepository<
+export type GitHubDataRepository = AtomicVersionedDataRepository<
   GitHubDataDocumentKind,
   GitHubDataReadOptions,
   GitHubDataWriteInput,
   GitHubDataDocumentPayload,
-  UpdateDataDocumentResult
+  UpdateDataDocumentResult,
+  DataRepositorySnapshot
 >
 
 export function createGitHubContentsRepository(
@@ -82,47 +67,51 @@ export function createGitHubContentsRepository(
   return {
     async read(kind, options) {
       const target = resolveTarget(config, kind, options.sourceUrl)
-      const url = buildContentsUrl(target)
-      const response = await fetchImpl(
-        `${url}?ref=${encodeURIComponent(target.branch)}`,
-        {
-          headers: buildHeaders(options.accessToken),
-          ...(options.accessToken || options.cacheMode === "no-store"
-            ? { cache: "no-store" as const }
-            : {
-                next: {
-                  revalidate: config.publicRevalidateSeconds,
-                  ...(options.cacheTags?.length
-                    ? { tags: [...options.cacheTags] }
-                    : {}),
-                },
-              }),
-        },
+      return readGitHubDocument(
+        fetchImpl,
+        config,
+        target,
+        target.branch,
+        options,
       )
-
-      if (!response.ok) {
-        throw await createGitHubResponseError("load", response)
+    },
+    async readSnapshot(options) {
+      const configTarget = resolveTarget(config, "config")
+      const redirectsTarget = resolveTarget(config, "redirects")
+      const commitResponse = await fetchImpl(
+        buildCommitUrl(configTarget, configTarget.branch),
+        buildReadRequestInit(config, options),
+      )
+      if (!commitResponse.ok) {
+        throw await createGitHubResponseError("load", commitResponse)
       }
-
-      const json = (await response.json()) as {
-        content: string
-        sha: string
-        path: string
-        html_url?: string
-      }
-
+      const commit = (await commitResponse.json()) as { sha: string }
+      const [configDocument, redirectsDocument] = await Promise.all([
+        readGitHubDocument(
+          fetchImpl,
+          config,
+          configTarget,
+          commit.sha,
+          options,
+        ),
+        readGitHubDocument(
+          fetchImpl,
+          config,
+          redirectsTarget,
+          commit.sha,
+          options,
+        ),
+      ])
       return {
-        content: Buffer.from(json.content, "base64").toString("utf-8"),
-        sha: json.sha,
-        path: json.path,
-        htmlUrl: json.html_url,
-        lastModified: response.headers.get("last-modified") ?? undefined,
+        config: configDocument,
+        redirects: redirectsDocument,
+        revision: commit.sha,
       }
     },
     async write(kind, input) {
       const target = resolveTarget(config, kind, input.sourceUrl)
       const url = buildContentsUrl(target)
-      const token = requireAccessToken(input.accessToken)
+      const token = requireAccessToken(input.credential)
       const response = await fetchImpl(url, {
         method: "PUT",
         headers: buildHeaders(token),
@@ -133,7 +122,7 @@ export function createGitHubContentsRepository(
               ? "chore(config): update instance settings"
               : "chore(redirects): update config"),
           content: Buffer.from(input.content, "utf-8").toString("base64"),
-          sha: input.sha,
+          sha: input.expectedRevision,
           branch: target.branch,
         }),
       })
@@ -148,8 +137,8 @@ export function createGitHubContentsRepository(
       }
 
       return {
-        sha: json.content.sha,
-        commitUrl: json.commit.html_url,
+        revision: json.content.sha,
+        revisionUrl: json.commit.html_url,
       }
     },
   }
@@ -173,6 +162,54 @@ function buildHeaders(accessToken?: string): HeadersInit {
     Accept: "application/vnd.github.v3+json",
     "Content-Type": "application/json",
   } satisfies Record<string, string>
+}
+
+function buildReadRequestInit(
+  config: GitHubContentsRepositoryBootstrapConfig,
+  options: GitHubDataReadOptions,
+): GitHubRequestInit {
+  return {
+    headers: buildHeaders(options.credential),
+    ...(options.credential || options.cacheMode === "no-store"
+      ? { cache: "no-store" as const }
+      : {
+          next: {
+            revalidate: config.publicRevalidateSeconds,
+            ...(options.cacheTags?.length
+              ? { tags: [...options.cacheTags] }
+              : {}),
+          },
+        }),
+  }
+}
+
+async function readGitHubDocument(
+  fetchImpl: GitHubFetch,
+  config: GitHubContentsRepositoryBootstrapConfig,
+  target: RepoTarget,
+  revision: string,
+  options: GitHubDataReadOptions,
+): Promise<DataDocument> {
+  const response = await fetchImpl(
+    `${buildContentsUrl(target)}?ref=${encodeURIComponent(revision)}`,
+    buildReadRequestInit(config, options),
+  )
+  if (!response.ok) {
+    throw await createGitHubResponseError("load", response)
+  }
+  const json = (await response.json()) as {
+    content: string
+    sha: string
+    path: string
+    html_url?: string
+  }
+  return {
+    content: Buffer.from(json.content, "base64").toString("utf-8"),
+    revision: json.sha,
+    sourcePath: json.path,
+    sourceUrl: json.html_url,
+    lastModified: response.headers.get("last-modified") ?? undefined,
+  }
 }
 
 function encodeGitHubPath(value: string): string {
@@ -283,6 +320,10 @@ function ensureJsonPath(value: string): string {
 
 function buildContentsUrl(target: RepoTarget): string {
   return `${apiBase}/repos/${target.owner}/${target.repo}/contents/${encodeGitHubPath(target.path)}`
+}
+
+function buildCommitUrl(target: RepoTarget, revision: string): string {
+  return `${apiBase}/repos/${encodeURIComponent(target.owner)}/${encodeURIComponent(target.repo)}/commits/${encodeURIComponent(revision)}`
 }
 
 async function createGitHubResponseError(

@@ -94,6 +94,7 @@ export function RedirectsGroupsManager({
     applyJson,
     previewJson,
     resultMessage,
+    resultStatus,
     lastCommitUrl,
     lastSavedContent,
   } = useRedirectsGroups();
@@ -643,6 +644,11 @@ export function RedirectsGroupsManager({
     : lastSaveTarget === "settings"
       ? dataConfigFile.lastCommitUrl
       : lastCommitUrl;
+  const notificationStatus = localSaveError
+    ? "error"
+    : lastSaveTarget === "settings"
+      ? dataConfigFile.resultStatus ?? "error"
+      : resultStatus ?? "error";
   const newEntryGroup = newEntryGroupId
     ? findGroupById(rootGroup, newEntryGroupId)
     : null;
@@ -731,6 +737,7 @@ export function RedirectsGroupsManager({
           key={saveAttempt}
           message={notificationMessage}
           commitUrl={notificationCommitUrl}
+          status={notificationStatus}
         />
         {newEntryGroup ? (
           <NewRouteEntryDialog

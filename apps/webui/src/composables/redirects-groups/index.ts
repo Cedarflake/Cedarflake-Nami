@@ -287,6 +287,7 @@ export function useRedirectsGroups() {
     applyJson,
     previewJson,
     resultMessage: saveValidationError ?? configFile.resultMessage,
+    resultStatus: saveValidationError ? "error" : configFile.resultStatus,
     lastCommitUrl: configFile.lastCommitUrl,
     lastSavedContent: configFile.lastSavedContent,
   };

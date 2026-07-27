@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/controls/button";
 interface SaveNotificationProps {
   commitUrl?: string | null;
   message?: string | null;
+  status: "error" | "success";
 }
 
 export function SaveNotification({
   commitUrl,
   message,
+  status,
 }: SaveNotificationProps) {
   const t = useTranslations("groups");
   const [isDismissed, setIsDismissed] = useState(false);
@@ -30,7 +32,7 @@ export function SaveNotification({
     return null;
   }
 
-  const isSuccess = Boolean(commitUrl);
+  const isSuccess = status === "success";
 
   return (
     <aside

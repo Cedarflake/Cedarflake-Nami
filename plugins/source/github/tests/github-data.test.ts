@@ -323,27 +323,66 @@ test("reads and writes versioned GitHub documents through the repository contrac
     kind: "config",
     readOptions: {},
     writeInput: {
-      accessToken: "test-token",
       content: "after",
-      sha: "1",
+      credential: "test-token",
+      expectedRevision: "1",
     },
     expectedBefore: {
       content: "before",
-      sha: "1",
-      path: "config.json",
-      htmlUrl: undefined,
       lastModified: undefined,
+      revision: "1",
+      sourcePath: "config.json",
+      sourceUrl: undefined,
     },
     expectedWriteResult: {
-      sha: "2",
-      commitUrl: "https://github.com/Revaea/i0c.cc/commit/2",
+      revision: "2",
+      revisionUrl: "https://github.com/Revaea/i0c.cc/commit/2",
     },
     expectedAfter: {
       content: "after",
-      sha: "2",
-      path: "config.json",
-      htmlUrl: undefined,
       lastModified: undefined,
+      revision: "2",
+      sourcePath: "config.json",
+      sourceUrl: undefined,
     },
   })
+})
+
+test("reads an atomic GitHub snapshot from one commit", async () => {
+  const requestedRefs: string[] = []
+  const repository = createGitHubContentsRepository(
+    {
+      owner: "Revaea",
+      repository: "i0c.cc",
+      branch: "data",
+      configPath: "config.json",
+      redirectsPath: "redirects.json",
+      publicRevalidateSeconds: 60,
+    },
+    {
+      async fetchImpl(input) {
+        const url = new URL(String(input))
+        if (url.pathname.endsWith("/commits/data")) {
+          return Response.json({ sha: "commit-1" })
+        }
+        requestedRefs.push(url.searchParams.get("ref") ?? "")
+        const isConfig = url.pathname.endsWith("/contents/config.json")
+        return Response.json({
+          content: Buffer.from(
+            isConfig ? "{\"schemaVersion\":1}" : "{\"Slots\":{}}",
+            "utf8",
+          ).toString("base64"),
+          sha: isConfig ? "config-blob" : "redirects-blob",
+          path: isConfig ? "config.json" : "redirects.json",
+        })
+      },
+    },
+  )
+
+  const snapshot = await repository.readSnapshot({ cacheMode: "no-store" })
+
+  assert.equal(snapshot.revision, "commit-1")
+  assert.equal(snapshot.config.revision, "config-blob")
+  assert.equal(snapshot.redirects.revision, "redirects-blob")
+  assert.deepEqual(requestedRefs, ["commit-1", "commit-1"])
 })
