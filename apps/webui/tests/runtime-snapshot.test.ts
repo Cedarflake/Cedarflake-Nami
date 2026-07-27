@@ -5,7 +5,9 @@ import { NextRequest } from "next/server";
 
 import { defaultDataConfig } from "@i0c/config";
 
-import { GET } from "../src/app/api/runtime/snapshot/route";
+import {
+  createRuntimeSnapshotResponse,
+} from "../src/app/api/runtime/snapshot/route";
 import {
   createRuntimeDataSnapshot,
   createRuntimeSnapshotEtag,
@@ -59,26 +61,16 @@ test("matches strong, weak, and comma-separated snapshot ETags", () => {
 });
 
 test("publishes snapshots with conditional ETag responses", async (context) => {
-  context.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
-    const url = new URL(String(input));
-    if (url.pathname.endsWith("/commits/data")) {
-      return Response.json({ sha: "commit-1" });
-    }
-    const isConfig = url.pathname.endsWith("/contents/config.json");
-    return Response.json({
-      content: Buffer.from(
-        isConfig
-          ? JSON.stringify(defaultDataConfig)
-          : JSON.stringify({ Slots: { Main: {} } }),
-        "utf8",
-      ).toString("base64"),
-      sha: isConfig ? "config-blob" : "redirects-blob",
-      path: isConfig ? "config.json" : "redirects.json",
-    });
-  });
+  const readSnapshot = context.mock.fn(async () => ({
+    schemaVersion: 1 as const,
+    revision: "commit-1",
+    config: defaultDataConfig,
+    redirects: { Slots: { Main: {} } },
+  }));
 
-  const response = await GET(
+  const response = await createRuntimeSnapshotResponse(
     new NextRequest("https://u.i0c.cc/api/runtime/snapshot"),
+    readSnapshot,
   );
   const etag = response.headers.get("etag");
 
@@ -87,23 +79,25 @@ test("publishes snapshots with conditional ETag responses", async (context) => {
   assert.match(response.headers.get("cache-control") ?? "", /s-maxage=30/);
   assert.equal((await response.json()).revision, "commit-1");
 
-  const notModified = await GET(
+  const notModified = await createRuntimeSnapshotResponse(
     new NextRequest("https://u.i0c.cc/api/runtime/snapshot", {
       headers: { "If-None-Match": etag },
     }),
+    readSnapshot,
   );
   assert.equal(notModified.status, 304);
   assert.equal(notModified.headers.get("etag"), etag);
 });
 
 test("does not expose repository failures from the public snapshot endpoint", async (context) => {
-  context.mock.method(globalThis, "fetch", async () => {
+  const readSnapshot = async () => {
     throw new Error("postgres://user:secret@example.invalid/database");
-  });
+  };
   context.mock.method(console, "error", () => {});
 
-  const response = await GET(
+  const response = await createRuntimeSnapshotResponse(
     new NextRequest("https://u.i0c.cc/api/runtime/snapshot"),
+    readSnapshot,
   );
   const body = JSON.stringify(await response.json());
 

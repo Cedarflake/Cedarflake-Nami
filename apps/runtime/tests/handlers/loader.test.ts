@@ -13,7 +13,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { defaultDataConfig } from "@i0c/config";
+import { defaultDataConfig, type DataConfig } from "@i0c/config";
 import {
   resolveHttpSnapshotSourceBootstrapConfig
 } from "@i0c/plugin-http-snapshot-source/config";
@@ -45,41 +45,41 @@ test("uses the versioned redirect source instead of legacy environment bindings"
 
   assert.equal(
     runtime.configUrl,
-    "https://raw.githubusercontent.com/Revaea/i0c.cc/data/redirects.json"
+    "https://u.i0c.cc/api/runtime/snapshot"
   );
   assert.equal(
     runtime.dataConfigUrl,
-    "https://raw.githubusercontent.com/Revaea/i0c.cc/data/config.json"
+    "https://u.i0c.cc/api/runtime/snapshot"
   );
 });
 
 test("loads and validates the remote instance configuration", async () => {
+  const snapshotUrl = "https://config.example/remote-config.json";
+  const remoteConfig: DataConfig = {
+    ...defaultDataConfig,
+    runtime: {
+      canonicalOrigin: "https://links.example.com",
+      robotsPolicy: "disallow" as const,
+      configCacheTtlSeconds: 300,
+      redirectsCacheTtlSeconds: 30
+    },
+    analytics: {
+      ingestEndpoint: "https://console.example.com/api/analytics/events",
+      sourceId: "links.example.com"
+    },
+    webui: {
+      access: {
+        mode: "allowlist" as const,
+        managerGitHubUserIds: ["123"]
+      }
+    }
+  };
   const runtime = resolveRuntimeOptions({
-    dataConfigUrl: "https://config.example/data-config.json",
-    redirectsConfigUrl: "https://config.example/redirects.json",
+    pluginInstallations: createHttpPluginInstallations(snapshotUrl),
     now: () => 0,
     fetchImpl: async (input) => {
-      assert.equal(String(input), "https://config.example/data-config.json");
-      return Response.json({
-        schemaVersion: 1,
-        runtime: {
-          canonicalOrigin: "https://links.example.com",
-          robotsPolicy: "disallow",
-          configCacheTtlSeconds: 300,
-          redirectsCacheTtlSeconds: 30
-        },
-        analytics: {
-          ingestEndpoint: "https://console.example.com/api/analytics/events",
-          sourceId: "links.example.com"
-        },
-        webui: {
-          access: {
-            mode: "allowlist",
-            managerGitHubUserIds: ["123"]
-          }
-        },
-        plugins: {}
-      });
+      assert.equal(String(input), snapshotUrl);
+      return Response.json(createSnapshot("remote-config", remoteConfig));
     }
   });
 
@@ -93,7 +93,9 @@ test("loads and validates the remote instance configuration", async () => {
 test("keeps the safe default when remote instance configuration is invalid", async (context) => {
   context.mock.method(console, "error", () => undefined);
   const runtime = resolveRuntimeOptions({
-    dataConfigUrl: "https://config.example/invalid-data-config.json",
+    pluginInstallations: createHttpPluginInstallations(
+      "https://config.example/invalid-config.json"
+    ),
     now: () => 0,
     fetchImpl: async () => Response.json({ schemaVersion: 2 })
   });
@@ -107,14 +109,20 @@ test("keeps the safe default when remote instance configuration is invalid", asy
 test("keeps the safe default when remote configuration disables the required data source", async (context) => {
   context.mock.method(console, "error", () => undefined);
   const runtime = resolveRuntimeOptions({
-    dataConfigUrl: "https://config.example/disabled-source.json",
+    pluginInstallations: createHttpPluginInstallations(
+      "https://config.example/disabled-source.json"
+    ),
     now: () => 0,
-    fetchImpl: async () => Response.json({
-      ...defaultDataConfig,
-      plugins: {
-        "@i0c/github-raw-source": { enabled: false }
+    fetchImpl: async () => Response.json(createSnapshot(
+      "disabled-source",
+      {
+        ...defaultDataConfig,
+        plugins: {
+          ...defaultDataConfig.plugins,
+          "@i0c/http-snapshot-source": { enabled: false }
+        }
       }
-    })
+    ))
   });
 
   const config = await loadDataConfig(runtime);
@@ -125,17 +133,23 @@ test("keeps the safe default when remote configuration disables the required dat
 test("keeps the safe default when remote configuration disables the active platform", async (context) => {
   context.mock.method(console, "error", () => undefined);
   const runtime = resolveRuntimeOptions({
-    dataConfigUrl: "https://config.example/disabled-platform.json",
+    pluginInstallations: createHttpPluginInstallations(
+      "https://config.example/disabled-platform.json"
+    ),
     provider: "cloudflare",
     platformPluginId: "@i0c/runtime-cloudflare",
     runtimePlatformManifests,
     now: () => 0,
-    fetchImpl: async () => Response.json({
-      ...defaultDataConfig,
-      plugins: {
-        "@i0c/runtime-cloudflare": { enabled: false }
+    fetchImpl: async () => Response.json(createSnapshot(
+      "disabled-platform",
+      {
+        ...defaultDataConfig,
+        plugins: {
+          ...defaultDataConfig.plugins,
+          "@i0c/runtime-cloudflare": { enabled: false }
+        }
       }
-    })
+    ))
   });
 
   const config = await loadDataConfig(runtime);
@@ -148,22 +162,27 @@ test("keeps the last valid configuration when a plugin-invalid update is publish
   let now = 0;
   let fetchCalls = 0;
   const runtime = resolveRuntimeOptions({
-    dataConfigUrl: "https://config.example/plugin-invalid-update.json",
+    pluginInstallations: createHttpPluginInstallations(
+      "https://config.example/plugin-invalid-update.json"
+    ),
     provider: "cloudflare",
     platformPluginId: "@i0c/runtime-cloudflare",
     runtimePlatformManifests,
     now: () => now,
     fetchImpl: async () => {
       fetchCalls += 1;
-      return Response.json(fetchCalls === 1
-        ? defaultDataConfig
-        : {
+      return Response.json(createSnapshot(
+        `plugin-update-${fetchCalls}`,
+        fetchCalls === 1
+          ? defaultDataConfig
+          : {
             ...defaultDataConfig,
             plugins: {
               ...defaultDataConfig.plugins,
               "@i0c/runtime-cloudflare": { enabled: false }
             }
-          });
+          }
+      ));
     }
   });
 
@@ -269,14 +288,16 @@ test("revalidates expired instance configuration with an ETag", async () => {
   let now = 0;
   let fetchCalls = 0;
   const runtime = resolveRuntimeOptions({
-    dataConfigUrl: "https://config.example/etag-data-config.json",
+    pluginInstallations: createHttpPluginInstallations(
+      "https://config.example/etag-data-config.json"
+    ),
     now: () => now,
     fetchImpl: async (input, init) => {
       fetchCalls += 1;
       const request = new Request(input, init);
       if (fetchCalls === 1) {
         assert.equal(request.headers.get("if-none-match"), null);
-        return Response.json(defaultDataConfig, {
+        return Response.json(createSnapshot("config-v1"), {
           headers: { ETag: '"config-v1"' }
         });
       }
@@ -295,29 +316,40 @@ test("revalidates expired instance configuration with an ETag", async () => {
 
 test("deduplicates concurrent config loads and reuses parsed data", async () => {
   let releaseFetch: (() => void) | undefined;
+  let markFetchStarted: (() => void) | undefined;
   const fetchGate = new Promise<void>((resolve) => {
     releaseFetch = resolve;
   });
+  const fetchStarted = new Promise<void>((resolve) => {
+    markFetchStarted = resolve;
+  });
   let fetchCalls = 0;
   const runtime = resolveRuntimeOptions({
-    configUrl: "https://config.example/loader-cache.json",
-    cacheTtlSeconds: 60,
+    pluginInstallations: createHttpPluginInstallations(
+      "https://config.example/loader-cache.json"
+    ),
     now: () => 0,
     fetchImpl: async () => {
       fetchCalls += 1;
+      markFetchStarted?.();
       await fetchGate;
-      return Response.json({
-        Slots: {
-          Main: {
-            "/docs": "https://example.com/docs"
+      return Response.json(createSnapshot(
+        "loader-cache",
+        defaultDataConfig,
+        {
+          Slots: {
+            Main: {
+              "/docs": "https://example.com/docs"
+            }
           }
         }
-      });
+      ));
     }
   });
 
   const firstLoad = loadConfig(runtime);
   const secondLoad = loadConfig(runtime);
+  await fetchStarted;
   assert.equal(fetchCalls, 1);
 
   assert.ok(releaseFetch);
@@ -335,8 +367,10 @@ test("releases unsuccessful configuration responses", async (context) => {
   context.mock.method(console, "error", () => undefined);
   let didCancelResponse = false;
   const runtime = resolveRuntimeOptions({
-    configUrl: "https://config.example/unavailable.json",
-    cacheTtlSeconds: 60,
+    pluginInstallations: createHttpPluginInstallations(
+      "https://config.example/unavailable.json",
+      { maximumFetchAttempts: 1 }
+    ),
     now: () => 0,
     fetchImpl: async () => new Response(new ReadableStream({
       cancel() {
@@ -356,7 +390,13 @@ test("backs off repeated remote loads after a transient failure", async (context
   let now = 0;
   let fetchCalls = 0;
   const runtime = resolveRuntimeOptions({
-    configUrl: "https://config.example/backoff.json",
+    pluginInstallations: createHttpPluginInstallations(
+      "https://config.example/backoff.json",
+      {
+        maximumFetchAttempts: 1,
+        failureBackoffSeconds: 10
+      }
+    ),
     now: () => now,
     fetchImpl: async () => {
       fetchCalls += 1;
@@ -372,3 +412,49 @@ test("backs off repeated remote loads after a transient failure", async (context
   assert.equal(await loadConfig(runtime), null);
   assert.equal(fetchCalls, 2);
 });
+
+interface TestHttpSourceOptions {
+  requestTimeoutMs?: number;
+  maximumFetchAttempts?: number;
+  failureBackoffSeconds?: number;
+}
+
+function createHttpPluginInstallations(
+  snapshotUrl: string,
+  options: TestHttpSourceOptions = {}
+): RuntimePluginInstallations {
+  return {
+    ...runtimePluginInstallations,
+    dataSource: {
+      bootstrapConfig: {
+        snapshotUrl,
+        requestTimeoutMs: options.requestTimeoutMs ?? 1_000,
+        maximumFetchAttempts: options.maximumFetchAttempts ?? 1,
+        failureBackoffSeconds: options.failureBackoffSeconds ?? 30
+      },
+      enabledByDefault: true,
+      endpoints: {
+        config: snapshotUrl,
+        rules: snapshotUrl
+      },
+      manifest: httpSnapshotSourceManifest,
+      create: (config, services) => httpSnapshotSourcePlugin.create(
+        resolveHttpSnapshotSourceBootstrapConfig(config),
+        services
+      )
+    }
+  };
+}
+
+function createSnapshot(
+  revision: string,
+  config = defaultDataConfig,
+  redirects = { Slots: {} }
+) {
+  return {
+    schemaVersion: 1,
+    revision,
+    config,
+    redirects
+  };
+}

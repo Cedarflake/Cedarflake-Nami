@@ -64,9 +64,9 @@
 
 ### 选择 Data Source
 
-GitHub Raw 是默认 Source，保留现有分别缓存 `config.json` 与 `redirects.json` 的行为。在 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 中使用 `data.source.provider: "github"` 选择它。
+GitHub Raw 仍然可用，并保留分别缓存 `config.json` 与 `redirects.json` 的行为。在 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 中使用 `data.source.provider: "github"` 选择它。
 
-HTTP Snapshot Source 会从 WebUI 原子读取两份文档：
+仓库当前启用的 HTTP Snapshot Source 会从 WebUI 原子读取两份文档：
 
 ```ts
 source: {
@@ -80,7 +80,7 @@ source: {
 
 它会合并并发加载、使用 ETag、限制超时和瞬时错误重试次数，并在刷新失败时保留最后一次通过宿主校验的内存或平台缓存快照。无效快照结构、数据文档或必需插件声明都不会替换当前版本。PostgreSQL Repository 应搭配该 Source，让 Runtime 接收数据库中保存的状态，但不获得数据库凭据。Source 选择属于构建期启动配置，修改后需要重新构建 Runtime。
 
-程序化消费者仍可通过 `HandlerOptions` 传入兼容 GitHub 地址或注入完整数据源。
+选择 GitHub Raw 时，程序化消费者可以通过 `HandlerOptions` 覆盖其地址，或直接注入完整数据源。
 
 ### 配置统计密钥
 

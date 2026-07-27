@@ -64,9 +64,9 @@ Non-sensitive instance settings are versioned in the selected Repository's `conf
 
 ### Choose a Data Source
 
-GitHub Raw is the default Source and keeps the existing independent `config.json` and `redirects.json` cache behavior. Select it with `data.source.provider: "github"` in [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts).
+GitHub Raw remains available and keeps the independent `config.json` and `redirects.json` cache behavior. Select it with `data.source.provider: "github"` in [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts).
 
-The HTTP Snapshot Source reads both documents atomically from the WebUI:
+The checked-in HTTP Snapshot Source reads both documents atomically from the WebUI:
 
 ```ts
 source: {
@@ -80,7 +80,7 @@ source: {
 
 It deduplicates concurrent loads, uses ETags, bounds timeouts and transient retries, and retains the last host-valid in-memory or platform-cached snapshot when a refresh fails. Invalid snapshot envelopes, data documents, or required-plugin declarations never replace the active version. Use this Source with the PostgreSQL Repository so Runtime deployments receive database-backed saves without database credentials. Source selection is build-time bootstrap configuration and requires rebuilding the Runtime.
 
-Programmatic consumers can still pass legacy GitHub URLs or inject a complete data source through `HandlerOptions`.
+When GitHub Raw is selected, programmatic consumers can override its URLs or inject a complete data source through `HandlerOptions`.
 
 ### Configure the analytics secret
 

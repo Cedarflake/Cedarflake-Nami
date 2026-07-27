@@ -10,10 +10,18 @@ export const bootstrapConfig: BootstrapConfig = {
       redirectsPath: "redirects.json",
     },
     repository: {
-      provider: "github",
+      provider: "postgres",
+      databaseUrlBinding: "DATABASE_URL",
+      maxConnections: 3,
+      idleTimeoutSeconds: 20,
+      connectTimeoutSeconds: 30,
     },
     source: {
-      provider: "github",
+      provider: "http",
+      snapshotUrl: "https://u.i0c.cc/api/runtime/snapshot",
+      requestTimeoutMs: 5_000,
+      maximumFetchAttempts: 2,
+      failureBackoffSeconds: 30,
     },
   },
   webui: {

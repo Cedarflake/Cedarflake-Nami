@@ -5,6 +5,8 @@ import type {
 } from "@i0c/config";
 import { webUiPluginInstallations } from "@i0c/webui-config";
 
+import type { AppDataRepository } from "./repository";
+
 export const APP_DATA_CONFIG_CACHE_TAG = "i0c:data-config";
 export const APP_DATA_SNAPSHOT_CACHE_TAG = "i0c:data-snapshot";
 
@@ -13,10 +15,10 @@ export type DataDocumentUpdateInput = Omit<
   "credential"
 >;
 
-export const appDataRepository = webUiPluginInstallations.dataRepository.create();
+let appDataRepository: AppDataRepository | null = null;
 
 export function getAppDataSnapshot() {
-  return appDataRepository.readSnapshot({
+  return getAppDataRepository().readSnapshot({
     cacheTags: [
       APP_DATA_CONFIG_CACHE_TAG,
       APP_DATA_SNAPSHOT_CACHE_TAG,
@@ -28,7 +30,7 @@ export function getRedirectsDocument(
   credential: string | undefined,
   options?: { sourceUrl?: string | null },
 ): Promise<DataDocument> {
-  return appDataRepository.read("redirects", {
+  return getAppDataRepository().read("redirects", {
     credential,
     sourceUrl: options?.sourceUrl,
   });
@@ -37,7 +39,7 @@ export function getRedirectsDocument(
 export function getAppDataConfigDocument(
   credential?: string,
 ): Promise<DataDocument> {
-  return appDataRepository.read("config", {
+  return getAppDataRepository().read("config", {
     credential,
     cacheTags: [APP_DATA_CONFIG_CACHE_TAG],
   });
@@ -47,12 +49,17 @@ export function updateRedirectsDocument(
   credential: string,
   input: DataDocumentUpdateInput,
 ): Promise<DataRepositoryWriteResult> {
-  return appDataRepository.write("redirects", { ...input, credential });
+  return getAppDataRepository().write("redirects", { ...input, credential });
 }
 
 export function updateAppDataConfigDocument(
   credential: string,
   input: DataDocumentUpdateInput,
 ): Promise<DataRepositoryWriteResult> {
-  return appDataRepository.write("config", { ...input, credential });
+  return getAppDataRepository().write("config", { ...input, credential });
+}
+
+function getAppDataRepository(): AppDataRepository {
+  appDataRepository ??= webUiPluginInstallations.dataRepository.create();
+  return appDataRepository;
 }

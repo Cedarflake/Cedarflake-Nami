@@ -67,9 +67,9 @@ This project provides two rule-editing modes and a separate settings surface:
 
 ## Data repository
 
-GitHub Contents is the default Repository. It uses the configured branch commit as the snapshot revision and reads both documents at the same commit for Runtime publication.
+GitHub Contents remains available. It uses the configured branch commit as the snapshot revision and reads both documents at the same commit for Runtime publication.
 
-To use PostgreSQL, change `data.repository` in [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts), configure `DATA_REPOSITORY_DATABASE_URL`, then deliberately migrate and seed the repository:
+The checked-in deployment selects PostgreSQL through [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) and reuses `DATABASE_URL`; installations may choose a separate binding such as `DATA_REPOSITORY_DATABASE_URL`. Deliberately migrate and seed a new repository before selecting it:
 
 ```bash
 pnpm --filter @i0c/plugin-data-repository-postgres migrate

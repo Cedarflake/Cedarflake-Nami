@@ -61,9 +61,9 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
 
 ## Data Repository
 
-GitHub Contents 是默认 Repository。它把分支 commit 作为快照 revision，并在同一个 commit 上读取两份文档供 Runtime 发布。
+GitHub Contents 仍然可用。它把分支 commit 作为快照 revision，并在同一个 commit 上读取两份文档供 Runtime 发布。
 
-需要使用 PostgreSQL 时，在 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 中修改 `data.repository`，配置 `DATA_REPOSITORY_DATABASE_URL`，再明确执行迁移和初始化：
+仓库当前通过 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 选择 PostgreSQL，并复用 `DATABASE_URL`；其他安装可以改用 `DATA_REPOSITORY_DATABASE_URL` 等独立 binding。选择新的 Repository 前需要明确执行迁移和初始化：
 
 ```bash
 pnpm --filter @i0c/plugin-data-repository-postgres migrate
