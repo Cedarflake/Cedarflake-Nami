@@ -1,4 +1,7 @@
-import { bootstrapConfig } from "@i0c/config"
+import {
+  assertBootstrapConfigCompatibility,
+  bootstrapConfig,
+} from "@i0c/config"
 import {
   resolveD1AnalyticsStoreConfig,
 } from "@i0c/plugin-analytics-store-d1/config"
@@ -13,6 +16,9 @@ import {
   createPostgresAnalyticsStore,
 } from "@i0c/plugin-analytics-store-postgres/store"
 import {
+  createPostgresDataRepository,
+} from "@i0c/plugin-data-repository-postgres/repository"
+import {
   createGitHubContentsRepository,
   type GitHubFetch,
 } from "@i0c/plugin-github-data/webui"
@@ -24,16 +30,12 @@ import { webUiPluginDescriptors } from "./i0c.webui.manifests"
 
 const webuiFetch: GitHubFetch = (input, init) => fetch(input, init)
 
+assertBootstrapConfigCompatibility(bootstrapConfig)
+
 export const webUiPluginInstallations = defineWebUiPluginInstallations({
   dataRepository: {
     ...webUiPluginDescriptors.dataRepository,
-    create: () => createGitHubContentsRepository(
-      {
-        ...bootstrapConfig.data.github,
-        publicRevalidateSeconds: 60,
-      },
-      { fetchImpl: webuiFetch },
-    ),
+    create: createConfiguredDataRepository,
   },
   analyticsStores: [
     {
@@ -69,6 +71,27 @@ export const webUiPluginInstallations = defineWebUiPluginInstallations({
     },
   ],
 })
+
+function createConfiguredDataRepository() {
+  const repository = bootstrapConfig.data.repository
+  if (repository.provider === "postgres") {
+    const connectionString =
+      process.env[repository.databaseUrlBinding]?.trim() ?? ""
+    return createPostgresDataRepository({
+      connectionString,
+      maxConnections: repository.maxConnections,
+      idleTimeoutSeconds: repository.idleTimeoutSeconds,
+      connectTimeoutSeconds: repository.connectTimeoutSeconds,
+    })
+  }
+  return createGitHubContentsRepository(
+    {
+      ...bootstrapConfig.data.github,
+      publicRevalidateSeconds: 60,
+    },
+    { fetchImpl: webuiFetch },
+  )
+}
 
 function isD1Database(value: unknown): value is D1Database {
   return typeof value === "object"

@@ -14,12 +14,14 @@ import {
 } from "@/lib/configuration/data-config";
 import {
   APP_DATA_CONFIG_CACHE_TAG,
-  updateAppDataConfig,
-} from "@/lib/github";
+  APP_DATA_SNAPSHOT_CACHE_TAG,
+  updateAppDataConfigDocument,
+} from "@/lib/data/documents";
+import { createDataRepositoryErrorResponse } from "@/lib/data/errors";
 
 const updateSchema = z.object({
   content: z.string().min(2, { message: "Config content is required" }),
-  sha: z.string().min(2, { message: "Missing config version (sha)" }),
+  expectedRevision: z.string().min(1, { message: "Missing config revision" }),
   message: z.string().min(1).max(200).optional(),
 });
 
@@ -37,6 +39,10 @@ export async function GET(request: NextRequest) {
     const document = await readRawDataConfigDocument(accessToken);
     return NextResponse.json({ document });
   } catch (error) {
+    const repositoryResponse = createDataRepositoryErrorResponse(error);
+    if (repositoryResponse) {
+      return repositoryResponse;
+    }
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -66,14 +72,19 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
-    const result = await updateAppDataConfig(
+    const result = await updateAppDataConfigDocument(
       authorization.accessToken,
       parsed.data,
     );
     revalidateTag(APP_DATA_CONFIG_CACHE_TAG, { expire: 0 });
+    revalidateTag(APP_DATA_SNAPSHOT_CACHE_TAG, { expire: 0 });
     adoptDataConfigCache(config);
     return NextResponse.json(result);
   } catch (error) {
+    const repositoryResponse = createDataRepositoryErrorResponse(error);
+    if (repositoryResponse) {
+      return repositoryResponse;
+    }
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }

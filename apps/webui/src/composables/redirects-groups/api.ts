@@ -1,9 +1,12 @@
 'use client';
 
-import type { RedirectConfigPayload } from "@/lib/github";
+import type {
+  DataDocument,
+  DataRepositoryWriteResult,
+} from "@i0c/config";
 
 export type ApiConfigResponse = {
-  config: RedirectConfigPayload;
+  config: DataDocument;
   runtime: {
     canonicalOrigin: string;
   };
@@ -29,12 +32,12 @@ export async function fetchRedirectsConfig(options?: {
 
 export async function saveRedirectsConfig(input: {
   content: string;
-  sha: string;
+  expectedRevision: string;
   message: string;
   sourceUrl?: string;
 }, options?: {
   fallbackSaveErrorText?: string;
-}): Promise<{ sha: string; commitUrl: string }> {
+}): Promise<DataRepositoryWriteResult> {
   const response = await fetch("/api/config", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -50,5 +53,5 @@ export async function saveRedirectsConfig(input: {
     throw new Error(text);
   }
 
-  return (await response.json()) as { sha: string; commitUrl: string };
+  return (await response.json()) as DataRepositoryWriteResult;
 }

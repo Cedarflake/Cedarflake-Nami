@@ -2,7 +2,7 @@
 
 ## Scope
 
-i0c.cc uses a small, statically registered plugin architecture. It keeps the redirect core independent from a particular edge provider, Git transport, analytics delivery path, or analytics database without turning this personal project into a dynamic plugin platform.
+i0c.cc uses a small, statically registered plugin architecture. It keeps the redirect core independent from a particular edge provider, data repository or transport, analytics delivery path, or analytics database without turning this personal project into a dynamic plugin platform.
 
 Plugins are workspace packages selected at build time. Remote `config.json` may configure or disable installed optional plugins, but it cannot discover, download, install, or execute new code.
 
@@ -17,6 +17,8 @@ Plugins are workspace packages selected at build time. Remote `config.json` may 
 | Runtime host | `@i0c/runtime-host` | Platform-neutral deployment assembly and host context enrichment |
 | Runtime build | `@i0c/runtime-build` | Build-time installation config validation and selected-platform bundling |
 | Git data | `@i0c/plugin-github-data` | GitHub Raw Runtime source and GitHub Contents WebUI repository |
+| HTTP source | `@i0c/plugin-http-snapshot-source` | Atomic Runtime config-and-rules snapshot loading over HTTPS |
+| Data repository | `@i0c/plugin-data-repository-postgres` | Optimistic, atomic config-and-rules persistence in PostgreSQL |
 | Runtime | `@i0c/plugin-runtime-cloudflare`, `@i0c/plugin-runtime-vercel`, `@i0c/plugin-runtime-netlify` | Provider request, environment, cache, country, and background-task adaptation |
 | Sink | `@i0c/plugin-analytics-sink-http` | Signed best-effort HTTP analytics delivery |
 | Stores | `@i0c/plugin-analytics-store-postgres`, `@i0c/plugin-analytics-store-d1` | Analytics ingest, queries, rebuild, retention, health, and owned migrations |
@@ -26,14 +28,16 @@ The applications are hosts: `apps/runtime` assembles Runtime plugins, while `app
 
 ## Data documents and bootstrap boundary
 
-The `data` branch remains the editable non-secret data plane:
+The editable non-secret data plane contains two documents:
 
 - `config.json` stores versioned instance settings and installed-plugin declarations.
 - `redirects.json` stores redirect rules.
 
-Runtime reads and caches the two documents independently, deduplicates concurrent refreshes, uses ETags, and retains the last valid value after a failed refresh. WebUI reads and writes them independently through the versioned repository contract.
+GitHub Contents remains the default WebUI Repository and preserves the existing `data` branch workflow. The optional PostgreSQL Repository stores both documents with optimistic revisions and exposes an atomic read snapshot. Its migration history is independent from analytics migrations.
 
-Some values must exist before either document can be loaded. The GitHub owner, repository, branch, paths, OAuth scope, initial Raw URLs, and installed plugin packages are therefore **bootstrap configuration**, not remote plugin configuration. Defaults live in `@i0c/config`; executable Runtime installations live in the root `i0c.runtime.config.ts`, WebUI server installations live in the root `i0c.webui.config.ts`, and client-safe WebUI extensions live in `apps/webui/webui.extensions.ts`. Changing an installation requires a rebuild. The Git and Runtime manifests intentionally reject bootstrap-only fields under `plugins.*.config`; accepting them there would create settings that validate but cannot initialize their own loader.
+GitHub Raw remains the default Runtime Source and reads both documents independently. The HTTP Snapshot Source instead reads one validated `{ revision, config, redirects }` response from the WebUI, deduplicates concurrent loads, revalidates with an ETag, and retains the last host-valid snapshot after a failed refresh. Runtime never connects directly to the PostgreSQL Repository.
+
+Some values must exist before either document can be loaded. The selected Repository and Source, GitHub owner, repository, branch and paths, OAuth scope, PostgreSQL binding and connection policy, HTTP snapshot URL and retry policy, and installed plugin packages are therefore **bootstrap configuration**, not remote plugin configuration. Defaults live in `@i0c/config`; executable Runtime installations live in the root `i0c.runtime.config.ts`, WebUI server installations live in the root `i0c.webui.config.ts`, and client-safe WebUI extensions live in `apps/webui/webui.extensions.ts`. Changing an installation requires a rebuild. Plugin manifests intentionally reject bootstrap-only fields under `plugins.*.config`; accepting them there would create settings that validate but cannot initialize their own loader.
 
 ## Manifest and configuration model
 
@@ -62,17 +66,17 @@ The remote declaration shape is:
 - `config` contains JSON-safe public values and is validated by the selected plugin's own Schema.
 - Plugin Schemas use the validated subset documented by `@i0c/plugin-api`; unsupported keywords and non-JSON literals fail manifest registration instead of being ignored.
 - The HTTP Sink applies `requestTimeoutMs` to each delivery attempt; omitted values use the plugin's 5-second default.
-- `secrets` maps plugin-local names to environment-variable or platform-binding names. Secret values never enter the data branch.
+- `secrets` maps plugin-local names to environment-variable or platform-binding names. Secret values never enter the data documents.
 - Unknown plugins, incompatible config versions, undeclared Secret names, unsupported hosts, and single-slot conflicts are rejected.
 - The Runtime build selects exactly one provider adapter. A declaration for another supported provider may coexist in the shared document without being assembled into that build.
-- The Git Runtime source, Git WebUI repository, and current Runtime provider are mandatory bootstrap capabilities. Explicitly disabling one invalidates that host's configuration.
+- The selected Runtime Source, selected WebUI Repository, and current Runtime provider are mandatory bootstrap capabilities. Explicitly disabling one invalidates that host's configuration.
 - The HTTP Sink, bot classifier, and analytics Store are optional. Disabling them removes delivery, feature registration, or analytics storage respectively.
 
 Missing declarations use compatibility defaults during the first migration. Once explicit declarations are published, `enabled`, plugin config, and Secret mappings drive the selected factories and feature pipeline.
 
 ## Compile-time installation
 
-Runtime plugins are not hardcoded in `apps/runtime`. The root `i0c.runtime.config.ts` installs the data source, analytics sinks, features, and platform adapters. A platform package exports `./manifest`, `./runtime`, and `./installation`; its installation entry declares the package module, bundled dependencies, provider identifier, build key, and output path. Source, Sink, and Feature installations provide their Manifest and factory directly to the same root configuration.
+Runtime plugins are not hardcoded in `apps/runtime`. The root `i0c.runtime.config.ts` installs the data source, analytics sinks, features, and platform adapters. A platform package exports `./manifest`, `./runtime`, and `./installation`; its installation entry declares the package module, bundled dependencies, provider identifier, build key, and output path. Source installations also provide an opaque plugin-owned bootstrap object and diagnostic endpoints; `apps/runtime` passes that object to the selected factory without defining source-specific fields. Sink and Feature installations provide their Manifest and factory to the same root configuration.
 
 `apps/runtime/src/entry.ts` imports only a virtual selected-platform module generated by `@i0c/runtime-build`. The build binds the selected root configuration, injects one selected adapter, bundles its declared Runtime plugins, and verifies the external fixture marker in the emitted artifact. Adding a workspace-local third-party Runtime Platform or Feature therefore requires adding its package to the workspace and root installation configuration, not editing `apps/runtime`, analytics event types, or the official catalog. The shared plugin packages remain private source-workspace packages rather than a published npm SDK.
 
@@ -94,6 +98,12 @@ WebUI owns four statically registered extension slots:
 The production installation keeps these slots empty except for the host-owned plugin status panel. The slots are physical render points for compile-time UI extensions, not an online installation mechanism. Plugin messages are dynamically imported only when the status panel mounts.
 
 `GET /api/plugins/status` reports installed manifests, configuration state, capabilities, observable Secret bindings, selected-store health, and missing prerequisites. It requires WebUI read access, disables response caching, bounds health checks with a timeout, and does not expose raw database errors or Secret values.
+
+## Data repositories and migrations
+
+`AtomicVersionedDataRepository` exposes document reads, optimistic writes, and an atomic two-document snapshot. GitHub maps its commit SHA to the repository revision and resolves both documents at one commit. PostgreSQL uses a repeatable-read transaction, numeric document revisions, and checksums.
+
+PostgreSQL Repository migrations live in `plugins/repository/postgres/migrations` and use their own migration table and advisory lock. Builds, application startup, Runtime requests, and WebUI health checks never apply them automatically. Selecting PostgreSQL also requires `DATA_REPOSITORY_DATABASE_URL` or the configured binding name. Its explicit seed command validates local `config.json` and `redirects.json`, creates only missing documents in one transaction, and never overwrites existing content. The repository must be paired with the HTTP Snapshot Runtime Source so saved database state reaches edge deployments without giving them database credentials; incompatible bootstrap selections fail the build.
 
 ## Analytics stores and migrations
 
@@ -132,17 +142,17 @@ Plugin CI checks types, manifests, contracts, independent plugin packages, Postg
 5. Add Runtime executable installations to `i0c.runtime.config.ts`, WebUI server installations to `i0c.webui.config.ts`, or client renderers to `apps/webui/webui.extensions.ts`. A Runtime platform also exports `./installation` with its build descriptor.
 6. Reuse Plugin Testkit contracts and add implementation-specific tests.
 7. Extend dependency-boundary checks and path-filtered CI ownership when the new package introduces a new surface.
-8. Merge and deploy code that understands the declaration before publishing the corresponding `data/config.json` change.
+8. Merge and deploy code that understands the declaration before publishing the corresponding `config.json` change through the selected Repository.
 
 ## Failure and rollout behavior
 
-An invalid remote configuration never replaces a valid cached value. Warm instances retain their last valid config; cold instances use the checked-in compatibility default. WebUI keeps the raw invalid document available to authenticated managers for repair.
+An invalid remote configuration or snapshot never replaces a valid cached value. Warm instances retain their last valid data; cold instances use the checked-in compatibility default when no valid platform cache is available. WebUI keeps the raw invalid document available to authenticated managers for repair.
 
 Publish in this order:
 
 1. Merge code and Schema changes.
 2. Deploy the affected hosts.
-3. Publish validated `data/config.json` and `data/redirects.json` changes.
+3. Publish validated `config.json` and `redirects.json` changes through the selected Repository.
 4. Wait for the configured cache TTL and verify WebUI plus the selected Runtime providers.
 5. Remove obsolete non-sensitive dashboard variables only after production verification.
 
@@ -151,6 +161,6 @@ Publish in this order:
 - No runtime npm or URL plugin loading.
 - No public plugin marketplace or online install/uninstall UI.
 - No untrusted plugin sandbox.
-- No Secret values in the data branch.
+- No Secret values in the data documents.
 - No requirement to deploy all Runtime adapters together.
 - No universal database or provider abstraction beyond implemented, contract-tested capabilities.

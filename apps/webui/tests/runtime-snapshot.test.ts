@@ -1,0 +1,113 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import { NextRequest } from "next/server";
+
+import { defaultDataConfig } from "@i0c/config";
+
+import { GET } from "../src/app/api/runtime/snapshot/route";
+import {
+  createRuntimeDataSnapshot,
+  createRuntimeSnapshotEtag,
+  matchesRuntimeSnapshotEtag,
+} from "../src/lib/data/runtime-snapshot";
+
+test("builds a validated Runtime snapshot from one repository revision", () => {
+  const snapshot = createRuntimeDataSnapshot({
+    revision: "repository-revision",
+    config: {
+      content: JSON.stringify(defaultDataConfig),
+      revision: "config-revision",
+    },
+    redirects: {
+      content: JSON.stringify({ Slots: { Main: {} } }),
+      revision: "redirects-revision",
+    },
+  });
+
+  assert.equal(snapshot.schemaVersion, 1);
+  assert.equal(snapshot.revision, "repository-revision");
+  assert.deepEqual(snapshot.config, defaultDataConfig);
+  assert.deepEqual(snapshot.redirects, { Slots: { Main: {} } });
+});
+
+test("rejects invalid redirect data before publishing a snapshot", () => {
+  assert.throws(
+    () => createRuntimeDataSnapshot({
+      revision: "repository-revision",
+      config: {
+        content: JSON.stringify(defaultDataConfig),
+        revision: "config-revision",
+      },
+      redirects: {
+        content: "[]",
+        revision: "redirects-revision",
+      },
+    }),
+    /Redirect data failed validation/,
+  );
+});
+
+test("matches strong, weak, and comma-separated snapshot ETags", () => {
+  const etag = createRuntimeSnapshotEtag("repository-revision");
+
+  assert.match(etag, /^"[A-Za-z0-9_-]{43}"$/);
+  assert.equal(matchesRuntimeSnapshotEtag(etag, etag), true);
+  assert.equal(matchesRuntimeSnapshotEtag(`"old", W/${etag}`, etag), true);
+  assert.equal(matchesRuntimeSnapshotEtag("*", etag), true);
+  assert.equal(matchesRuntimeSnapshotEtag("\"other\"", etag), false);
+});
+
+test("publishes snapshots with conditional ETag responses", async (context) => {
+  context.mock.method(globalThis, "fetch", async (input: RequestInfo | URL) => {
+    const url = new URL(String(input));
+    if (url.pathname.endsWith("/commits/data")) {
+      return Response.json({ sha: "commit-1" });
+    }
+    const isConfig = url.pathname.endsWith("/contents/config.json");
+    return Response.json({
+      content: Buffer.from(
+        isConfig
+          ? JSON.stringify(defaultDataConfig)
+          : JSON.stringify({ Slots: { Main: {} } }),
+        "utf8",
+      ).toString("base64"),
+      sha: isConfig ? "config-blob" : "redirects-blob",
+      path: isConfig ? "config.json" : "redirects.json",
+    });
+  });
+
+  const response = await GET(
+    new NextRequest("https://u.i0c.cc/api/runtime/snapshot"),
+  );
+  const etag = response.headers.get("etag");
+
+  assert.equal(response.status, 200);
+  assert.ok(etag);
+  assert.match(response.headers.get("cache-control") ?? "", /s-maxage=30/);
+  assert.equal((await response.json()).revision, "commit-1");
+
+  const notModified = await GET(
+    new NextRequest("https://u.i0c.cc/api/runtime/snapshot", {
+      headers: { "If-None-Match": etag },
+    }),
+  );
+  assert.equal(notModified.status, 304);
+  assert.equal(notModified.headers.get("etag"), etag);
+});
+
+test("does not expose repository failures from the public snapshot endpoint", async (context) => {
+  context.mock.method(globalThis, "fetch", async () => {
+    throw new Error("postgres://user:secret@example.invalid/database");
+  });
+  context.mock.method(console, "error", () => {});
+
+  const response = await GET(
+    new NextRequest("https://u.i0c.cc/api/runtime/snapshot"),
+  );
+  const body = JSON.stringify(await response.json());
+
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.equal(body.includes("secret"), false);
+});

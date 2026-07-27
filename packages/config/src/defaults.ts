@@ -1,6 +1,6 @@
 import type { BootstrapConfig, DataConfig } from "./types"
 
-export const bootstrapConfig = {
+export const bootstrapConfig: BootstrapConfig = {
   data: {
     github: {
       owner: "Revaea",
@@ -9,13 +9,19 @@ export const bootstrapConfig = {
       configPath: "config.json",
       redirectsPath: "redirects.json",
     },
+    repository: {
+      provider: "github",
+    },
+    source: {
+      provider: "github",
+    },
   },
   webui: {
     githubOAuthScope: "read:user user:email public_repo",
   },
-} as const satisfies BootstrapConfig
+}
 
-export const defaultDataConfig = {
+export const defaultDataConfig: DataConfig = {
   $schema: "https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/config.schema.json",
   schemaVersion: 1,
   runtime: {
@@ -36,11 +42,15 @@ export const defaultDataConfig = {
     },
   },
   plugins: {
-    "@i0c/github-raw-source": {
+    [bootstrapConfig.data.source.provider === "http"
+      ? "@i0c/http-snapshot-source"
+      : "@i0c/github-raw-source"]: {
       enabled: true,
       version: 1,
     },
-    "@i0c/github-contents-repository": {
+    [bootstrapConfig.data.repository.provider === "postgres"
+      ? "@i0c/data-repository-postgres"
+      : "@i0c/github-contents-repository"]: {
       enabled: true,
       version: 1,
     },
@@ -93,4 +103,4 @@ export const defaultDataConfig = {
       version: 1,
     },
   },
-} as const satisfies DataConfig
+}

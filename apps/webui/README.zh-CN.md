@@ -1,6 +1,6 @@
 ## 项目简介
 
-i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OAuth 登录后在线编辑 `config.json` 与 `redirects.json`。保存修改时会调用 GitHub Contents API，对目标仓库的指定分支创建提交并保留历史记录。
+i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OAuth 登录后在线编辑 `config.json` 与 `redirects.json`。保存操作会交给构建期选择的 Data Repository。GitHub Contents 仍是默认实现并保留 commit 历史；PostgreSQL 可用于带乐观并发的数据库保存与原子快照。
 
 这个 WebUI 服务于个人 [i0c.cc](https://github.com/Revaea/i0c.cc) 工作流，作为可选的管理界面维护，不定位为通用的企业级链接管理产品。
 
@@ -33,11 +33,11 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
    可以使用 `gh api user --jq .id` 查询自己的数字 ID。`access.mode` 可设为 `authenticated`、`allowlist`
    或 `public-readonly`；`allowlist` 必须配置管理者 ID，`public-readonly` 可按需配置。
    `blockedGitHubUserIds` 可在 `authenticated` 和 `public-readonly` 模式中按 GitHub 数字账号 ID 拒绝登录；
-   `allowlist` 模式会忽略该名单，同一 ID 不能同时属于管理者和黑名单。`public-readonly` 为只读账号通过 GitHub 未认证 API 加载指定规则，
+   `allowlist` 模式会忽略该名单，同一 ID 不能同时属于管理者和黑名单。选择 GitHub Contents 时，`public-readonly` 会为只读账号通过 GitHub 未认证 API 加载指定规则，
    因此目标仓库必须公开；任意 GitHub 用户登录后都可以查看规则和统计，名单内用户可以编辑配置、
    生成渠道链接并手动刷新统计。如果未配置名单，则任何人都不能管理。
 
-3. GitHub 启动仓库、分支和文件路径配置在 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts)，可执行 Repository 工厂由 [../../i0c.webui.config.ts](../../i0c.webui.config.ts) 安装。默认从 `Revaea/i0c.cc` 的 `data` 分支读取 `config.json` 与 `redirects.json`；二维码使用的 Runtime 规范地址来自 `config.json`。
+3. 构建期 Repository 与 Runtime Source 选择配置在 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts)，可执行 Repository 工厂由 [../../i0c.webui.config.ts](../../i0c.webui.config.ts) 安装。默认 GitHub 方案从 `Revaea/i0c.cc` 的 `data` 分支读取 `config.json` 与 `redirects.json`；二维码使用的 Runtime 规范地址来自 `config.json`。
 
 4. 生成 `NEXTAUTH_SECRET` 并写入 `.env.local`。生产环境将 `NEXTAUTH_URL` 设为 `https://你的域名`，开发环境可将 `NEXTAUTH_URL` 设为 `http://localhost:3000`。
 
@@ -58,6 +58,21 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
    ```
 
 6. 打开 [http://localhost:3000](http://localhost:3000) 或 **你的域名**并登录。已配置的管理者可以编辑两份数据文档，其他获准用户则获得所选访问模式定义的权限。
+
+## Data Repository
+
+GitHub Contents 是默认 Repository。它把分支 commit 作为快照 revision，并在同一个 commit 上读取两份文档供 Runtime 发布。
+
+需要使用 PostgreSQL 时，在 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 中修改 `data.repository`，配置 `DATA_REPOSITORY_DATABASE_URL`，再明确执行迁移和初始化：
+
+```bash
+pnpm --filter @i0c/plugin-data-repository-postgres migrate
+pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
+```
+
+两个命令都会修改所配置的数据库，构建、应用启动、健康检查和普通请求都不会自动运行。初始化会校验两份文件，在同一个事务中只创建缺失文档，并且不会覆盖已有内容。初始化前，需要在 `config.json` 中把 GitHub Repository 与 Raw Source 声明替换为已启用的 `@i0c/data-repository-postgres` 和 `@i0c/http-snapshot-source`，使文档与构建期所选安装保持一致。
+
+使用数据库文档时，还要在同一份启动配置中选择 HTTP Runtime Source，并指向 `https://<webui-domain>/api/runtime/snapshot`。这个公开端点会返回一份带 ETag、经过校验的配置与规则 revision，且不包含 Secret 值。边缘 Runtime 只读取该端点，不会获得 PostgreSQL 连接串。
 
 ## 短链接统计
 
@@ -125,12 +140,12 @@ WebUI 不会把原有非敏感环境变量作为覆盖值或回退值读取。Ve
 - 通过认证后查看已安装 Manifest、配置状态、能力、缺失绑定和所选 Store 健康状态。
 - 表单行为对齐 Schema（规范来源：[https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json](https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json)）。
 - 支持撤销/重做，便于快速回退编辑。
-- 保存时调用 GitHub Contents API，创建带提交说明的 commit。
-- 展示最近的提交历史并可跳转到 GitHub 查看详情。
+- 通过所选版本化 Repository 保存；revision 过期时拒绝覆盖较新的内容。
+- 所选 Repository 提供链接时，保存成功通知会显示 GitHub commit 链接。
 
 ## 注意事项
 
 - OAuth 应用需要 `repo` 权限才能写入私有仓库。
 - 若目标仓库为私有，请确认登录账号具备相应写权限。
-- `public-readonly` 仅支持公开目标仓库，并受 GitHub 未认证 API 请求限额约束。
+- 使用 GitHub Repository 时，`public-readonly` 仅支持公开目标，并受 GitHub 未认证 API 请求限额约束。
 - 生产环境部署时务必将 `.env.local` 中的凭据配置到对应平台的环境变量管理中。

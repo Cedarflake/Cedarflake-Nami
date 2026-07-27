@@ -40,6 +40,7 @@
     "@i0c/plugin-catalog": "workspace:*",
     "@i0c/plugin-feature-bot-classifier": "workspace:*",
     "@i0c/plugin-github-data": "workspace:*",
+    "@i0c/plugin-http-snapshot-source": "workspace:*",
     "@i0c/runtime-build": "workspace:*",
     "@i0c/runtime-host": "workspace:*"
   }

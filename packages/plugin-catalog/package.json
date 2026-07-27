@@ -20,8 +20,10 @@
     "@i0c/plugin-analytics-sink-http": "workspace:*",
     "@i0c/plugin-analytics-store-d1": "workspace:*",
     "@i0c/plugin-analytics-store-postgres": "workspace:*",
+    "@i0c/plugin-data-repository-postgres": "workspace:*",
     "@i0c/plugin-feature-bot-classifier": "workspace:*",
     "@i0c/plugin-github-data": "workspace:*",
+    "@i0c/plugin-http-snapshot-source": "workspace:*",
     "@i0c/plugin-runtime-cloudflare": "workspace:*",
     "@i0c/plugin-runtime-netlify": "workspace:*",
     "@i0c/plugin-runtime-vercel": "workspace:*"

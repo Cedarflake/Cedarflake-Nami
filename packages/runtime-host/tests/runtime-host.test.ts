@@ -32,6 +32,7 @@ const externalManifest = {
 } as const
 
 const dataSourceInstallation = {
+  bootstrapConfig: {},
   enabledByDefault: true,
   manifest: {
     id: "@example/runtime-source",
@@ -260,6 +261,18 @@ test("rejects Runtime plugin manifests owned by another host", () => {
     } as unknown as RuntimeDataSourceInstallation,
     features: [],
   }), /incompatible manifest/)
+})
+
+test("rejects malformed Runtime data-source bootstrap metadata", () => {
+  assert.throws(() => defineRuntimePluginInstallations({
+    analyticsSinks: [],
+    bundlePackages: [],
+    dataSource: {
+      ...dataSourceInstallation,
+      bootstrapConfig: [] as unknown as Record<string, never>,
+    },
+    features: [],
+  }), /invalid bootstrap metadata/)
 })
 
 test("rejects duplicate Runtime bundle packages", () => {

@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
 import test from "node:test";
 
-import { getAppDataConfig, getRedirectConfig } from "../src/lib/github";
+import {
+  getAppDataConfigDocument,
+  getRedirectsDocument,
+} from "../src/lib/data/documents";
 
 test("loads instance configuration from the data branch config path", async (context) => {
   context.mock.method(globalThis, "fetch", async (input: Request | string | URL) => {
@@ -17,10 +20,10 @@ test("loads instance configuration from the data branch config path", async (con
     });
   });
 
-  const document = await getAppDataConfig();
+  const document = await getAppDataConfigDocument();
 
-  assert.equal(document.path, "config.json");
-  assert.equal(document.sha, "config-sha");
+  assert.equal(document.sourcePath, "config.json");
+  assert.equal(document.revision, "config-sha");
   assert.equal(document.content, '{"schemaVersion":1}');
 });
 
@@ -34,7 +37,7 @@ test("includes GitHub error details when loading config fails", async (context) 
   }));
 
   await assert.rejects(
-    getRedirectConfig(undefined, {
+    getRedirectsDocument(undefined, {
       sourceUrl: "https://github.com/Revaea/i0c.cc/blob/data/redirects.json",
     }),
     /403 Forbidden - Resource not accessible by integration/,

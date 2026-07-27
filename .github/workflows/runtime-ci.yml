@@ -19,7 +19,7 @@ on:
       - plugins/fixtures/runtime-external/**
       - plugins/runtime/**
       - plugins/sink/http/**
-      - plugins/source/github/**
+      - plugins/source/**
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
@@ -41,7 +41,7 @@ on:
       - plugins/fixtures/runtime-external/**
       - plugins/runtime/**
       - plugins/sink/http/**
-      - plugins/source/github/**
+      - plugins/source/**
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml

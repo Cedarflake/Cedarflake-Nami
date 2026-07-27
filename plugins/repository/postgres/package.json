@@ -1,0 +1,48 @@
+{
+  "name": "@i0c/plugin-data-repository-postgres",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Revaea/i0c.cc.git"
+  },
+  "exports": {
+    "./config": {
+      "types": "./src/config.ts",
+      "default": "./src/config.ts"
+    },
+    "./manifest": {
+      "types": "./src/manifest.ts",
+      "default": "./src/manifest.ts"
+    },
+    "./migrations": {
+      "types": "./src/migrations.ts",
+      "default": "./src/migrations.ts"
+    },
+    "./repository": {
+      "types": "./src/repository.ts",
+      "default": "./src/repository.ts"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc --noEmit",
+    "check": "tsc --noEmit",
+    "migrate": "tsx scripts/migrate.ts",
+    "seed": "tsx scripts/seed.ts",
+    "test": "tsx --test tests/**/*.test.ts"
+  },
+  "dependencies": {
+    "@i0c/config": "workspace:*",
+    "@i0c/plugin-api": "workspace:*",
+    "postgres": "^3.4.9"
+  },
+  "devDependencies": {
+    "@i0c/plugin-testkit": "workspace:*",
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}

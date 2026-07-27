@@ -11,17 +11,19 @@ interface UseDataConfigFileOptions {
 }
 
 export function useDataConfigFile(options: UseDataConfigFileOptions) {
-  const [sha, setSha] = useState("");
+  const [revision, setRevision] = useState("");
   const [resultMessage, setResultMessage] = useState<string | null>(null);
+  const [resultStatus, setResultStatus] = useState<"error" | "success" | null>(null);
   const [lastCommitUrl, setLastCommitUrl] = useState<string | null>(null);
   const [lastSavedContent, setLastSavedContent] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const load = useCallback(async () => {
     setResultMessage(null);
+    setResultStatus(null);
     setLastCommitUrl(null);
     const data = await fetchDataConfig(options.fallbackLoadErrorText);
-    setSha(data.document.sha);
+    setRevision(data.document.revision);
     setLastSavedContent(data.document.content);
     return data.document.content;
   }, [options.fallbackLoadErrorText]);
@@ -31,27 +33,30 @@ export function useDataConfigFile(options: UseDataConfigFileOptions) {
       new Promise((resolve) => {
         startTransition(async () => {
           setResultMessage(null);
+          setResultStatus(null);
           setLastCommitUrl(null);
           try {
             const result = await saveDataConfig({
               content,
+              expectedRevision: revision,
               message: "chore(config): update instance settings",
-              sha,
             }, options.fallbackSaveErrorText);
-            setSha(result.sha);
+            setRevision(result.revision);
             setLastSavedContent(content);
-            setLastCommitUrl(result.commitUrl);
+            setLastCommitUrl(result.revisionUrl ?? null);
             setResultMessage(options.saveOkText);
+            setResultStatus("success");
             resolve(true);
           } catch (error) {
             setResultMessage(
               error instanceof Error ? error.message : options.fallbackSaveErrorText,
             );
+            setResultStatus("error");
             resolve(false);
           }
         });
       }),
-    [options.fallbackSaveErrorText, options.saveOkText, sha],
+    [options.fallbackSaveErrorText, options.saveOkText, revision],
   );
 
   return {
@@ -60,6 +65,7 @@ export function useDataConfigFile(options: UseDataConfigFileOptions) {
     lastSavedContent,
     load,
     resultMessage,
+    resultStatus,
     save,
   };
 }

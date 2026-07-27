@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-i0c.cc WebUI is a management panel based on Next.js 16, designed for online editing of `config.json` and `redirects.json` after logging in via GitHub OAuth. When saving changes, it calls the GitHub Contents API to create commits on the specified branch of the target repository, preserving the history.
+i0c.cc WebUI is a management panel based on Next.js 16, designed for online editing of `config.json` and `redirects.json` after logging in via GitHub OAuth. Saves go through the selected build-time Data Repository. GitHub Contents remains the default and preserves commit history; PostgreSQL is available for optimistic database-backed saves and atomic snapshots.
 
 This WebUI supports the personal [i0c.cc](https://github.com/Revaea/i0c.cc) workflow. It is maintained as an optional management surface rather than a general-purpose enterprise URL management product.
 
@@ -38,12 +38,12 @@ This project provides two rule-editing modes and a separate settings surface:
    `blockedGitHubUserIds` optionally rejects selected numeric account IDs in `authenticated`
    and `public-readonly` modes. It is ignored in `allowlist` mode, and an ID cannot be both a
    manager and blocked.
-   `public-readonly` loads the configured rules through GitHub's
-   unauthenticated API for read-only accounts, so the target repository must be public.
+   When GitHub Contents is selected, `public-readonly` loads the configured rules through
+   GitHub's unauthenticated API for read-only accounts, so the target repository must be public.
    Any GitHub user may sign in to inspect rules and analytics, while listed users may edit
    config, create campaign URLs, and refresh analytics. Without listed IDs, no one can manage it.
 
-3. The bootstrap GitHub repository, branch, and paths are defined in [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts), while its executable Repository factory is installed by [../../i0c.webui.config.ts](../../i0c.webui.config.ts). The defaults load `config.json` and `redirects.json` from the `data` branch of `Revaea/i0c.cc`. The canonical Runtime origin used by QR codes comes from `config.json`.
+3. The build-time Repository and Runtime Source selections are defined in [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts), while executable Repository factories are installed by [../../i0c.webui.config.ts](../../i0c.webui.config.ts). The default GitHub setup loads `config.json` and `redirects.json` from the `data` branch of `Revaea/i0c.cc`. The canonical Runtime origin used by QR codes comes from `config.json`.
 
 4. Generate `NEXTAUTH_SECRET` and write it into `.env.local`. For production, set `NEXTAUTH_URL` to `https://your-domain`; for development, set it to `http://localhost:3000`.
 
@@ -64,6 +64,21 @@ This project provides two rule-editing modes and a separate settings surface:
    ```
 
 6. Open [http://localhost:3000](http://localhost:3000) or **your domain** and sign in. Configured managers can edit both data documents; other permitted users receive the access defined by the selected mode.
+
+## Data repository
+
+GitHub Contents is the default Repository. It uses the configured branch commit as the snapshot revision and reads both documents at the same commit for Runtime publication.
+
+To use PostgreSQL, change `data.repository` in [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts), configure `DATA_REPOSITORY_DATABASE_URL`, then deliberately migrate and seed the repository:
+
+```bash
+pnpm --filter @i0c/plugin-data-repository-postgres migrate
+pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
+```
+
+Both commands mutate the configured database and are never run by builds, startup, health checks, or ordinary requests. Seeding validates both files, creates only missing documents in one transaction, and never overwrites existing content. Before seeding, replace the GitHub Repository and Raw Source declarations in `config.json` with enabled `@i0c/data-repository-postgres` and `@i0c/http-snapshot-source` declarations so the document matches the selected build-time installations.
+
+For database-backed documents, also select the HTTP Runtime Source in the same bootstrap configuration and point it at `https://<webui-domain>/api/runtime/snapshot`. The public endpoint returns one validated config-and-rules revision with an ETag; it contains no Secret values. Edge Runtime deployments fetch this endpoint and never receive the PostgreSQL connection string.
 
 ## Short-link analytics
 
@@ -136,14 +151,14 @@ The WebUI does not read former non-sensitive environment variables as overrides 
 - Authenticated plugin status reporting for installed manifests, configuration state, capabilities, missing bindings, and selected-Store health.
 - Form behavior aligned with the schema (specification source: [https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json](https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json)).
 - Supports undo/redo for quick editing rollback.
-- Calls the GitHub Contents API to create commits with commit messages when saving.
-- Displays recent commit history with links to view details on GitHub.
+- Saves through the selected versioned Repository and rejects stale revisions instead of overwriting newer content.
+- Shows a GitHub commit link after saves when the selected Repository provides one.
 
 ## Notes
 
 - The OAuth app requires `repo` permissions to write to private repositories.
 - If the target repository is private, ensure the logged-in account has the appropriate write permissions.
-- `public-readonly` supports only public target repositories and is subject to GitHub's unauthenticated API limits.
+- With the GitHub Repository, `public-readonly` supports only public targets and is subject to GitHub's unauthenticated API limits.
 - For production deployment, make sure to configure the credentials in `.env.local` into the environment variable management of the respective platform.
 
 For the Chinese version, see [README.zh-CN.md](README.zh-CN.md).

@@ -16,6 +16,7 @@ on:
       - packages/plugin-catalog/**
       - packages/runtime-build/src/config.ts
       - packages/analytics-domain/**
+      - plugins/repository/**
       - plugins/source/github/**
       - plugins/store/**
       - plugins/**/src/manifest.ts
@@ -38,6 +39,7 @@ on:
       - packages/plugin-catalog/**
       - packages/runtime-build/src/config.ts
       - packages/analytics-domain/**
+      - plugins/repository/**
       - plugins/source/github/**
       - plugins/store/**
       - plugins/**/src/manifest.ts

@@ -1,9 +1,12 @@
 "use client";
 
-import type { GitHubDataDocumentPayload } from "@/lib/github";
+import type {
+  DataDocument,
+  DataRepositoryWriteResult,
+} from "@i0c/config";
 
 interface DataConfigResponse {
-  document: GitHubDataDocumentPayload;
+  document: DataDocument;
 }
 
 interface ErrorResponse {
@@ -20,9 +23,9 @@ export async function fetchDataConfig(fallbackErrorText: string): Promise<DataCo
 
 export async function saveDataConfig(input: {
   content: string;
+  expectedRevision: string;
   message: string;
-  sha: string;
-}, fallbackErrorText: string): Promise<{ sha: string; commitUrl: string }> {
+}, fallbackErrorText: string): Promise<DataRepositoryWriteResult> {
   const response = await fetch("/api/data/config", {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -31,7 +34,7 @@ export async function saveDataConfig(input: {
   if (!response.ok) {
     throw new Error(await readError(response, fallbackErrorText));
   }
-  return (await response.json()) as { sha: string; commitUrl: string };
+  return (await response.json()) as DataRepositoryWriteResult;
 }
 
 async function readError(response: Response, fallback: string): Promise<string> {

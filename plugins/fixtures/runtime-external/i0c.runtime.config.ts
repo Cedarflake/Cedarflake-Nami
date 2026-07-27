@@ -7,6 +7,9 @@ import { createHttpAnalyticsSink } from "@i0c/plugin-analytics-sink-http/runtime
 import { resolveBotClassifierConfig } from "@i0c/plugin-feature-bot-classifier/config"
 import { botClassifierManifest } from "@i0c/plugin-feature-bot-classifier/manifest"
 import { createBotClassifierFeature } from "@i0c/plugin-feature-bot-classifier/runtime"
+import {
+  resolveGitHubRawSourceBootstrapConfig,
+} from "@i0c/plugin-github-data/config"
 import { githubRawSourcePlugin } from "@i0c/plugin-github-data/runtime"
 
 import type {
@@ -26,9 +29,22 @@ export const runtimePluginInstallations = {
     "@i0c/runtime-fixture-external",
   ],
   dataSource: {
+    bootstrapConfig: {
+      dataConfigUrl:
+        "https://raw.githubusercontent.com/Revaea/i0c.cc/data/config.json",
+      redirectsConfigUrl:
+        "https://raw.githubusercontent.com/Revaea/i0c.cc/data/redirects.json",
+      dataConfigCacheTtlSeconds: 600,
+      redirectsCacheTtlSeconds: 60,
+      configFailureBackoffSeconds: 30,
+      redirectsFailureBackoffSeconds: 10,
+    },
     enabledByDefault: true,
     manifest: githubRawSourcePlugin.manifest,
-    create: githubRawSourcePlugin.create,
+    create: (config, services) => githubRawSourcePlugin.create(
+      resolveGitHubRawSourceBootstrapConfig(config),
+      services,
+    ),
   },
   analyticsSinks: [
     {
