@@ -33,9 +33,9 @@ The editable non-secret data plane contains two documents:
 - `config.json` stores versioned instance settings and installed-plugin declarations.
 - `redirects.json` stores redirect rules.
 
-GitHub Contents remains the default WebUI Repository and preserves the existing `data` branch workflow. The optional PostgreSQL Repository stores both documents with optimistic revisions and exposes an atomic read snapshot. Its migration history is independent from analytics migrations.
+The checked-in PostgreSQL Repository stores both documents with optimistic revisions and exposes an atomic read snapshot. GitHub Contents remains available and preserves the existing `data` branch workflow. Repository migration history is independent from analytics migrations.
 
-GitHub Raw remains the default Runtime Source and reads both documents independently. The HTTP Snapshot Source instead reads one validated `{ revision, config, redirects }` response from the WebUI, deduplicates concurrent loads, revalidates with an ETag, and retains the last host-valid snapshot after a failed refresh. Runtime never connects directly to the PostgreSQL Repository.
+The checked-in HTTP Snapshot Source reads one validated `{ revision, config, redirects }` response from the WebUI, deduplicates concurrent loads, revalidates with an ETag, and retains the last host-valid snapshot after a failed refresh. GitHub Raw remains available and reads both Git-backed documents independently. Runtime never connects directly to the PostgreSQL Repository.
 
 Some values must exist before either document can be loaded. The selected Repository and Source, GitHub owner, repository, branch and paths, OAuth scope, PostgreSQL binding and connection policy, HTTP snapshot URL and retry policy, and installed plugin packages are therefore **bootstrap configuration**, not remote plugin configuration. Defaults live in `@i0c/config`; executable Runtime installations live in the root `i0c.runtime.config.ts`, WebUI server installations live in the root `i0c.webui.config.ts`, and client-safe WebUI extensions live in `apps/webui/webui.extensions.ts`. Changing an installation requires a rebuild. Plugin manifests intentionally reject bootstrap-only fields under `plugins.*.config`; accepting them there would create settings that validate but cannot initialize their own loader.
 

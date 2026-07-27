@@ -33,9 +33,9 @@ i0c.cc 使用轻量的静态注册插件架构，让重定向核心不直接绑�
 - `config.json` 存放版本化实例设置和已安装插件声明。
 - `redirects.json` 存放重定向规则。
 
-GitHub Contents 仍是默认 WebUI Repository，并保留现有 `data` 分支工作流。可选的 PostgreSQL Repository 以乐观版本写入两份文档，并提供原子读取快照；它的迁移历史与统计迁移相互独立。
+仓库当前启用的 PostgreSQL Repository 以乐观版本写入两份文档，并提供原子读取快照。GitHub Contents 仍然可用，并保留现有 `data` 分支工作流；Repository 迁移历史与统计迁移相互独立。
 
-GitHub Raw 仍是默认 Runtime Source，会分别读取两份文档。HTTP Snapshot Source 则从 WebUI 一次读取经过校验的 `{ revision, config, redirects }`，合并并发加载、使用 ETag 重新验证，并在刷新失败时保留最后一次通过宿主校验的快照。Runtime 不会直接连接 PostgreSQL Repository。
+仓库当前启用的 HTTP Snapshot Source 会从 WebUI 一次读取经过校验的 `{ revision, config, redirects }`，合并并发加载、使用 ETag 重新验证，并在刷新失败时保留最后一次通过宿主校验的快照。GitHub Raw 仍然可用，并会分别读取两份 Git 文档。Runtime 不会直接连接 PostgreSQL Repository。
 
 有些值必须在读取远程文档之前存在。所选 Repository 与 Source、GitHub 所有者、仓库、分支和路径、OAuth scope、PostgreSQL binding 与连接策略、HTTP 快照地址与重试策略，以及已安装插件包因此属于**启动配置**，不是远程插件配置。默认值位于 `@i0c/config`；Runtime 可执行安装位于根目录 `i0c.runtime.config.ts`，WebUI 服务端安装位于根目录 `i0c.webui.config.ts`，客户端安全的 WebUI 扩展位于 `apps/webui/webui.extensions.ts`。修改安装项后需要重新构建。插件 Manifest 会明确拒绝在 `plugins.*.config` 中填写这些启动字段，避免出现“能通过校验，却无法初始化自身加载器”的假配置。
 

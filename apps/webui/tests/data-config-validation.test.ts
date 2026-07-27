@@ -2,15 +2,23 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { defaultDataConfig } from "@i0c/config";
+import {
+  webUiPluginDescriptors,
+} from "@i0c/webui-manifests";
 
 import { validateInstanceDataConfig } from "../src/lib/configuration/validation";
+import {
+  runtimePluginDescriptors,
+} from "../../../i0c.runtime.manifests";
 
 test("rejects a config that disables the Runtime data source", () => {
+  const dataSourcePluginId =
+    runtimePluginDescriptors.dataSource.manifest.id;
   const result = validateInstanceDataConfig({
     ...defaultDataConfig,
     plugins: {
       ...defaultDataConfig.plugins,
-      "@i0c/github-raw-source": { enabled: false },
+      [dataSourcePluginId]: { enabled: false },
     },
   });
 
@@ -18,7 +26,9 @@ test("rejects a config that disables the Runtime data source", () => {
   if (result.status === "invalid") {
     assert.ok(
       result.issues.some(
-        (issue) => issue.path === "/plugins/@i0c~1github-raw-source/enabled",
+        (issue) =>
+          issue.path
+          === `/plugins/${dataSourcePluginId.replace("/", "~1")}/enabled`,
       ),
     );
   }
@@ -37,11 +47,13 @@ test("allows a config that disables an installed Runtime platform", () => {
 });
 
 test("rejects an incompatible Runtime plugin config version", () => {
+  const dataSourcePluginId =
+    runtimePluginDescriptors.dataSource.manifest.id;
   const result = validateInstanceDataConfig({
     ...defaultDataConfig,
     plugins: {
       ...defaultDataConfig.plugins,
-      "@i0c/github-raw-source": {
+      [dataSourcePluginId]: {
         enabled: true,
         version: 999,
       },
@@ -52,18 +64,22 @@ test("rejects an incompatible Runtime plugin config version", () => {
   if (result.status === "invalid") {
     assert.ok(
       result.issues.some(
-        (issue) => issue.path === "/plugins/@i0c~1github-raw-source/version",
+        (issue) =>
+          issue.path
+          === `/plugins/${dataSourcePluginId.replace("/", "~1")}/version`,
       ),
     );
   }
 });
 
 test("rejects a config that disables the WebUI data repository", () => {
+  const dataRepositoryPluginId =
+    webUiPluginDescriptors.dataRepository.manifest.id;
   const result = validateInstanceDataConfig({
     ...defaultDataConfig,
     plugins: {
       ...defaultDataConfig.plugins,
-      "@i0c/github-contents-repository": { enabled: false },
+      [dataRepositoryPluginId]: { enabled: false },
     },
   });
 
@@ -71,7 +87,9 @@ test("rejects a config that disables the WebUI data repository", () => {
   if (result.status === "invalid") {
     assert.ok(
       result.issues.some(
-        (issue) => issue.path === "/plugins/@i0c~1github-contents-repository/enabled",
+        (issue) =>
+          issue.path
+          === `/plugins/${dataRepositoryPluginId.replace("/", "~1")}/enabled`,
       ),
     );
   }

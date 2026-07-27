@@ -14,18 +14,25 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 
+import { defaultDataConfig } from "@i0c/config";
+
 import { interLatinVariableFontPath } from "../../src/assets/inter-font";
 import { handleRedirectRequest } from "../../src/lib/handler";
 
-function createConfigFetch(
-  configUrl: string,
+function createUpstreamFetch(
   upstreamStatus: number,
-  routePath: string = "/app"
 ): typeof fetch {
-  return async (input) => {
-    const request = input instanceof Request ? input : new Request(input);
-    if (request.url === configUrl) {
-      return Response.json({
+  return async () =>
+    new Response("upstream unavailable", { status: upstreamStatus });
+}
+
+function createDataSource(routePath: string = "/app") {
+  return {
+    async loadConfig() {
+      return defaultDataConfig;
+    },
+    async loadRules() {
+      return {
         Slots: {
           Main: {
             [routePath]: {
@@ -34,20 +41,17 @@ function createConfigFetch(
             }
           }
         }
-      });
+      };
     }
-
-    return new Response("upstream unavailable", { status: upstreamStatus });
   };
 }
 
 test("returns an uncacheable gateway error after every proxy candidate fails", async () => {
-  const configUrl = "https://config.example/proxy-exhaustion.json";
   const response = await handleRedirectRequest(
     new Request("https://i0c.cc/app/dashboard"),
     {
-      configUrl,
-      fetchImpl: createConfigFetch(configUrl, 503)
+      dataSource: createDataSource(),
+      fetchImpl: createUpstreamFetch(503)
     }
   );
 
@@ -57,12 +61,11 @@ test("returns an uncacheable gateway error after every proxy candidate fails", a
 });
 
 test("returns the branded 404 when a catch-all proxy reports not found", async () => {
-  const configUrl = "https://config.example/catch-all-not-found.json";
   const response = await handleRedirectRequest(
     new Request("https://i0c.cc/222"),
     {
-      configUrl,
-      fetchImpl: createConfigFetch(configUrl, 404, "/")
+      dataSource: createDataSource("/"),
+      fetchImpl: createUpstreamFetch(404)
     }
   );
 
@@ -73,12 +76,11 @@ test("returns the branded 404 when a catch-all proxy reports not found", async (
 });
 
 test("preserves the branded cacheable response for an unmatched route", async () => {
-  const configUrl = "https://config.example/unmatched-route.json";
   const response = await handleRedirectRequest(
     new Request("https://i0c.cc/missing"),
     {
-      configUrl,
-      fetchImpl: createConfigFetch(configUrl, 200)
+      dataSource: createDataSource(),
+      fetchImpl: createUpstreamFetch(200)
     }
   );
 
@@ -110,13 +112,12 @@ test("serves the embedded Inter font without loading redirect config", async () 
 });
 
 test("uses the versioned robots policy instead of a legacy environment binding", async () => {
-  const configUrl = "https://config.example/robots.json";
   const response = await handleRedirectRequest(
     new Request("https://i0c.cc/robots.txt"),
     {
-      configUrl,
+      dataSource: createDataSource(),
       envBindings: { ROBOTS_POLICY: "disallow" },
-      fetchImpl: createConfigFetch(configUrl, 200)
+      fetchImpl: createUpstreamFetch(200)
     }
   );
 

@@ -1,13 +1,13 @@
 # <img src="./logo.webp" alt="i0c.cc" width="420">
 
-i0c.cc is a personal edge redirect playground with Git as its default data backend. It runs the same core through optional edge-platform adapters and provides a WebUI with optional analytics for my own use.
+i0c.cc is a personal edge redirect playground with a PostgreSQL control plane and optional Git fallback. It runs the same core through optional edge-platform adapters and provides a WebUI with optional analytics for my own use.
 
 ## Positioning
 
 This repository is maintained for personal use and engineering experimentation. It is not intended to be a hosted URL-shortening service or an enterprise redirect platform.
 
 - Deploy whichever Runtime adapter fits the environment; Cloudflare, Vercel, and Netlify are supported alternatives rather than required replicas.
-- Keep Git as the simple default, or select the PostgreSQL Repository when immediate database-backed saves are more useful.
+- Use PostgreSQL for immediate database-backed saves while keeping Git as a simple, auditable fallback.
 - Use the WebUI and analytics when they help the personal workflow; the roadmap prioritizes clarity and reliability over feature parity with commercial products.
 
 ## Projects
@@ -55,7 +55,7 @@ Use these settings when the platform asks for project or build configuration:
 | Vercel | `apps/runtime` | `pnpm build:vc` | `.vercel/output` |
 | Netlify | `apps/runtime` | `pnpm build:nf` | `dist` |
 
-Build from a full monorepo checkout so the Runtime can import the shared workspace packages. On Vercel, keep **Include source files outside of the Root Directory in the Build Step** enabled. The default Runtime Source reads the `data` branch; the optional HTTP Snapshot Source reads one atomic snapshot from the WebUI. Analytics delivery only requires the `ANALYTICS_WRITE_KEY` secret on each provider.
+Build from a full monorepo checkout so the Runtime can import the shared workspace packages. On Vercel, keep **Include source files outside of the Root Directory in the Build Step** enabled. The checked-in Runtime Source reads one atomic HTTP snapshot from the WebUI; GitHub Raw remains available as a build-time fallback. Analytics delivery only requires the `ANALYTICS_WRITE_KEY` secret on each provider.
 
 ### WebUI
 
@@ -81,9 +81,9 @@ The selected WebUI Repository contains two independently editable documents:
 - `config.json` stores non-sensitive instance settings such as the canonical Runtime origin, cache TTLs, robots policy, analytics namespace and collector endpoint, WebUI access policy, and namespaced plugin configuration.
 - `redirects.json` stores redirect rules.
 
-GitHub Contents remains the default Repository and preserves commits on the `data` branch. The optional PostgreSQL Repository uses optimistic document revisions and exposes an atomic two-document snapshot. The WebUI can edit both documents; invalid `config.json` content remains visible to managers so it can be repaired.
+The checked-in PostgreSQL Repository uses optimistic document revisions and exposes an atomic two-document snapshot. GitHub Contents remains available as a build-time fallback that preserves commits on the `data` branch. The WebUI can edit both documents; invalid `config.json` content remains visible to managers so it can be repaired.
 
-The default GitHub Runtime Source reads both Raw documents with independent caches. The optional HTTP Snapshot Source reads one validated WebUI snapshot so config and rules always come from the same Repository revision. It uses ETags, bounded retries and timeouts, and the last valid memory or platform cache. Runtime deployments never receive PostgreSQL credentials.
+The checked-in HTTP Snapshot Source reads one validated WebUI snapshot so config and rules always come from the same Repository revision. It uses ETags, bounded retries and timeouts, and the last valid memory or platform cache. GitHub Raw remains available when Git-backed data is selected. Runtime deployments never receive PostgreSQL credentials.
 
 [packages/config](packages/config) owns schemas, validation, safe defaults, and the build-time Repository and Source selection. Bootstrap changes such as GitHub paths, PostgreSQL connection policy, HTTP snapshot URL, or GitHub OAuth scope require rebuilding. PostgreSQL Repository migrations are deliberate external writes and never run during a build or application startup.
 
