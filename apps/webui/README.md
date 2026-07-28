@@ -141,7 +141,7 @@ The WebUI does not read former non-sensitive environment variables as overrides 
 ## Features Overview
 
 - Versioned authenticated, numeric-ID allowlist, or GitHub-wide read-only access with configured managers and optional blocked users.
-- Visual editing of `redirects.json`: group tree management + rule form editing.
+- Visual editing of `redirects.json`: group tree management, rule forms, and explicit proxy-policy profiles with advanced request and response controls.
 - GitHub Repository-only rules source override and JSON editor with line highlighting and syntax validation.
 - Visual, validated `config.json` settings with a raw recovery editor only when the current document cannot be represented safely.
 - First-run database initialization without hand-written JSON or a seed command.

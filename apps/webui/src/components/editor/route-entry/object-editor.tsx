@@ -16,8 +16,11 @@ import {
   normalizePriority,
   normalizeStatus,
   setExclusiveDestination,
+  setRouteType,
   type DestinationKey,
 } from "@/composables/editor/route-utils";
+
+import { ProxyPolicyEditor } from "./proxy-policy-editor";
 
 interface RouteObjectEditorProps {
   value: Record<string, unknown>;
@@ -51,10 +54,7 @@ export function RouteObjectEditor({
             value={(value.type as string | undefined) ?? "prefix"}
             disabled={isReadOnly}
             onChange={(next) => {
-              const nextConfig: Record<string, unknown> = { ...value, type: next };
-              if (next === "proxy") delete nextConfig.status;
-              if (next === "exact") delete nextConfig.appendPath;
-              onChange(nextConfig);
+              onChange(setRouteType(value, next));
             }}
             options={[
               { value: "prefix", label: "prefix" },
@@ -167,6 +167,14 @@ export function RouteObjectEditor({
           {priorityInvalid ? <p className="mt-1 text-xs text-rose-600">{t("priorityInvalid")}</p> : null}
         </div>
       </div>
+
+      {routeType === "proxy" ? (
+        <ProxyPolicyEditor
+          value={value.proxyPolicy}
+          onChange={(next) => onChange({ ...value, proxyPolicy: next })}
+          isReadOnly={isReadOnly}
+        />
+      ) : null}
 
       <div>
         <LabelWithTooltip label={t("analyticsIdLabel")} tooltip={t("analyticsIdTooltip")} />

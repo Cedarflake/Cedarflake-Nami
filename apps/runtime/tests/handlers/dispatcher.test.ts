@@ -135,7 +135,7 @@ test("falls through failed proxies in priority order", async () => {
   ]);
   assert.ok(result.match);
   assert.equal(await result.match.response.text(), "fallback");
-  assert.equal(result.match.rule.target, "https://second.example");
+  assert.equal(result.match.rule.action.target, "https://second.example");
   assert.equal(result.proxyFailureReason, null);
   assert.equal(discardedResponses, 1);
 });
@@ -221,7 +221,7 @@ test("races static asset proxies and returns a successful candidate", async () =
   ]);
   assert.ok(result.match);
   assert.equal(await result.match.response.text(), "asset");
-  assert.equal(result.match.rule.target, "https://second.example");
+  assert.equal(result.match.rule.action.target, "https://second.example");
   assert.equal(result.proxyFailureReason, null);
 });
 
@@ -278,6 +278,6 @@ test("aborts slower proxy candidates after the race has a winner", async () => {
     isStaticAssetPath: true
   });
 
-  assert.equal(result.match?.rule.target, "https://first.example");
+  assert.equal(result.match?.rule.action.target, "https://first.example");
   assert.equal(didAbortSlowerCandidate, true);
 });

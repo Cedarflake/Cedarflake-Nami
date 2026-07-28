@@ -107,7 +107,13 @@ test("drops malformed targets and bounds response status values", () => {
 
   assert.equal(entries.length, 1);
   assert.equal(entries[0]?.base, "/invalid-status");
-  assert.equal(entries[0]?.rule.status, 302);
+  assert.equal(entries[0]?.rule.action.type, "redirect");
+  assert.equal(
+    entries[0]?.rule.action.type === "redirect"
+      ? entries[0].rule.action.status
+      : undefined,
+    302
+  );
 });
 
 test("normalizes schema-compatible numeric strings", () => {
@@ -121,6 +127,10 @@ test("normalizes schema-compatible numeric strings", () => {
   });
 
   assert.ok(entry);
-  assert.equal(entry.rule.status, 307);
+  assert.equal(entry.rule.action.type, "redirect");
+  assert.equal(
+    entry.rule.action.type === "redirect" ? entry.rule.action.status : undefined,
+    307
+  );
   assert.equal(entry.rule.priority, -2);
 });

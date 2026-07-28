@@ -85,6 +85,141 @@ test("keeps Runtime proxy validation aligned with the explicit URL schema", () =
   assert.equal(result.status, "invalid");
 });
 
+test("accepts a structured proxy policy", () => {
+  const result = validateRedirectConfig({
+    Slots: {
+      Main: {
+        "/api": {
+          type: "proxy",
+          target: "https://api.example.com",
+          proxyPolicy: {
+            profile: "trusted-api",
+            request: {
+              methods: ["GET", "POST"],
+              cookies: {
+                mode: "allowlist",
+                names: ["session"],
+              },
+              authorization: "preserve",
+              origin: "preserve",
+            },
+            response: {
+              cookies: {
+                mode: "allowlist",
+                names: ["session"],
+                domain: "remove",
+                path: "proxy-base",
+              },
+              securityHeaders: "preserve",
+            },
+            cache: {
+              mode: "bypass",
+            },
+            redirects: {
+              mode: "follow",
+              maxHops: 3,
+              allowedOrigins: ["https://cdn.example"],
+            },
+            limits: {
+              timeoutMs: 5_000,
+              maxRequestBodyBytes: 1_048_576,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.status, "valid");
+});
+
+test("rejects proxy policies on redirects and unsafe nested overrides", () => {
+  const redirectResult = validateRedirectConfig({
+    Slots: {
+      Main: {
+        "/docs": {
+          type: "exact",
+          target: "https://example.com/docs",
+          proxyPolicy: {
+            profile: "isolated",
+          },
+        },
+      },
+    },
+  });
+  assert.equal(redirectResult.status, "invalid");
+
+  const proxyResult = validateRedirectConfig({
+    Slots: {
+      Main: {
+        "/proxy": {
+          type: "proxy",
+          target: "https://example.com",
+          proxyPolicy: {
+            profile: "trusted-api",
+            request: {
+              cookies: {
+                mode: "allowlist",
+              },
+            },
+            redirects: {
+              mode: "follow",
+              allowedOrigins: ["https://example.com/path"],
+            },
+          },
+        },
+      },
+    },
+  });
+  assert.equal(proxyResult.status, "invalid");
+});
+
+test("rejects credential-bearing public caches and unsupported proxy methods", () => {
+  const invalidPolicies = [
+    {
+      profile: "trusted-api",
+      request: { authorization: "preserve" },
+      cache: { mode: "public" },
+    },
+    {
+      profile: "trusted-api",
+      request: {
+        cookies: { mode: "allowlist", names: ["session"] },
+      },
+      cache: { mode: "public" },
+    },
+    {
+      profile: "trusted-api",
+      request: { methods: ["CONNECT"] },
+    },
+    {
+      profile: "trusted-api",
+      response: {
+        cookies: {
+          mode: "strip",
+          domain: "preserve",
+        },
+      },
+    },
+  ];
+
+  for (const proxyPolicy of invalidPolicies) {
+    const result = validateRedirectConfig({
+      Slots: {
+        Main: {
+          "/proxy": {
+            type: "proxy",
+            target: "https://example.com",
+            proxyPolicy,
+          },
+        },
+      },
+    });
+
+    assert.equal(result.status, "invalid");
+  }
+});
+
 test("rejects priorities outside the JavaScript safe integer range", () => {
   for (const priority of [Number.MAX_SAFE_INTEGER + 1, "9007199254740992"]) {
     const result = validateRedirectConfig({

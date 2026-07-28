@@ -126,11 +126,29 @@ Provide a `Slots` object in `redirects.json` to define routing rules. The table 
 | `appendPath` | boolean | `true` | Whether to append the remaining path when using `prefix` or `proxy` mode. Not applicable to `exact`. |
 | `status` | number | `302` | HTTP status code from 200 through 599 for non-proxy responses. Do not set for `proxy`. |
 | `priority` | number | by order | Determines rule precedence for the same path. Smaller numbers are matched first. |
+| `proxyPolicy` | object | legacy compatibility | Explicit request, response, redirect, cache, and resource-limit policy. Only valid for `proxy`. |
 
 - Keys must start with `/` and can use colon parameters such as `:id` or the `*` wildcard. Captures can be referenced in the target with `$1`, `:id`, and so on.
 - When multiple path patterns match, literal segments take precedence over colon parameters, parameters take precedence over `*`, and deeper patterns win when shared segments have equal specificity.
 - The `proxy` type forwards the request to the destination and returns the upstream response. Other types respond with a `Location` redirect.
 - To configure multiple rules for the same path, provide an array. Array order controls the default priority, or you can specify `priority` explicitly.
+
+New proxy rules created by WebUI use an explicit `isolated` policy. Existing rules without
+`proxyPolicy` keep the previous forwarding behavior for compatibility until you assign a profile:
+
+| Profile | Use case | Default credential handling | Default cache |
+|---------|----------|-----------------------------|---------------|
+| `isolated` | External or untrusted targets | Strips cookies, authorization, Origin, Referer, and client IP metadata | `bypass` |
+| `asset` | Public static assets | Strips cookies, authorization, and source metadata | Public cache headers |
+| `trusted-api` | APIs you operate | Credentials remain stripped unless explicitly allowed | `bypass` |
+
+All explicit profiles preserve upstream CSP and frame protections, check every followed redirect
+against the initial or configured allowed origins, and process each `Set-Cookie` header
+independently. `cache.mode: "public"` emits portable HTTP cache headers; provider-specific cache
+APIs are not used.
+Public caching cannot be combined with forwarded request cookies or authorization. Configuration
+validation rejects that combination, and the Runtime still forces `private, no-store` if an
+unvalidated policy reaches the proxy.
 
 Add the schema reference below to unlock autocomplete and validation in supporting editors. The schema lives on `main`, so it still applies if the JSON sits in a data branch:
 
@@ -179,18 +197,45 @@ Add the schema reference below to unlock autocomplete and validation in supporti
         "type": "proxy",
         "target": "https://api.example.com",
         "appendPath": true,
+        "proxyPolicy": {
+          "profile": "trusted-api",
+          "request": {
+            "methods": ["GET", "POST"],
+            "cookies": {
+              "mode": "allowlist",
+              "names": ["session"]
+            }
+          },
+          "response": {
+            "cookies": {
+              "mode": "allowlist",
+              "names": ["session"],
+              "domain": "remove",
+              "path": "proxy-base"
+            }
+          },
+          "cache": {
+            "mode": "bypass"
+          }
+        },
         "priority": 10
       },
       {
         "type": "proxy",
         "target": "https://backup-api.example.com",
         "appendPath": true,
+        "proxyPolicy": {
+          "profile": "isolated"
+        },
         "priority": 20
       }
     ],
     "/media/*": {
       "type": "proxy",
-      "target": "https://cdn.example.com/$1"
+      "target": "https://cdn.example.com/$1",
+      "proxyPolicy": {
+        "profile": "asset"
+      }
     },
     "/admin": {
       "type": "prefix",
