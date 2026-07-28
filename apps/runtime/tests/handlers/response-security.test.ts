@@ -18,11 +18,14 @@ import { respondUsingRule } from "../../src/lib/handlers/routing/response";
 import type { NormalizedRule, ResolvedRuntime } from "../../src/lib/handlers/core/types";
 
 const proxyRule: NormalizedRule = {
-  type: "proxy",
-  target: "https://example.com",
-  appendPath: true,
-  status: 302,
-  priority: 0
+  match: { type: "prefix" },
+  action: {
+    type: "proxy",
+    target: "https://example.com",
+    appendPath: true
+  },
+  priority: 0,
+  sourceType: "proxy"
 };
 
 function createRuntime(fetchImpl: typeof fetch): ResolvedRuntime {
@@ -46,6 +49,7 @@ test("blocks non-public literal IP proxy targets", async (context) => {
 
   for (const target of [
     "http://2130706433/",
+    "http://localhost./",
     "http://10.0.0.1/",
     "http://100.64.0.1/",
     "http://169.254.169.254/",

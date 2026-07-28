@@ -1,3 +1,4 @@
+import { validateProxyPolicy } from "./proxy-policy-validation"
 import type { RedirectsConfig } from "./types"
 
 export interface RedirectsConfigValidationIssue {
@@ -26,6 +27,7 @@ const routeConfigKeys = new Set([
   "appendPath",
   "status",
   "priority",
+  "proxyPolicy",
 ])
 const routeTypes = new Set(["prefix", "exact", "proxy"])
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -137,6 +139,14 @@ function validateRouteConfig(
 
   if (value.type !== undefined && (typeof value.type !== "string" || !routeTypes.has(value.type))) {
     addIssue(issues, `${path}/type`, "must be prefix, exact, or proxy")
+  }
+
+  if (value.proxyPolicy !== undefined) {
+    if (value.type !== "proxy") {
+      addIssue(issues, `${path}/proxyPolicy`, "is only allowed for proxy routes")
+    } else {
+      validateProxyPolicy(value.proxyPolicy, `${path}/proxyPolicy`, issues)
+    }
   }
 
   if (value.appendPath !== undefined && typeof value.appendPath !== "boolean") {

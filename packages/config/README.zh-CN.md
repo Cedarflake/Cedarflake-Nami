@@ -4,7 +4,7 @@ Runtime 与 WebUI 共用的数据契约和启动配置包。
 
 普通实例配置存放在 `data` 分支的 `config.json`，并由 [config.schema.json](config.schema.json) 与 [src/validation.ts](src/validation.ts) 中兼容边缘环境的校验器共同约束。Runtime 与 WebUI 会远程读取该文档，因此有效更新不需要重新构建应用。
 
-路由规则存放在同一分支的 `redirects.json`，其结构由 [redirects.schema.json](redirects.schema.json) 描述。两份 data 文档的 Schema 统一归入此包，可避免 WebUI 编辑器反向依赖 Runtime 应用包。
+路由规则存放在同一分支的 `redirects.json`，其结构由 [redirects.schema.json](redirects.schema.json) 描述，其中也包含 Runtime 与 WebUI 共用的 `proxyPolicy` 契约。两份 data 文档的 Schema 统一归入此包，可避免 WebUI 编辑器反向依赖 Runtime 应用包。
 
 [src/defaults.ts](src/defaults.ts) 只保存远程配置加载前必须存在的安全回退值和启动信息：GitHub 仓库、data 分支、文档路径与 OAuth scope。只有迁移数据源本身时才修改这些值；启动配置变化需要重新构建消费方。
 

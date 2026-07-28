@@ -326,6 +326,79 @@
     "priorityLabel": "Priority",
     "priorityTooltip": "Matching Priority\nSmaller number = higher priority",
     "priorityInvalid": "Must be an integer (e.g. 0, 10, -1).",
+    "proxyPolicyLegacyTitle": "Legacy proxy behavior",
+    "proxyPolicyLegacyDescription": "This rule predates explicit proxy policies. It keeps the previous forwarding behavior until you choose a profile.",
+    "proxyPolicyApplyIsolated": "Use isolated profile",
+    "proxyPolicyInherit": "Use profile default",
+    "proxyProfileLabel": "Proxy profile",
+    "proxyProfile": {
+      "isolated": "Isolated",
+      "asset": "Static assets",
+      "trusted-api": "Trusted API"
+    },
+    "proxyProfileDescription": {
+      "isolated": "For external targets. Credentials and source headers are removed, responses are not shared-cached, and only same-origin redirects are followed.",
+      "asset": "For public static files. Credentials and cookies are removed and successful responses may use public cache headers.",
+      "trusted-api": "For APIs you control. Methods and selected credentials can be allowed explicitly; shared caching remains off by default."
+    },
+    "proxyRequestTitle": "Upstream request",
+    "proxyRequestDescription": "Control methods, credentials, and source headers sent to the upstream.",
+    "proxyMethodsLabel": "Allowed methods",
+    "proxyMethodsPlaceholder": "GET, HEAD, OPTIONS",
+    "proxyRequestCookiesLabel": "Request cookies",
+    "proxyResponseCookiesLabel": "Response cookies",
+    "proxyCookieNamesLabel": "Allowed cookie names",
+    "proxyCookieNamesPlaceholder": "session, visitor",
+    "proxyAuthorizationLabel": "Authorization",
+    "proxyOriginLabel": "Origin",
+    "proxyRefererLabel": "Referer",
+    "proxyCookieMode": {
+      "strip": "Remove all",
+      "allowlist": "Allow selected names"
+    },
+    "proxyCredentialMode": {
+      "strip": "Remove",
+      "preserve": "Preserve for the initial origin"
+    },
+    "proxySourceHeaderMode": {
+      "strip": "Remove",
+      "preserve": "Preserve client value",
+      "target": "Rewrite to upstream"
+    },
+    "proxyResponseTitle": "Upstream response",
+    "proxyResponseDescription": "Control which response cookies return to the browser and how their scope is rewritten.",
+    "proxyCookieDomainLabel": "Cookie Domain",
+    "proxyCookiePathLabel": "Cookie Path",
+    "proxyCookieAttributeMode": {
+      "remove": "Remove",
+      "preserve": "Preserve"
+    },
+    "proxyCookiePathMode": {
+      "remove": "Remove",
+      "preserve": "Preserve",
+      "proxy-base": "Rewrite to proxy path"
+    },
+    "proxyRedirectCacheTitle": "Redirects and cache",
+    "proxyRedirectCacheDescription": "Limit followed origins and choose whether safe responses can expose public cache headers.",
+    "proxyRedirectModeLabel": "Upstream redirects",
+    "proxyRedirectMode": {
+      "manual": "Return redirect to client",
+      "follow": "Follow allowed origins"
+    },
+    "proxyMaxHopsLabel": "Maximum redirect hops",
+    "proxyAllowedOriginsLabel": "Additional allowed origins",
+    "proxyCacheModeLabel": "Cache mode",
+    "proxyCacheMode": {
+      "bypass": "Private, no-store",
+      "public": "Public cache headers"
+    },
+    "proxyPublicCacheCredentialWarning": "Public caching requires request cookies and authorization to remain stripped.",
+    "proxyBrowserTtlLabel": "Browser TTL (seconds)",
+    "proxyEdgeTtlLabel": "Shared-cache TTL (seconds)",
+    "proxyLimitsTitle": "Resource limits",
+    "proxyLimitsDescription": "Bound upstream wait time and the request body buffered for redirect replay.",
+    "proxyTimeoutLabel": "Request timeout (ms)",
+    "proxyBodyLimitLabel": "Maximum request body (bytes)",
     "analyticsIdLabel": "Analytics ID",
     "analyticsIdTooltip": "Stable identifier used to attribute requests after a path or target changes."
   }

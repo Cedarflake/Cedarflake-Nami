@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   createDeterministicAnalyticsId,
   ensureAnalyticsId,
+  setRouteType,
 } from "../src/composables/editor/route-utils";
 import {
   buildConfig,
@@ -63,6 +64,51 @@ test("persists hydrated analytics IDs through config serialization", async () =>
   assert.deepEqual(
     buildConfig(reloaded.rootGroup, reloaded.baseConfig, reloaded.slotsKey),
     saved,
+  );
+});
+
+test("defaults new proxy rules to isolated and removes proxy policy from redirects", () => {
+  const proxy = setRouteType({
+    analyticsId: "eb5deba4-32b7-476f-b7f3-4b5c598a397c",
+    type: "prefix",
+    target: "https://example.com",
+    appendPath: true,
+    status: 302,
+  }, "proxy");
+  assert.deepEqual(proxy.proxyPolicy, { profile: "isolated" });
+  assert.equal(proxy.status, undefined);
+
+  const redirect = setRouteType(proxy, "exact");
+  assert.equal(redirect.proxyPolicy, undefined);
+  assert.equal(redirect.appendPath, undefined);
+});
+
+test("preserves proxy policy fields through serialization", async () => {
+  const source = JSON.stringify({
+    Slots: {
+      Main: {
+        "/api": {
+          analyticsId: "eb5deba4-32b7-476f-b7f3-4b5c598a397c",
+          type: "proxy",
+          target: "https://api.example.com",
+          proxyPolicy: {
+            profile: "trusted-api",
+            request: {
+              cookies: {
+                mode: "allowlist",
+                names: ["session"],
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  const parsed = await parseInitialContent(source);
+
+  assert.deepEqual(
+    buildConfig(parsed.rootGroup, parsed.baseConfig, parsed.slotsKey),
+    JSON.parse(source),
   );
 });
 

@@ -1,5 +1,14 @@
 export type RobotsPolicy = "allow" | "disallow"
 export type WebUiAccessMode = "authenticated" | "allowlist" | "public-readonly"
+export type ProxyProfile = "isolated" | "asset" | "trusted-api"
+export type ProxyCookieMode = "strip" | "allowlist"
+export type ProxyCredentialMode = "strip" | "preserve"
+export type ProxySourceHeaderMode = "strip" | "preserve" | "target"
+export type ProxyResponseCookieAttributeMode = "remove" | "preserve"
+export type ProxyResponseCookiePathMode = ProxyResponseCookieAttributeMode | "proxy-base"
+export type ProxySecurityHeadersMode = "preserve"
+export type ProxyCacheMode = "bypass" | "public"
+export type ProxyRedirectMode = "manual" | "follow"
 
 export type JsonPrimitive = boolean | number | string | null
 export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue }
@@ -12,6 +21,56 @@ export interface RedirectsConfig {
   slots?: SlotBranch
   SLOT?: SlotBranch
   [key: string]: unknown
+}
+
+export interface ProxyCookiePolicy {
+  mode: ProxyCookieMode
+  names?: readonly string[]
+}
+
+export interface ProxyRequestPolicy {
+  methods?: readonly string[]
+  cookies?: ProxyCookiePolicy
+  authorization?: ProxyCredentialMode
+  origin?: ProxySourceHeaderMode
+  referer?: ProxySourceHeaderMode
+  clientIp?: "strip"
+}
+
+export interface ProxyResponseCookiePolicy extends ProxyCookiePolicy {
+  domain?: ProxyResponseCookieAttributeMode
+  path?: ProxyResponseCookiePathMode
+}
+
+export interface ProxyResponsePolicy {
+  cookies?: ProxyResponseCookiePolicy
+  securityHeaders?: ProxySecurityHeadersMode
+}
+
+export interface ProxyCachePolicy {
+  mode: ProxyCacheMode
+  edgeTtlSeconds?: number
+  browserTtlSeconds?: number
+}
+
+export interface ProxyRedirectPolicy {
+  mode: ProxyRedirectMode
+  maxHops?: number
+  allowedOrigins?: readonly string[]
+}
+
+export interface ProxyLimitPolicy {
+  timeoutMs?: number
+  maxRequestBodyBytes?: number
+}
+
+export interface ProxyPolicy {
+  profile: ProxyProfile
+  request?: ProxyRequestPolicy
+  response?: ProxyResponsePolicy
+  cache?: ProxyCachePolicy
+  redirects?: ProxyRedirectPolicy
+  limits?: ProxyLimitPolicy
 }
 
 export interface DataSourceTarget {

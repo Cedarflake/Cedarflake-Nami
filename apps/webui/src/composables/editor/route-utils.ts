@@ -103,3 +103,22 @@ export function setExclusiveDestination(
   next[key] = value;
   return next;
 }
+
+export function setRouteType(
+  config: Record<string, unknown>,
+  nextType: string,
+): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...config, type: nextType };
+  if (nextType === "proxy") {
+    delete next.status;
+    if (next.proxyPolicy === undefined) {
+      next.proxyPolicy = { profile: "isolated" };
+    }
+  } else {
+    delete next.proxyPolicy;
+  }
+  if (nextType === "exact") {
+    delete next.appendPath;
+  }
+  return next;
+}

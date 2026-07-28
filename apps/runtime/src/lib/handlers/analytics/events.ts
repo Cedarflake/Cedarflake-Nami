@@ -14,6 +14,7 @@ import {
   normalizeAnalyticsHostname
 } from "./attribution";
 import type { VerifiedAttributionToken } from "./attribution";
+import { DEFAULT_STATUS } from "../core/constants";
 import type {
   AnalyticsBotCategory,
   AnalyticsBotConfidence,
@@ -149,7 +150,7 @@ export async function createMatchedAnalyticsEvent(
     eventKind: "link",
     analyticsId,
     routePath: input.routePath,
-    linkType: input.rule.type === "proxy" ? "proxy" : "redirect",
+    linkType: input.rule.action.type,
     matchKind: input.matchKind,
     matchOutcome: "matched",
     ...resolveReferrerField(input.request),
@@ -288,10 +289,10 @@ async function resolveAnalyticsId(path: string, rule: NormalizedRule): Promise<s
   const legacyIdentity = JSON.stringify([
     "legacy-v1",
     path,
-    rule.type,
-    rule.target,
-    rule.appendPath,
-    rule.status
+    rule.sourceType,
+    rule.action.target,
+    rule.action.appendPath,
+    rule.action.type === "redirect" ? rule.action.status : DEFAULT_STATUS
   ]);
   return `legacy_${await createSha256(legacyIdentity)}`;
 }

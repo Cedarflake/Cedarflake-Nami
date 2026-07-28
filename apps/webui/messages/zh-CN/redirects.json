@@ -326,6 +326,79 @@
     "priorityLabel": "优先级",
     "priorityTooltip": "匹配优先级\n数字越小优先级越高",
     "priorityInvalid": "需为整数（例如 0、10、-1）。",
+    "proxyPolicyLegacyTitle": "旧版代理行为",
+    "proxyPolicyLegacyDescription": "这条规则创建于代理策略功能之前。在选择预设前，它会继续沿用原有转发行为。",
+    "proxyPolicyApplyIsolated": "使用隔离预设",
+    "proxyPolicyInherit": "使用预设默认值",
+    "proxyProfileLabel": "代理预设",
+    "proxyProfile": {
+      "isolated": "隔离代理",
+      "asset": "静态资源",
+      "trusted-api": "可信 API"
+    },
+    "proxyProfileDescription": {
+      "isolated": "适用于外部目标。移除凭据和来源请求头、不使用共享缓存，并且只跟随同源跳转。",
+      "asset": "适用于公开静态文件。移除凭据和 Cookie，成功响应可输出公开缓存头。",
+      "trusted-api": "适用于你控制的 API。可显式放行方法和指定凭据，默认仍关闭共享缓存。"
+    },
+    "proxyRequestTitle": "上游请求",
+    "proxyRequestDescription": "控制发送给上游的方法、凭据和来源请求头。",
+    "proxyMethodsLabel": "允许的方法",
+    "proxyMethodsPlaceholder": "GET, HEAD, OPTIONS",
+    "proxyRequestCookiesLabel": "请求 Cookie",
+    "proxyResponseCookiesLabel": "响应 Cookie",
+    "proxyCookieNamesLabel": "允许的 Cookie 名称",
+    "proxyCookieNamesPlaceholder": "session, visitor",
+    "proxyAuthorizationLabel": "Authorization",
+    "proxyOriginLabel": "Origin",
+    "proxyRefererLabel": "Referer",
+    "proxyCookieMode": {
+      "strip": "全部移除",
+      "allowlist": "仅允许指定名称"
+    },
+    "proxyCredentialMode": {
+      "strip": "移除",
+      "preserve": "仅向初始来源保留"
+    },
+    "proxySourceHeaderMode": {
+      "strip": "移除",
+      "preserve": "保留客户端值",
+      "target": "改写为上游地址"
+    },
+    "proxyResponseTitle": "上游响应",
+    "proxyResponseDescription": "控制哪些响应 Cookie 返回浏览器，以及如何改写其作用域。",
+    "proxyCookieDomainLabel": "Cookie Domain",
+    "proxyCookiePathLabel": "Cookie Path",
+    "proxyCookieAttributeMode": {
+      "remove": "移除",
+      "preserve": "保留"
+    },
+    "proxyCookiePathMode": {
+      "remove": "移除",
+      "preserve": "保留",
+      "proxy-base": "改写为代理路径"
+    },
+    "proxyRedirectCacheTitle": "跳转与缓存",
+    "proxyRedirectCacheDescription": "限制可跟随的来源，并选择安全响应是否可以输出公开缓存头。",
+    "proxyRedirectModeLabel": "上游跳转",
+    "proxyRedirectMode": {
+      "manual": "将跳转返回客户端",
+      "follow": "跟随允许的来源"
+    },
+    "proxyMaxHopsLabel": "最大跳转次数",
+    "proxyAllowedOriginsLabel": "额外允许的来源",
+    "proxyCacheModeLabel": "缓存模式",
+    "proxyCacheMode": {
+      "bypass": "私有且不缓存",
+      "public": "输出公开缓存头"
+    },
+    "proxyPublicCacheCredentialWarning": "使用公共缓存时，请求 Cookie 和 Authorization 必须保持移除状态。",
+    "proxyBrowserTtlLabel": "浏览器缓存时间（秒）",
+    "proxyEdgeTtlLabel": "共享缓存时间（秒）",
+    "proxyLimitsTitle": "资源限制",
+    "proxyLimitsDescription": "限制等待上游的时间，以及为重放跳转而缓冲的请求体大小。",
+    "proxyTimeoutLabel": "请求超时（毫秒）",
+    "proxyBodyLimitLabel": "请求体上限（字节）",
     "analyticsIdLabel": "统计 ID",
     "analyticsIdTooltip": "用于稳定归因请求；即使路径或目标地址变化，该标识也保持不变。"
   }
