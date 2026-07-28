@@ -4,7 +4,7 @@ Shared data contracts and bootstrap package for Runtime and WebUI configuration.
 
 Normal instance settings live in `config.json` on the `data` branch and are validated by [config.schema.json](config.schema.json) plus the edge-compatible validator in [src/validation.ts](src/validation.ts). Runtime and WebUI fetch the document remotely, so valid updates do not require rebuilding either application.
 
-Redirect rules live beside it in `redirects.json` and are described by [redirects.schema.json](redirects.schema.json), including the shared `proxyPolicy` contract used by Runtime and WebUI. Keeping both data document schemas here avoids coupling the WebUI editor to the Runtime application package.
+Redirect rules live beside it in `redirects.json` and are described by [redirects.schema.json](redirects.schema.json). Keeping both data document schemas here avoids coupling the WebUI editor to the Runtime application package.
 
 [src/defaults.ts](src/defaults.ts) contains only the safe fallback and bootstrap values needed before remote configuration can be loaded: the GitHub repository, data branch, document paths, and OAuth scope. Change these values only when moving the source itself; bootstrap changes require rebuilding consumers.
 

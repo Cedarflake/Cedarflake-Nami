@@ -4,19 +4,16 @@ import { useTranslations } from "next-intl";
 
 import { formControlClassName } from "@/components/ui/controls/form-control";
 import { LabelWithTooltip } from "@/components/ui/controls/label-with-tooltip";
-import { QRCodeButton } from "@/components/ui/controls/qr-code";
 
 interface RouteQuickEditorProps {
   value: string;
   onChange: (next: string) => void;
-  pathKey: string;
   isReadOnly: boolean;
 }
 
 export function RouteQuickEditor({
   value,
   onChange,
-  pathKey,
   isReadOnly,
 }: RouteQuickEditorProps) {
   const t = useTranslations("routeEntry");
@@ -32,7 +29,6 @@ export function RouteQuickEditor({
           readOnly={isReadOnly}
           className={formControlClassName({ className: "flex-1" })}
         />
-        {pathKey && <QRCodeButton pathKey={pathKey} />}
       </div>
     </div>
   );

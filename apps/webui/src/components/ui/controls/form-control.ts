@@ -1,4 +1,4 @@
-type FormControlSize = "sm" | "md";
+type FormControlSize = "sm" | "md" | "textarea";
 
 interface FormControlClassNameOptions {
   className?: string;
@@ -8,6 +8,7 @@ interface FormControlClassNameOptions {
 const sizeClassNames: Record<FormControlSize, string> = {
   sm: "h-9 rounded-lg px-3 text-sm",
   md: "h-10 rounded-xl px-3.5 text-sm",
+  textarea: "min-h-24 rounded-xl px-3.5 py-2.5 text-sm",
 };
 
 export const fieldLabelClassName = "text-xs font-semibold uppercase tracking-[0.12em] text-muted";

@@ -83,6 +83,7 @@ async function main(): Promise<void> {
       "@i0c/config",
       "@i0c/plugin-api",
       "@i0c/plugin-catalog",
+      "@i0c/plugin-sdk",
       "@i0c/runtime-build",
       "@i0c/runtime-host",
       "zod",

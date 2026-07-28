@@ -1,4 +1,5 @@
 import { resolveQueryRange, type QueryRange } from "@i0c/analytics-domain/range"
+import { ANALYTICS_ENTRY_DOMAIN_LOOKBACK_DAYS } from "@i0c/analytics-domain/store"
 import type {
   AnalyticsEntryDomainOption,
   AnalyticsQueryScope,
@@ -28,7 +29,7 @@ export async function getAvailableEntryDomains(
       WHERE source_id = ${sourceId}
         AND bucket_start >= (
           DATE_TRUNC('day', NOW() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
-          - INTERVAL '89 days'
+          - (${ANALYTICS_ENTRY_DOMAIN_LOOKBACK_DAYS - 1} * INTERVAL '1 day')
         )
 
       UNION
@@ -39,7 +40,7 @@ export async function getAvailableEntryDomains(
       WHERE source_id = ${sourceId}
         AND bucket_start >= (
           DATE_TRUNC('day', NOW() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC'
-          - INTERVAL '89 days'
+          - (${ANALYTICS_ENTRY_DOMAIN_LOOKBACK_DAYS - 1} * INTERVAL '1 day')
         )
     )
     SELECT

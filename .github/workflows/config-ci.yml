@@ -10,6 +10,7 @@ on:
       - packages/config/**
       - packages/plugin-api/**
       - packages/plugin-catalog/**
+      - packages/plugin-sdk/**
       - packages/runtime-build/src/config.ts
       - plugins/**/src/config.ts
       - plugins/**/src/manifest.ts
@@ -26,6 +27,7 @@ on:
       - packages/config/**
       - packages/plugin-api/**
       - packages/plugin-catalog/**
+      - packages/plugin-sdk/**
       - packages/runtime-build/src/config.ts
       - plugins/**/src/config.ts
       - plugins/**/src/manifest.ts

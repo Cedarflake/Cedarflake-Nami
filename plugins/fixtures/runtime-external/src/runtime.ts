@@ -1,7 +1,5 @@
-import type {
-  RuntimePlatformPlugin,
-  RuntimeRequestHandler,
-} from "@i0c/plugin-api"
+import type { RuntimeRequestHandler } from "@i0c/plugin-api"
+import { defineRuntimePlatformPlugin } from "@i0c/plugin-sdk/runtime"
 
 import { externalRuntimeManifest } from "./manifest"
 
@@ -16,7 +14,7 @@ function createExternalRuntimeHandler(
   })
 }
 
-export const runtimePlatformPlugin = {
+export const runtimePlatformPlugin = defineRuntimePlatformPlugin({
   manifest: externalRuntimeManifest,
   create: createExternalRuntimeHandler,
-} satisfies RuntimePlatformPlugin<ExternalRuntimeHandler>
+})

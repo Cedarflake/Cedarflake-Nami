@@ -192,31 +192,16 @@ export function removeEntry(
   return { ...state, rootGroup: nextRoot };
 }
 
-export function updateEntryKey(
+export function updateEntry(
   state: GroupsEditorState,
   groupId: string,
   entryId: string,
-  nextKey: string
+  draft: RedirectEntryDraft,
 ): GroupsEditorState {
   const [nextRoot] = updateGroupById(state.rootGroup, groupId, (group) => ({
     ...group,
     entries: group.entries.map((entry) =>
-      entry.id === entryId ? { ...entry, key: nextKey } : entry
-    ),
-  }));
-  return { ...state, rootGroup: nextRoot };
-}
-
-export function updateEntryValue(
-  state: GroupsEditorState,
-  groupId: string,
-  entryId: string,
-  nextValue: unknown
-): GroupsEditorState {
-  const [nextRoot] = updateGroupById(state.rootGroup, groupId, (group) => ({
-    ...group,
-    entries: group.entries.map((entry) =>
-      entry.id === entryId ? { ...entry, value: nextValue } : entry
+      entry.id === entryId ? { ...entry, ...draft } : entry
     ),
   }));
   return { ...state, rootGroup: nextRoot };

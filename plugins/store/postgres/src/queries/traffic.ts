@@ -5,6 +5,10 @@ import type {
   AnalyticsSeriesPoint,
 } from "@i0c/analytics-domain/types"
 import { resolveSeriesBucket } from "@i0c/analytics-domain/range"
+import {
+  ANALYTICS_DIMENSION_LIMIT,
+  ANALYTICS_LINK_SUMMARY_LIMIT,
+} from "@i0c/analytics-domain/store"
 import { createTrendComparison } from "@i0c/analytics-domain/trend"
 
 import { getDatabase } from "../database"
@@ -237,7 +241,8 @@ async function getEventDimensions(
     )
     SELECT dimension, key, label, requests, clicks
     FROM ranked
-    WHERE rank <= 10 OR (dimension = 'countries' AND key = 'unknown')
+    WHERE rank <= ${ANALYTICS_DIMENSION_LIMIT}
+      OR (dimension = 'countries' AND key = 'unknown')
     ORDER BY dimension ASC, requests DESC, key ASC
   `;
 
@@ -444,7 +449,8 @@ export async function getDimensions(
     )
     SELECT dimension, key, label, requests, clicks
     FROM ranked
-    WHERE rank <= 10 OR (dimension = 'countries' AND key = 'unknown')
+    WHERE rank <= ${ANALYTICS_DIMENSION_LIMIT}
+      OR (dimension = 'countries' AND key = 'unknown')
     ORDER BY dimension ASC, requests DESC, key ASC
   `;
 
@@ -509,7 +515,7 @@ export async function getLinkSummaries(
       COALESCE(current_stats.entry_clicks, 0) DESC,
       COALESCE(current_stats.requests, 0) DESC,
       link.route_path ASC
-    LIMIT 500
+    LIMIT ${ANALYTICS_LINK_SUMMARY_LIMIT}
   `;
 
   return rows.map((row) => {

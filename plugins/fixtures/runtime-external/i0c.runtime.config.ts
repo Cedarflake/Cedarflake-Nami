@@ -1,4 +1,3 @@
-import { defineRuntimeInstallationConfig } from "@i0c/runtime-build/config"
 import {
   resolveHttpAnalyticsSinkConfig,
 } from "@i0c/plugin-analytics-sink-http/config"
@@ -11,12 +10,12 @@ import {
   resolveGitHubRawSourceBootstrapConfig,
 } from "@i0c/plugin-github-data/config"
 import { githubRawSourcePlugin } from "@i0c/plugin-github-data/runtime"
-
-import type {
-  RuntimeAnalyticsSinkContext,
-  RuntimeAnalyticsSinkEvent,
-  RuntimePluginInstallations,
-} from "@i0c/runtime-host/installations"
+import {
+  defineRuntimeInstallationConfig,
+  type RuntimeAnalyticsSinkContext,
+  type RuntimeAnalyticsSinkEvent,
+  type RuntimePluginInstallations,
+} from "@i0c/plugin-sdk/runtime"
 
 import { externalRuntimeFeaturePlugin } from "./src/feature"
 import { externalRuntimeInstallation } from "./src/installation"

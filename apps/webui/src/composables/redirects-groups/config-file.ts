@@ -4,6 +4,11 @@ import { useCallback, useRef, useState, useTransition } from "react";
 
 import { fetchRedirectsConfig, saveRedirectsConfig } from "./api";
 
+export interface RedirectsSaveResult {
+  errorMessage?: string;
+  isSuccess: boolean;
+}
+
 export function useRedirectsConfigFile(options: {
   fallbackLoadErrorText: string;
   fallbackSaveErrorText: string;
@@ -49,7 +54,7 @@ export function useRedirectsConfigFile(options: {
   }, [options.fallbackLoadErrorText]);
 
   const save = useCallback(
-    (content: string): Promise<boolean> =>
+    (content: string): Promise<RedirectsSaveResult> =>
       new Promise((resolve) => {
         startTransition(async () => {
           setResultMessage(null);
@@ -74,15 +79,14 @@ export function useRedirectsConfigFile(options: {
             setLastCommitUrl(result.revisionUrl ?? null);
             setResultMessage(options.saveOkText);
             setResultStatus("success");
-            resolve(true);
+            resolve({ isSuccess: true });
           } catch (error) {
-            setResultMessage(
-              error instanceof Error
-                ? error.message
-                : options.fallbackSaveErrorText,
-            );
+            const errorMessage = error instanceof Error
+              ? error.message
+              : options.fallbackSaveErrorText;
+            setResultMessage(errorMessage);
             setResultStatus("error");
-            resolve(false);
+            resolve({ errorMessage, isSuccess: false });
           }
         });
       }),

@@ -120,29 +120,20 @@ pnpm runtime:build:nf
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `analyticsId` | UUID 字符串 | 自动生成或推导 | 稳定的统计身份。修改路径或目标地址时应保持不变。 |
+| `description` | string | 不设置 | 最多 500 字符的可选管理备注；Runtime 匹配和响应时会忽略它。 |
 | `type` | string | `prefix` | 路由模式：`prefix` 前缀重定向，`exact` 精确匹配，`proxy` 反向代理。 |
 | `target` | string | `""` | 目标地址，`target`、`to`、`url` 三选一。 |
 | `to` / `url` | string | `""` | `target` 的别名字段，`target`、`to`、`url` 三选一。 |
 | `appendPath` | boolean | `true` | `prefix` 或 `proxy` 模式下是否拼接剩余路径，`exact` 不适用。 |
 | `status` | number | `302` | 非 `proxy` 响应使用 200 到 599 的状态码，`proxy` 不要设置。 |
 | `priority` | number | 按顺序 | 同一路径存在多条规则时用于排序，数字越小越先匹配。 |
-| `proxyPolicy` | object | 旧版兼容行为 | 显式控制请求、响应、跳转、缓存和资源限制，仅适用于 `proxy`。 |
 
 - 键名需要以 `/` 开头，可以使用冒号参数，例如 `:id`，也可以使用 `*` 通配符。匹配结果可以在目标地址中用 `$1`、`:id` 等占位符引用。
 - 多个路径模式同时匹配时，字面量片段优先于冒号参数，参数优先于 `*`；共享片段特异性相同时，层级更深的模式优先。
 - `proxy` 类型会把请求转发到目标地址并返回上游响应，其他类型返回 `Location` 重定向。
+- 代理请求会保留 `Cookie`、`Authorization`、`Origin`、`Referer` 等应用层请求头。Runtime 会删除逐跳头，重设 `X-Forwarded-Host` 与 `X-Forwarded-Proto`，并在上游跳转到不同源时停止转发凭据。
+- 上游安全响应头和多个独立的 `Set-Cookie` 等响应头会得到保留。Cookie 的 `Domain` 属性会被移除，使其绑定到公开代理域名。
 - 如果需要为同一路径配置多条规则，可以把值写成数组。数组顺序决定默认优先级，也可以通过 `priority` 显式指定。
-
-WebUI 新建的代理规则会使用显式 `isolated` 策略。没有 `proxyPolicy` 的现有规则会继续沿用旧版转发行为，直到你为其选择预设：
-
-| 预设 | 适用场景 | 默认凭据处理 | 默认缓存 |
-|------|----------|--------------|----------|
-| `isolated` | 外部或不受信任的目标 | 移除 Cookie、Authorization、Origin、Referer 和客户端 IP 元数据 | `bypass` |
-| `asset` | 公开静态资源 | 移除 Cookie、Authorization 和来源元数据 | 公开缓存头 |
-| `trusted-api` | 自己运营的 API | 默认仍移除凭据，必须显式放行 | `bypass` |
-
-所有显式预设都会保留上游 CSP 与防嵌入响应头；每次跟随跳转时都会检查初始来源或配置的允许来源；每个 `Set-Cookie` 也会单独处理。`cache.mode: "public"` 只输出跨平台的 HTTP 缓存头，不调用平台专属缓存 API。
-公共缓存不能与放行的请求 Cookie 或 Authorization 同时使用。配置校验会拒绝这种组合；即使未经校验的策略进入代理，Runtime 也会强制改为 `private, no-store`。
 
 在文件顶部添加下面的 schema 引用，可以在支持的编辑器里获得自动补全和校验。Schema 放在 `main` 分支，即使 `redirects.json` 在 `data` 分支也能生效：
 
@@ -191,45 +182,18 @@ WebUI 新建的代理规则会使用显式 `isolated` 策略。没有 `proxyPoli
         "type": "proxy",
         "target": "https://api.example.com",
         "appendPath": true,
-        "proxyPolicy": {
-          "profile": "trusted-api",
-          "request": {
-            "methods": ["GET", "POST"],
-            "cookies": {
-              "mode": "allowlist",
-              "names": ["session"]
-            }
-          },
-          "response": {
-            "cookies": {
-              "mode": "allowlist",
-              "names": ["session"],
-              "domain": "remove",
-              "path": "proxy-base"
-            }
-          },
-          "cache": {
-            "mode": "bypass"
-          }
-        },
         "priority": 10
       },
       {
         "type": "proxy",
         "target": "https://backup-api.example.com",
         "appendPath": true,
-        "proxyPolicy": {
-          "profile": "isolated"
-        },
         "priority": 20
       }
     ],
     "/media/*": {
       "type": "proxy",
-      "target": "https://cdn.example.com/$1",
-      "proxyPolicy": {
-        "profile": "asset"
-      }
+      "target": "https://cdn.example.com/$1"
     },
     "/admin": {
       "type": "prefix",

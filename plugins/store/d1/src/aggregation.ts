@@ -3,6 +3,11 @@ import {
   resolveSeriesBucketStart,
   type QueryRange,
 } from "@i0c/analytics-domain/range"
+import {
+  ANALYTICS_AUTOMATION_LINK_LIMIT,
+  ANALYTICS_DIMENSION_LIMIT,
+  ANALYTICS_LINK_SUMMARY_LIMIT,
+} from "@i0c/analytics-domain/store"
 import { createTrendComparison } from "@i0c/analytics-domain/trend"
 import type {
   AnalyticsAutomationDimensionPoint,
@@ -130,7 +135,12 @@ export function createTrafficDimensions(
 > {
   const linkPaths = new Map(links.map((link) => [link.analyticsId, link.routePath]))
   return {
-    countries: createTrafficDimension(events, (event) => event.countryCode ?? "unknown"),
+    countries: createTrafficDimension(
+      events,
+      (event) => event.countryCode ?? "unknown",
+      undefined,
+      { alwaysIncludeKeys: ["unknown"] },
+    ),
     referrers: createTrafficDimension(events, (event) => event.referrerDomain ?? "direct"),
     devices: createTrafficDimension(events, (event) => event.deviceType),
     providers: createTrafficDimension(events, (event) => event.provider),
@@ -156,6 +166,15 @@ export function createBotBreakdowns(
     )
   }
   return result
+}
+
+export function createLinkBotBreakdowns(
+  events: readonly D1AnalyticsEventRecord[],
+): AnalyticsBotBreakdowns {
+  return {
+    ...createBotBreakdowns(events),
+    outcomes: [],
+  }
 }
 
 export function createLinkSummaries(
@@ -192,7 +211,7 @@ export function createLinkSummaries(
       || right.requests - left.requests
       || left.path.localeCompare(right.path),
     )
-    .slice(0, 500)
+    .slice(0, ANALYTICS_LINK_SUMMARY_LIMIT)
 }
 
 export function createAutomationTotals(
@@ -266,7 +285,7 @@ export function createAutomationLinks(
       right.observedRequests - left.observedRequests
       || left.path.localeCompare(right.path),
     )
-    .slice(0, 20)
+    .slice(0, ANALYTICS_AUTOMATION_LINK_LIMIT)
 }
 
 export function createAutomationDelivery(
@@ -276,15 +295,28 @@ export function createAutomationDelivery(
   entryDomains: AnalyticsAutomationDimensionPoint[]
 } {
   return {
-    providers: createAutomationDimension(events, (event) => event.provider),
-    entryDomains: createAutomationDimension(events, (event) => event.entryDomain),
+    providers: createAutomationDimension(
+      events,
+      (event) => event.provider,
+      null,
+    ),
+    entryDomains: createAutomationDimension(
+      events,
+      (event) => event.entryDomain,
+      null,
+    ),
   }
+}
+
+interface TrafficDimensionOptions {
+  alwaysIncludeKeys?: readonly string[]
 }
 
 function createTrafficDimension(
   events: readonly D1AnalyticsEventRecord[],
   selectKey: (event: D1AnalyticsEventRecord) => string | null,
   selectLabel?: (key: string) => string | undefined,
+  options: TrafficDimensionOptions = {},
 ): AnalyticsDimensionPoint[] {
   const groups = new Map<string, { requests: number; clicks: number }>()
   for (const event of events) {
@@ -297,7 +329,7 @@ function createTrafficDimension(
     current.clicks += isHuman(event) ? 1 : 0
     groups.set(key, current)
   }
-  return [...groups]
+  const points = [...groups]
     .map(([key, totals]) => ({
       key,
       ...(selectLabel?.(key) ? { label: selectLabel(key) } : {}),
@@ -306,12 +338,17 @@ function createTrafficDimension(
     .sort((left, right) =>
       right.requests - left.requests || left.key.localeCompare(right.key),
     )
-    .slice(0, 10)
+  return takeRankedPoints(
+    points,
+    ANALYTICS_DIMENSION_LIMIT,
+    options.alwaysIncludeKeys,
+  )
 }
 
 function createAutomationDimension(
   events: readonly D1AnalyticsEventRecord[],
   selectKey: (event: D1AnalyticsEventRecord) => string,
+  limit: number | null = ANALYTICS_DIMENSION_LIMIT,
 ): AnalyticsAutomationDimensionPoint[] {
   const groups = new Map<string, { observedRequests: number; estimatedRequests: number }>()
   for (const event of events) {
@@ -324,13 +361,33 @@ function createAutomationDimension(
     current.estimatedRequests += estimatedWeight(event)
     groups.set(key, current)
   }
-  return [...groups]
+  const points = [...groups]
     .map(([key, totals]) => ({ key, ...totals }))
     .sort((left, right) =>
       right.observedRequests - left.observedRequests
       || left.key.localeCompare(right.key),
     )
-    .slice(0, 10)
+  return limit === null ? points : points.slice(0, limit)
+}
+
+function takeRankedPoints<T extends { key: string }>(
+  points: readonly T[],
+  limit: number,
+  alwaysIncludeKeys: readonly string[] = [],
+): T[] {
+  const selected = points.slice(0, limit)
+  const selectedKeys = new Set(selected.map((point) => point.key))
+  for (const key of alwaysIncludeKeys) {
+    if (selectedKeys.has(key)) {
+      continue
+    }
+    const point = points.find((candidate) => candidate.key === key)
+    if (point) {
+      selected.push(point)
+      selectedKeys.add(key)
+    }
+  }
+  return selected
 }
 
 function createSeriesMap<T>(

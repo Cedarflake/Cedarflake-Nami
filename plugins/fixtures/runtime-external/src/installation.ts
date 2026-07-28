@@ -1,4 +1,4 @@
-import { defineRuntimePlatformInstallation } from "@i0c/runtime-build/config"
+import { defineRuntimePlatformInstallation } from "@i0c/plugin-sdk/runtime"
 
 import { externalRuntimeManifest } from "./manifest"
 

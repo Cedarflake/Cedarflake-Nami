@@ -10,6 +10,11 @@ import {
   fieldLabelRowClassName,
   formControlClassName,
 } from "@/components/ui/controls/form-control";
+import {
+  setRouteDescription,
+  stripRetiredProxyPolicy,
+} from "@/composables/editor/route-utils";
+import type { RedirectsMutationResult } from "@/composables/redirects-groups";
 import type { RedirectEntryDraft } from "@/composables/redirects-groups/model";
 
 import { RouteEntryEditor } from "./route-entry/route-entry-editor";
@@ -18,7 +23,8 @@ interface NewRouteEntryDialogProps {
   groupName: string;
   isOpen: boolean;
   onClose: () => void;
-  onCreate: (draft: RedirectEntryDraft) => void;
+  onCreate: (draft: RedirectEntryDraft) => Promise<RedirectsMutationResult>;
+  savesImmediately: boolean;
 }
 
 export function NewRouteEntryDialog({
@@ -26,36 +32,67 @@ export function NewRouteEntryDialog({
   isOpen,
   onClose,
   onCreate,
+  savesImmediately,
 }: NewRouteEntryDialogProps) {
   const t = useTranslations("entries");
   const [pathKey, setPathKey] = useState("");
+  const [description, setDescription] = useState("");
   const [value, setValue] = useState<unknown>("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const normalizedPathKey = pathKey.trim();
   const canCreate = normalizedPathKey.length > 0;
 
-  function createEntry() {
-    if (!canCreate) {
+  async function createEntry() {
+    if (!canCreate || isSaving) {
       return;
     }
-    onCreate({
-      key: normalizedPathKey,
-      value,
-    });
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      const result = await onCreate({
+        key: normalizedPathKey,
+        value: setRouteDescription(
+          stripRetiredProxyPolicy(value),
+          description,
+        ),
+      });
+      setIsSaving(false);
+      if (result.isSuccess) {
+        onClose();
+        return;
+      }
+      setSaveError(result.errorMessage ?? t("saveRuleFail"));
+    } catch (error) {
+      setIsSaving(false);
+      setSaveError(
+        error instanceof Error ? error.message : t("saveRuleFail"),
+      );
+    }
   }
 
   return (
-    <AppDialog isOpen={isOpen} onClose={onClose} widthClassName="max-w-3xl">
+    <AppDialog
+      ariaLabelledBy="new-route-entry-title"
+      isOpen={isOpen}
+      onClose={onClose}
+      preventClose={isSaving}
+      widthClassName="max-w-3xl"
+    >
       <form
         method="dialog"
         onSubmit={(event) => {
           event.preventDefault();
-          createEntry();
+          void createEntry();
         }}
         className="p-5 sm:p-6"
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-semibold text-ink">
+            <h2
+              id="new-route-entry-title"
+              className="text-lg font-semibold text-ink"
+            >
               {t("newRuleTitle")}
             </h2>
             <p className="mt-1 text-sm leading-6 text-muted">
@@ -64,6 +101,7 @@ export function NewRouteEntryDialog({
           </div>
           <Button
             onClick={onClose}
+            disabled={isSaving}
             size="icon"
             variant="ghost"
             title={t("newRuleCancel")}
@@ -102,6 +140,25 @@ export function NewRouteEntryDialog({
         </div>
 
         <div className="mt-5">
+          <label className={fieldLabelRowClassName}>
+            <span className={fieldLabelClassName}>{t("ruleDescription")}</span>
+          </label>
+          <textarea
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            placeholder={t("ruleDescriptionPlaceholder")}
+            maxLength={500}
+            className={formControlClassName({
+              className: "w-full resize-y",
+              size: "textarea",
+            })}
+          />
+          <p className="mt-1.5 text-xs leading-5 text-muted">
+            {t("ruleDescriptionHint")}
+          </p>
+        </div>
+
+        <div className="mt-5">
           <RouteEntryEditor
             pathKey={normalizedPathKey}
             value={value}
@@ -109,12 +166,31 @@ export function NewRouteEntryDialog({
           />
         </div>
 
+        {saveError ? (
+          <p
+            role="alert"
+            className="mt-5 border-l-2 border-rose-400 bg-rose-50 px-3 py-2 text-sm text-rose-700"
+          >
+            {saveError}
+          </p>
+        ) : null}
+
         <div className="mt-6 flex justify-end gap-2">
-          <Button onClick={onClose} variant="secondary">
+          <Button
+            onClick={onClose}
+            disabled={isSaving}
+            variant="secondary"
+          >
             {t("newRuleCancel")}
           </Button>
-          <Button type="submit" disabled={!canCreate} variant="primary">
-            {t("newRuleCreate")}
+          <Button
+            type="submit"
+            disabled={!canCreate || isSaving}
+            variant="primary"
+          >
+            {isSaving
+              ? t("savingRule")
+              : t(savesImmediately ? "saveNewRule" : "newRuleCreate")}
           </Button>
         </div>
       </form>

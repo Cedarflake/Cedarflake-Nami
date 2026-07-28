@@ -392,17 +392,24 @@ export interface AnalyticsStoreBehaviorContractInput<
     range: "1d" | "7d" | "30d" | "90d",
     entryDomain: string,
   ): TTypes["scope"]
+  detailInput: TTypes["detailInput"]
+  missingDetailInput: TTypes["detailInput"]
   rebuildInput: TTypes["rebuildInput"]
+  invalidRebuildInput: TTypes["rebuildInput"]
   retentionScope: TTypes["retentionScope"]
   prepareRetention(): Promise<void>
   expectedEntryDomain: string
   expectedOtherEntryDomain: string
+  expectedExpiredEntryDomain: string
   expectedEstimatedRequests: number
   getOverviewObservedRequests(value: TTypes["overview"]): number
+  getOverviewOutcomeObservedRequests(value: TTypes["overview"]): number
   getAutomationObservedRequests(value: TTypes["automation"]): number
   getAutomationEstimatedRequests(value: TTypes["automation"]): number
+  getAutomationOutcomeObservedRequests(value: TTypes["automation"]): number
   getOverviewSeriesTimestamps(value: TTypes["overview"]): readonly string[]
   getEntryDomainValues(values: readonly TTypes["entryDomain"][]): readonly string[]
+  getDetailObservedRequests(value: TTypes["detail"]): number | null
   getIsDuplicate(value: TTypes["ingestResult"]): boolean
   getRebuildReplayedEvents(value: TTypes["rebuildResult"]): number
   getRetentionDeletedRawEvents(value: TTypes["retentionResult"]): number
@@ -411,6 +418,7 @@ export interface AnalyticsStoreBehaviorContractInput<
 export async function assertAnalyticsStoreBehaviorContract<
   TTypes extends AnalyticsStoreTypes,
 >(input: AnalyticsStoreBehaviorContractInput<TTypes>): Promise<void> {
+  assert.equal((await input.store.healthCheck()).status, "healthy")
   assert.equal(
     input.getOverviewObservedRequests(
       await input.store.getOverview(input.scope),
@@ -430,23 +438,27 @@ export async function assertAnalyticsStoreBehaviorContract<
   assert.equal(input.getIsDuplicate(first), false)
   assert.equal(input.getIsDuplicate(duplicate), true)
   assert.equal(input.getIsDuplicate(otherEntryDomain), false)
+  const overview = await input.store.getOverview(input.scope)
+  const automation = await input.store.getAutomation(input.scope)
+  assert.equal(input.getOverviewObservedRequests(overview), 2)
+  assert.equal(input.getOverviewOutcomeObservedRequests(overview), 0)
+  assert.equal(input.getAutomationObservedRequests(automation), 2)
   assert.equal(
-    input.getOverviewObservedRequests(
-      await input.store.getOverview(input.scope),
-    ),
-    2,
-  )
-  assert.equal(
-    input.getAutomationObservedRequests(
-      await input.store.getAutomation(input.scope),
-    ),
-    2,
-  )
-  assert.equal(
-    input.getAutomationEstimatedRequests(
-      await input.store.getAutomation(input.scope),
-    ),
+    input.getAutomationEstimatedRequests(automation),
     input.expectedEstimatedRequests,
+  )
+  assert.equal(input.getAutomationOutcomeObservedRequests(automation), 2)
+  assert.equal(
+    input.getDetailObservedRequests(
+      await input.store.getDetail(input.detailInput),
+    ),
+    1,
+  )
+  assert.equal(
+    input.getDetailObservedRequests(
+      await input.store.getDetail(input.missingDetailInput),
+    ),
+    null,
   )
   assert.equal(
     input.getOverviewObservedRequests(
@@ -481,6 +493,10 @@ export async function assertAnalyticsStoreBehaviorContract<
     )
   }
 
+  await assert.rejects(
+    input.store.rebuildAggregates(input.invalidRebuildInput),
+    /sourceId must not be empty/,
+  )
   const rebuild = await input.store.rebuildAggregates(input.rebuildInput)
   assert.equal(input.getRebuildReplayedEvents(rebuild), 2)
   assert.equal(
@@ -491,6 +507,12 @@ export async function assertAnalyticsStoreBehaviorContract<
   )
 
   assert.equal(input.getIsDuplicate(await input.store.ingest(input.expiredEvent)), false)
+  assert.equal(
+    input.getEntryDomainValues(
+      await input.store.getEntryDomains(input.scope),
+    ).includes(input.expectedExpiredEntryDomain),
+    false,
+  )
   await input.prepareRetention()
   const retention = await input.store.runRetention(input.retentionScope)
   assert.ok(input.getRetentionDeletedRawEvents(retention) >= 1)

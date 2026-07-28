@@ -12,6 +12,7 @@ i0c.cc 使用轻量的静态注册插件架构，让重定向核心不直接绑�
 |------|----------|------|
 | 领域 | `@i0c/analytics-domain` | 平台无关的统计事件、时间范围、分类和 Store 结果类型 |
 | 协议 | `@i0c/plugin-api` | Manifest、宿主与插槽类型、插件契约、健康检查、迁移、Feature Hook 与 WebUI 插槽 |
+| 开发 SDK | `@i0c/plugin-sdk` | 类型化 Manifest、配置校验、Runtime 与 WebUI 开发辅助函数，以及 workspace 脚手架 |
 | 契约 | `@i0c/plugin-testkit` | Manifest、适配器、仓库、Sink、Store、迁移、Feature 与依赖边界测试 |
 | 目录 | `@i0c/plugin-catalog` | 可选的官方 Manifest 预设和按宿主执行的配置校验 |
 | Runtime 宿主 | `@i0c/runtime-host` | 平台无关的部署装配与宿主上下文补充 |
@@ -74,11 +75,23 @@ PostgreSQL 与 D1 Repository 都以乐观版本写入两份文档，并提供原
 
 第一阶段迁移中，缺少声明时会使用兼容默认值。发布显式声明后，`enabled`、插件配置和 Secret 映射会真实驱动工厂与 Feature 管线。
 
+## 开发 SDK
+
+`@i0c/plugin-sdk` 是位于 `@i0c/plugin-api` 之上的私有 workspace 开发层。它会为各类插件补充固定的 Plugin API 版本、类别、插槽和宿主字段，统一要求双语描述，校验配置 Schema、默认值和最终解析值，并暴露既有 Runtime 与 WebUI 安装契约，使插件作者无需导入应用内部模块。
+
+在仓库根目录创建插件包：
+
+```bash
+pnpm plugin:create --kind feature --name request-sampler
+```
+
+生成器支持 Runtime 平台、数据源、数据 Repository、统计 Sink、统计 Store 与 Runtime Feature。它会在对应的 `plugins/<category>/` 目录生成 Manifest、配置定义、类型化插件骨架、契约测试和双语 README，但不会修改当前启用的安装配置。作者需要审查实现，再将插件显式注册到归属的根配置中。
+
 ## 编译期安装
 
 Runtime 插件不会硬编码在 `apps/runtime` 中。根目录 `i0c.runtime.config.ts` 安装 Data Source、Analytics Sink、Feature 与平台适配器。平台包导出 `./manifest`、`./runtime` 与 `./installation`，Installation 入口声明包模块、需要打包的依赖、Provider 标识、构建键和输出路径。Source Installation 还会提供由插件拥有的不透明启动对象和诊断端点；`apps/runtime` 只把该对象交给所选工厂，不定义数据源专属字段。Sink 与 Feature 也把 Manifest 和工厂交给同一份根配置。
 
-`apps/runtime/src/entry.ts` 只导入由 `@i0c/runtime-build` 生成的虚拟所选平台模块。构建会绑定指定的根配置、注入所选适配器、打包其声明的 Runtime 插件，并在外部 fixture 产物中验证插件标记。因此新增 workspace 内的第三方 Runtime Platform 或 Feature 只需把包加入 workspace 与根安装配置，无需修改 `apps/runtime`、统计事件类型或官方 Catalog。共享插件包目前仍是私有的源码 workspace 包，不是已发布的 npm SDK。
+`apps/runtime/src/entry.ts` 只导入由 `@i0c/runtime-build` 生成的虚拟所选平台模块。构建会绑定指定的根配置、注入所选适配器、打包其声明的 Runtime 插件，并在外部 fixture 产物中验证插件标记。因此新增 workspace 内的第三方 Runtime Platform 或 Feature 只需把包加入 workspace 与根安装配置，无需修改 `apps/runtime`、统计事件类型或官方 Catalog。开发 SDK 与生成的插件仍是私有源码 workspace 包，不是已发布的 npm 生态。
 
 WebUI 服务端插件通过根目录 `i0c.webui.config.ts` 遵循同样的静态装配规则：它安装一个 Data Repository 和可用的 Analytics Store，`apps/webui` 内不再维护工厂映射。客户端扩展放在 `apps/webui/webui.extensions.ts`，因为 React Renderer 必须留在客户端 Bundle。外部 WebUI fixture 会把非空安装清单传入真实宿主 Registry，证明 workspace 包无需修改宿主 Registry 源码即可增加 Renderer。生产扩展清单会保持为空，直到确实需要产品级扩展。
 
@@ -119,6 +132,8 @@ PostgreSQL Repository 迁移位于 `plugins/repository/postgres/migrations`，�
 从仓库根目录串行运行：
 
 ```bash
+pnpm --filter @i0c/plugin-sdk check
+pnpm --filter @i0c/plugin-sdk test
 pnpm plugins:check
 pnpm runtime:check
 pnpm runtime:test
@@ -135,7 +150,7 @@ Plugin CI 检查类型、Manifest、契约、独立插件包、PostgreSQL 集成
 
 ## 新增官方插件
 
-1. 新增一个职责单一的 workspace 包，并按需提供 `./manifest`、`./config`、`./runtime`、`./collector` 或 `./webui` 入口。
+1. 运行 `pnpm plugin:create --kind <kind> --name <name>`，或新增一个等价且职责单一的 workspace 包。
 2. 在插件包内定义 Manifest、配置 Schema、默认值、Secret 声明、能力和工厂。
 3. 实现窄化的 Plugin API 契约，不导入 `apps/runtime` 或 `apps/webui`。
 4. 如果官方 Manifest 应进入兼容默认值，则在对应 Catalog 预设中注册。

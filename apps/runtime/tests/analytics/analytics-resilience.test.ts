@@ -27,15 +27,11 @@ const request = new Request("https://i0c.cc/r", {
 
 const rule: NormalizedRule = {
   analyticsId: "7ca38115-22d0-4de6-be48-4e7c98010b0d",
-  match: { type: "exact" },
-  action: {
-    type: "redirect",
-    target: "https://example.com/",
-    appendPath: false,
-    status: 302
-  },
-  priority: 0,
-  sourceType: "exact"
+  type: "exact",
+  target: "https://example.com/",
+  appendPath: false,
+  status: 302,
+  priority: 0
 };
 
 function createRuntime(overrides: Partial<ResolvedRuntime> = {}): ResolvedRuntime {

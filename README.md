@@ -18,6 +18,7 @@ This repository is maintained for personal use and engineering experimentation. 
 | WebUI | [apps/webui](apps/webui) | Next.js management panel for editing `config.json` and `redirects.json`, inspecting plugins, and querying analytics. |
 | Configuration | [packages/config](packages/config) | Bootstrap defaults, both data-document schemas, and validation shared by both applications. |
 | Plugin API | [packages/plugin-api](packages/plugin-api) | Stable compile-time manifests, lifecycle contracts, and typed extension boundaries for official plugins. |
+| Plugin SDK | [packages/plugin-sdk](packages/plugin-sdk) | Internal authoring helpers and scaffolding for workspace compile-time plugins. |
 | Plugin Testkit | [packages/plugin-testkit](packages/plugin-testkit) | Shared plugin contracts and dependency-boundary checks. |
 | Plugin Catalog | [packages/plugin-catalog](packages/plugin-catalog) | Optional official presets and host-specific plugin configuration validation. |
 | Runtime Host | [packages/runtime-host](packages/runtime-host) | Platform-neutral Runtime deployment and executable-plugin installation contracts. |

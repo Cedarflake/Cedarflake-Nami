@@ -161,7 +161,7 @@ export async function dispatchRouteRequest({
   for (let index = 0; index < compiledList.length; index += 1) {
     const item = compiledList[index];
     const { rule, base } = item;
-    if (!rule.action.target) {
+    if (!rule.target) {
       continue;
     }
 
@@ -171,7 +171,7 @@ export async function dispatchRouteRequest({
     }
     const { targetUrl, matchKind } = resolved;
 
-    if (isStaticAssetPath && rule.action.type === "proxy") {
+    if (isStaticAssetPath && rule.type === "proxy") {
       const collected = collectProxyRaceCandidates(
         compiledList,
         index,
@@ -211,7 +211,7 @@ export async function dispatchRouteRequest({
     const requestClone = request.clone() as Request;
     const response = await respondUsingRule(requestClone, rule, targetUrl, runtime, base);
 
-    const failureReason = rule.action.type === "proxy"
+    const failureReason = rule.type === "proxy"
       ? classifyProxyFailure(response)
       : null;
     if (failureReason) {

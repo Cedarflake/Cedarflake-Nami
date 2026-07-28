@@ -23,6 +23,7 @@ export type RightPanelProps = {
   jsonError: string | null;
   isReadOnly: boolean;
   showSaveAction: boolean;
+  showRuleHistoryActions: boolean;
   supportsJsonEditor: boolean;
   supportsSourceOverride: boolean;
   onLoadSourceUrl: (url: string) => Promise<void>;
@@ -46,6 +47,7 @@ export function RightPanel({
   jsonError,
   isReadOnly,
   showSaveAction,
+  showRuleHistoryActions,
   supportsJsonEditor,
   supportsSourceOverride,
   onLoadSourceUrl,
@@ -61,7 +63,7 @@ export function RightPanel({
 
   return (
     <div>
-      <div className="mb-6 flex flex-col gap-3 border-b border-line pb-5 sm:flex-row sm:items-center sm:justify-between lg:pb-4">
+      <div className="mb-6 flex flex-col gap-3 border-b border-line pb-5 sm:flex-row sm:items-center sm:justify-between lg:min-h-14 lg:pb-4">
         {editorMode === "settings" ? (
           <h1 className="text-xl font-semibold text-ink">{tConfig("title")}</h1>
         ) : supportsJsonEditor ? (
@@ -96,46 +98,50 @@ export function RightPanel({
                     onLoad={onLoadSourceUrl}
                   />
                 ) : null}
-                <Button
-                  onClick={onUndo}
-                  disabled={!canUndo || isPending}
-                  size="icon"
-                  variant="secondary"
-                  title={tGroups("undo")}
-                  aria-label={tGroups("undo")}
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    className="h-4 w-4"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    aria-hidden="true"
-                  >
-                    <path d="M9 14l-4-4 4-4" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M20 20a8 8 0 0 0-8-8H5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </Button>
-                <Button
-                  onClick={onRedo}
-                  disabled={!canRedo || isPending}
-                  size="icon"
-                  variant="secondary"
-                  title={tGroups("redo")}
-                  aria-label={tGroups("redo")}
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    className="h-4 w-4"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    aria-hidden="true"
-                  >
-                    <path d="M15 6l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M4 20a8 8 0 0 1 8-8h7" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </Button>
+                {showRuleHistoryActions ? (
+                  <>
+                    <Button
+                      onClick={onUndo}
+                      disabled={!canUndo || isPending}
+                      size="icon"
+                      variant="secondary"
+                      title={tGroups("undo")}
+                      aria-label={tGroups("undo")}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        className="h-4 w-4"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden="true"
+                      >
+                        <path d="M9 14l-4-4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M20 20a8 8 0 0 0-8-8H5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </Button>
+                    <Button
+                      onClick={onRedo}
+                      disabled={!canRedo || isPending}
+                      size="icon"
+                      variant="secondary"
+                      title={tGroups("redo")}
+                      aria-label={tGroups("redo")}
+                    >
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        className="h-4 w-4"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden="true"
+                      >
+                        <path d="M15 6l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M4 20a8 8 0 0 1 8-8h7" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </Button>
+                  </>
+                ) : null}
               </>
             ) : null}
             {showSaveAction ? (

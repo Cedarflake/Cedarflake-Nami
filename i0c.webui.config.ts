@@ -4,11 +4,11 @@ import {
 } from "@i0c/config"
 import type { D1Database } from "@i0c/plugin-data-repository-d1/d1"
 import type { GitHubFetch } from "@i0c/plugin-github-data/webui"
-
 import {
   defineWebUiPluginInstallations,
   type WebUiDataRepositoryCreateContext,
-} from "./apps/webui/src/lib/plugins/installations"
+} from "@i0c/plugin-sdk/webui"
+
 import { webUiPluginDescriptors } from "./i0c.webui.manifests"
 
 const webuiFetch: GitHubFetch = (input, init) => fetch(input, init)

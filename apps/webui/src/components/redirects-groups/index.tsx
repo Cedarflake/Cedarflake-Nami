@@ -25,7 +25,10 @@ import { JsonEditor } from "@/components/editor/json-editor";
 import { NewRouteEntryDialog } from "@/components/editor/new-route-entry-dialog";
 import { RightPanel, type EditorMode } from "@/components/editor/right-panel";
 import { UnsavedChangesDialog } from "@/components/editor/unsaved-changes-dialog";
-import { useRedirectsGroups } from "@/composables/redirects-groups";
+import {
+  useRedirectsGroups,
+  type RedirectsMutationResult,
+} from "@/composables/redirects-groups";
 import type {
   RedirectEntryDraft,
   RedirectGroup,
@@ -47,6 +50,7 @@ import { ManagerSidebarBody } from "./manager-sidebar/manager-sidebar-body";
 interface RedirectsGroupsManagerProps {
   initialView?: "rules" | "settings";
   isReadOnly?: boolean;
+  usesManualSave?: boolean;
   supportsJsonEditor?: boolean;
   supportsSourceOverride?: boolean;
 }
@@ -59,6 +63,7 @@ interface PendingLeave {
 export function RedirectsGroupsManager({
   initialView = "rules",
   isReadOnly = false,
+  usesManualSave = true,
   supportsJsonEditor = false,
   supportsSourceOverride = false,
 }: RedirectsGroupsManagerProps) {
@@ -89,8 +94,7 @@ export function RedirectsGroupsManager({
     addGroup,
     addEntry,
     removeEntry,
-    updateEntryKey,
-    updateEntryValue,
+    updateEntry,
     removeGroup,
     canUndo,
     canRedo,
@@ -106,7 +110,7 @@ export function RedirectsGroupsManager({
     resultStatus,
     lastCommitUrl,
     lastSavedContent,
-  } = useRedirectsGroups();
+  } = useRedirectsGroups({ usesManualSave });
 
   const [editorMode, setEditorMode] = useState<EditorMode>(
     initialView === "settings" ? "settings" : "rules",
@@ -130,6 +134,7 @@ export function RedirectsGroupsManager({
   const [isResolvingLeave, setIsResolvingLeave] = useState(false);
   const [newEntryGroupId, setNewEntryGroupId] = useState<string | null>(null);
   const [pendingDeleteGroupId, setPendingDeleteGroupId] = useState<string | null>(null);
+  const [deleteGroupError, setDeleteGroupError] = useState<string | null>(null);
   const dataConfigFile = useDataConfigFile({
     fallbackLoadErrorText: tConfig("loadFail"),
     fallbackSaveErrorText: tConfig("saveFail"),
@@ -312,6 +317,24 @@ export function RedirectsGroupsManager({
     [editorMode, hasUnappliedJsonDraft, isSettingsDirty],
   );
 
+  const runRuleMutation = useCallback(
+    async (
+      mutation: () => Promise<RedirectsMutationResult>,
+    ): Promise<RedirectsMutationResult> => {
+      if (!usesManualSave) {
+        setSaveAttempt((value) => value + 1);
+        setLastSaveTarget("rules");
+        setLocalSaveError(null);
+      }
+      const result = await mutation();
+      if (!result.isSuccess && result.errorMessage) {
+        setLocalSaveError(result.errorMessage);
+      }
+      return result;
+    },
+    [usesManualSave],
+  );
+
   const handleEnterRulesMode = useCallback(() => {
     runRulesAction(enterRulesMode);
   }, [enterRulesMode, runRulesAction]);
@@ -368,10 +391,17 @@ export function RedirectsGroupsManager({
     (parentId: string) => {
       runRulesAction(() => {
         enterRulesMode();
-        addGroup(parentId);
+        void runRuleMutation(() => addGroup(parentId));
       });
     },
-    [addGroup, enterRulesMode, runRulesAction],
+    [addGroup, enterRulesMode, runRuleMutation, runRulesAction],
+  );
+
+  const handleCommitRename = useCallback(
+    (groupId: string) => {
+      void runRuleMutation(() => commitRename(groupId));
+    },
+    [commitRename, runRuleMutation],
   );
 
   const handleAddEntry = useCallback(
@@ -388,29 +418,63 @@ export function RedirectsGroupsManager({
     (groupId: string) => {
       runRulesAction(() => {
         enterRulesMode();
+        setDeleteGroupError(null);
         setPendingDeleteGroupId(groupId);
       });
     },
     [enterRulesMode, runRulesAction],
   );
 
-  const handleConfirmRemoveGroup = useCallback(() => {
+  const handleConfirmRemoveGroup = useCallback(async () => {
     if (!pendingDeleteGroupId) {
       return;
     }
-    removeGroup(pendingDeleteGroupId);
-    setPendingDeleteGroupId(null);
-  }, [pendingDeleteGroupId, removeGroup]);
-
-  const handleCreateEntry = useCallback(
-    (draft: RedirectEntryDraft) => {
-      if (!newEntryGroupId) {
+    setDeleteGroupError(null);
+    try {
+      const result = await runRuleMutation(() =>
+        removeGroup(pendingDeleteGroupId)
+      );
+      if (result.isSuccess) {
+        setPendingDeleteGroupId(null);
         return;
       }
-      addEntry(newEntryGroupId, draft);
-      setNewEntryGroupId(null);
+      setDeleteGroupError(result.errorMessage ?? tGroups("saveFail"));
+    } catch (error) {
+      setDeleteGroupError(
+        error instanceof Error ? error.message : tGroups("saveFail"),
+      );
+    }
+  }, [pendingDeleteGroupId, removeGroup, runRuleMutation, tGroups]);
+
+  const handleCreateEntry = useCallback(
+    async (draft: RedirectEntryDraft): Promise<RedirectsMutationResult> => {
+      if (!newEntryGroupId) {
+        return {
+          errorMessage: tGroups("saveFail"),
+          isSuccess: false,
+        };
+      }
+      return await runRuleMutation(() => addEntry(newEntryGroupId, draft));
     },
-    [addEntry, newEntryGroupId],
+    [addEntry, newEntryGroupId, runRuleMutation, tGroups],
+  );
+
+  const handleRemoveEntry = useCallback(
+    (groupId: string, entryId: string) => {
+      return runRuleMutation(() => removeEntry(groupId, entryId));
+    },
+    [removeEntry, runRuleMutation],
+  );
+
+  const handleUpdateEntry = useCallback(
+    (
+      groupId: string,
+      entryId: string,
+      draft: RedirectEntryDraft,
+    ) => {
+      return runRuleMutation(() => updateEntry(groupId, entryId, draft));
+    },
+    [runRuleMutation, updateEntry],
   );
 
   const handleLocateEntry = useCallback(
@@ -610,7 +674,7 @@ export function RedirectsGroupsManager({
       onSelectGroup={handleSelectGroup}
       onBeginRename={beginRename}
       onEditingNameChange={setEditingName}
-      onCommitRename={commitRename}
+      onCommitRename={handleCommitRename}
       onCancelRename={cancelRename}
       onRemoveGroup={handleRemoveGroup}
     />
@@ -627,7 +691,7 @@ export function RedirectsGroupsManager({
       onRemoveEntry={
         isReadOnly
           ? undefined
-          : (entryId) => removeEntry(selectedGroup.id, entryId)
+          : (entryId) => handleRemoveEntry(selectedGroup.id, entryId)
       }
       showLocateButton
     />
@@ -708,9 +772,11 @@ export function RedirectsGroupsManager({
                 jsonError={jsonError}
                 isReadOnly={isReadOnly}
                 showSaveAction={
-                  editorMode !== "settings"
-                  || shouldShowSettingsSaveAction(settingsCategory)
+                  editorMode === "settings"
+                    ? shouldShowSettingsSaveAction(settingsCategory)
+                    : usesManualSave
                 }
+                showRuleHistoryActions={usesManualSave}
                 supportsJsonEditor={supportsJsonEditor}
                 supportsSourceOverride={supportsSourceOverride}
                 sourceUrl={configSourceUrl}
@@ -754,9 +820,9 @@ export function RedirectsGroupsManager({
                     <GroupEntriesEditor
                       group={selectedGroup}
                       onAddEntry={handleAddEntry}
-                      onRemoveEntry={removeEntry}
-                      onUpdateEntryKey={updateEntryKey}
-                      onUpdateEntryValue={updateEntryValue}
+                      onRemoveEntry={handleRemoveEntry}
+                      onUpdateEntry={handleUpdateEntry}
+                      savesImmediately={!usesManualSave}
                       isReadOnly={isReadOnly}
                     />
                   ) : (
@@ -780,6 +846,7 @@ export function RedirectsGroupsManager({
           <NewRouteEntryDialog
             groupName={newEntryGroup.name}
             isOpen
+            savesImmediately={!usesManualSave}
             onClose={() => setNewEntryGroupId(null)}
             onCreate={handleCreateEntry}
           />
@@ -800,9 +867,15 @@ export function RedirectsGroupsManager({
           })}
           cancelLabel={tGroups("cancelDelete")}
           confirmLabel={tGroups("delete")}
+          errorMessage={deleteGroupError}
+          isPending={isPending}
+          pendingLabel={tGroups("saving")}
           tone="danger"
-          onCancel={() => setPendingDeleteGroupId(null)}
-          onConfirm={handleConfirmRemoveGroup}
+          onCancel={() => {
+            setDeleteGroupError(null);
+            setPendingDeleteGroupId(null);
+          }}
+          onConfirm={() => void handleConfirmRemoveGroup()}
         />
       </>
     </RuntimeSettingsProvider>

@@ -9,6 +9,7 @@ on:
       - i0c.runtime.config.ts
       - packages/plugin-api/**
       - packages/plugin-catalog/**
+      - packages/plugin-sdk/**
       - packages/plugin-testkit/**
       - packages/runtime-build/**
       - packages/runtime-host/**
@@ -25,6 +26,7 @@ on:
       - i0c.runtime.config.ts
       - packages/plugin-api/**
       - packages/plugin-catalog/**
+      - packages/plugin-sdk/**
       - packages/plugin-testkit/**
       - packages/runtime-build/**
       - packages/runtime-host/**

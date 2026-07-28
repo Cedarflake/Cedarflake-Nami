@@ -181,7 +181,6 @@ export function RouteEntryEditor({
         <RouteQuickEditor
           value={stringValue}
           onChange={onChange}
-          pathKey={pathKey}
           isReadOnly={isReadOnly}
         />
       ) : null}
@@ -201,7 +200,6 @@ export function RouteEntryEditor({
         <RouteObjectEditor
           value={configValue}
           onChange={onChange}
-          pathKey={pathKey}
           isReadOnly={isReadOnly}
         />
       ) : null}

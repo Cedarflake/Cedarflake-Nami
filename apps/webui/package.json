@@ -27,6 +27,7 @@
     "@i0c/plugin-data-repository-postgres": "workspace:*",
     "@i0c/plugin-github-data": "workspace:*",
     "@i0c/plugin-api": "workspace:*",
+    "@i0c/plugin-sdk": "workspace:*",
     "@i0c/plugin-analytics-store-postgres": "workspace:*",
     "@i0c/plugin-analytics-store-d1": "workspace:*",
     "@visx/axis": "^4.0.0",

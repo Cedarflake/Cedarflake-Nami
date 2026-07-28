@@ -1,3 +1,4 @@
+import { ANALYTICS_RAW_EVENT_RETENTION_DAYS } from "@i0c/analytics-domain/store"
 import type { JsonObject } from "@i0c/plugin-api"
 
 export interface PostgresAnalyticsStoreConfig {
@@ -13,7 +14,7 @@ export const defaultPostgresAnalyticsStoreConfig = {
   idleTimeoutSeconds: 20,
   developmentIdleTimeoutSeconds: 0,
   connectTimeoutSeconds: 30,
-  retentionDays: 181,
+  retentionDays: ANALYTICS_RAW_EVENT_RETENTION_DAYS,
 } as const satisfies PostgresAnalyticsStoreConfig
 
 export const postgresAnalyticsStoreConfigSchema = {
@@ -31,7 +32,7 @@ export const postgresAnalyticsStoreConfigSchema = {
     idleTimeoutSeconds: { type: "integer", minimum: 0, maximum: 300 },
     developmentIdleTimeoutSeconds: { type: "integer", minimum: 0, maximum: 300 },
     connectTimeoutSeconds: { type: "integer", minimum: 1, maximum: 120 },
-    retentionDays: { const: 181 },
+    retentionDays: { const: ANALYTICS_RAW_EVENT_RETENTION_DAYS },
   },
 } satisfies JsonObject
 

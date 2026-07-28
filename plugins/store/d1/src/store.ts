@@ -1,11 +1,12 @@
 import { resolveQueryRange, type QueryRange } from "@i0c/analytics-domain/range"
-import type {
-  AnalyticsAggregateRebuildInput,
-  AnalyticsAggregateRebuildResult,
-  AnalyticsRetentionResult,
-  AnalyticsRetentionScope,
-  AnalyticsStoreDetailInput,
-  AnalyticsStoreQueryInput,
+import {
+  resolveAnalyticsEntryDomainCutoff,
+  type AnalyticsAggregateRebuildInput,
+  type AnalyticsAggregateRebuildResult,
+  type AnalyticsRetentionResult,
+  type AnalyticsRetentionScope,
+  type AnalyticsStoreDetailInput,
+  type AnalyticsStoreQueryInput,
 } from "@i0c/analytics-domain/store"
 import type {
   AnalyticsAutomationOverview,
@@ -25,6 +26,7 @@ import {
   createAutomationSeries,
   createAutomationTotals,
   createBotBreakdowns,
+  createLinkBotBreakdowns,
   createLinkSummaries,
   createTrafficDimensions,
   createTrafficSeries,
@@ -68,7 +70,8 @@ export function createD1AnalyticsStore(
     ingest: (event) => ingestD1Event(services.database, event, clock),
     getOverview: (input) => queryOverview(services.database, input, clock),
     getAutomation: (input) => queryAutomation(services.database, input, clock),
-    getEntryDomains: (input) => getEntryDomains(services.database, input.sourceId),
+    getEntryDomains: (input) =>
+      getEntryDomains(services.database, input.sourceId, clock),
     getDetail: (input) => queryDetail(services.database, input, clock),
     rebuildAggregates: (input) => rebuildD1Aggregates(services.database, input, config),
     runRetention: (scope) => runD1Retention(services.database, scope, config, clock),
@@ -334,7 +337,7 @@ async function queryOverview(
     series: createTrafficSeries(current, context.range),
     links: createLinkSummaries(links, current, previous, context.entryDomain === "all"),
     ...createTrafficDimensions(current, links),
-    botBreakdowns: createBotBreakdowns(current),
+    botBreakdowns: createLinkBotBreakdowns(current),
   }
 }
 
@@ -371,7 +374,7 @@ async function queryDetail(
     totals: createTrafficTotals(events),
     series: createTrafficSeries(events, context.range),
     ...createTrafficDimensions(events, links),
-    botBreakdowns: createBotBreakdowns(events),
+    botBreakdowns: createLinkBotBreakdowns(events),
   }
 }
 
@@ -403,7 +406,11 @@ async function resolveQueryContext(
   input: AnalyticsStoreQueryInput,
   clock: () => Date,
 ): Promise<QueryContext> {
-  const availableEntryDomains = await getEntryDomains(database, input.sourceId)
+  const availableEntryDomains = await getEntryDomains(
+    database,
+    input.sourceId,
+    clock,
+  )
   const requested = input.query.entryDomain.trim().toLowerCase() || "all"
   const entryDomain = requested === "all"
     || availableEntryDomains.some((option) => option.value === requested)
@@ -419,13 +426,14 @@ async function resolveQueryContext(
 async function getEntryDomains(
   database: D1Database,
   sourceId: string,
+  clock: () => Date,
 ): Promise<AnalyticsEntryDomainOption[]> {
   const rows = await d1All<{ value: string }>(database.prepare(`
     SELECT DISTINCT entry_domain AS value
     FROM analytics_event
-    WHERE source_id = ?
-    ORDER BY CASE WHEN entry_domain = 'unknown' THEN 0 ELSE 1 END, entry_domain ASC
-  `).bind(sourceId))
+    WHERE source_id = ? AND occurred_at >= ?
+    ORDER BY entry_domain ASC
+  `).bind(sourceId, resolveAnalyticsEntryDomainCutoff(clock())))
   return rows
 }
 
@@ -516,12 +524,16 @@ async function rebuildD1Aggregates(
   input: AnalyticsAggregateRebuildInput,
   config: D1AnalyticsStoreConfig,
 ): Promise<AnalyticsAggregateRebuildResult> {
+  const sourceId = input.sourceId.trim()
+  if (!sourceId) {
+    throw new Error("Aggregate rebuild sourceId must not be empty")
+  }
   const range = normalizeMaintenanceRange(input.start, input.end, config.retentionDays)
-  const counts = await countEvents(database, input.sourceId, range.start, range.end)
+  const counts = await countEvents(database, sourceId, range.start, range.end)
   if (input.dryRun) {
     return {
       rebuilt: false,
-      sourceId: input.sourceId,
+      sourceId,
       ...range,
       ...counts,
       aggregateRowsDeleted: 0,
@@ -532,11 +544,11 @@ async function rebuildD1Aggregates(
     database.prepare(`
       DELETE FROM analytics_stats_hourly
       WHERE source_id = ? AND bucket_start >= ? AND bucket_start < ?
-    `).bind(input.sourceId, range.start, range.end),
+    `).bind(sourceId, range.start, range.end),
     database.prepare(`
       DELETE FROM analytics_stats_daily
       WHERE source_id = ? AND bucket_day >= ? AND bucket_day < ?
-    `).bind(input.sourceId, range.start.slice(0, 10), range.end.slice(0, 10)),
+    `).bind(sourceId, range.start.slice(0, 10), range.end.slice(0, 10)),
     database.prepare(`
       INSERT INTO analytics_stats_hourly (
         bucket_start, source_id, entry_domain, analytics_id,
@@ -555,7 +567,7 @@ async function rebuildD1Aggregates(
       FROM analytics_event
       WHERE source_id = ? AND occurred_at >= ? AND occurred_at < ?
       GROUP BY 1, 2, 3, 4
-    `).bind(input.sourceId, range.start, range.end),
+    `).bind(sourceId, range.start, range.end),
     database.prepare(`
       INSERT INTO analytics_stats_daily (
         bucket_day, source_id, entry_domain, analytics_id,
@@ -574,14 +586,14 @@ async function rebuildD1Aggregates(
       FROM analytics_event
       WHERE source_id = ? AND occurred_at >= ? AND occurred_at < ?
       GROUP BY 1, 2, 3, 4
-    `).bind(input.sourceId, range.start, range.end),
+    `).bind(sourceId, range.start, range.end),
   ]
   const results = await database.batch(statements)
   results.forEach(assertD1Result)
 
   return {
     rebuilt: true,
-    sourceId: input.sourceId,
+    sourceId,
     ...range,
     ...counts,
     aggregateRowsDeleted: readChanges(results[0]) + readChanges(results[1]),

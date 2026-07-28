@@ -12,14 +12,12 @@ export function DropdownSelect({
   onChange,
   className,
   disabled = false,
-  ariaLabel,
 }: {
   value: string;
   options: DropdownOption[];
   onChange: (next: string) => void;
   className?: string;
   disabled?: boolean;
-  ariaLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -51,7 +49,6 @@ export function DropdownSelect({
         type="button"
         onClick={() => setOpen((previous) => !previous)}
         disabled={disabled}
-        aria-label={ariaLabel}
         className={formControlClassName({
           className: "relative w-full pl-3.5 pr-10 text-left disabled:cursor-default disabled:bg-panel-muted disabled:text-muted",
         })}

@@ -64,7 +64,7 @@ This project provides two rule-editing modes and a separate settings surface:
 
 The checked-in deployment selects PostgreSQL through [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) and uses `DATABASE_URL`. A D1-capable WebUI host may select `provider: "d1"` and inject a `D1Database` binding through `configureAppDataRepositoryBinding` before the Repository is first used.
 
-PostgreSQL and D1 are held to the same shared behavior contract. First-run setup creates both documents atomically and refuses partially initialized databases. Every save creates an immutable revision. Import validates both JSON files and replaces them atomically, while restore copies an old document into a new head revision instead of rewriting history. Managers can export, import, inspect, and restore revisions from **Settings → Data and history**.
+PostgreSQL and D1 are held to the same shared behavior contract. First-run setup creates both documents atomically and refuses partially initialized databases. Confirming a visual rule dialog saves that mutation immediately and creates an immutable revision. GitHub Contents instead advertises manual-save capability, so its editor retains the page-level Save action and local undo/redo. Import validates both JSON files and replaces them atomically, while restore copies an old document into a new head revision instead of rewriting history. Managers can export, import, inspect, and restore revisions from **Settings → Data and history**.
 
 D1 owns independent migrations in [../../plugins/repository/d1/migrations](../../plugins/repository/d1/migrations). Apply them deliberately to the bound database before opening setup. The current Vercel deployment remains on PostgreSQL because Vercel does not provide a native D1 binding.
 
@@ -141,14 +141,14 @@ The WebUI does not read former non-sensitive environment variables as overrides 
 ## Features Overview
 
 - Versioned authenticated, numeric-ID allowlist, or GitHub-wide read-only access with configured managers and optional blocked users.
-- Visual editing of `redirects.json`: group tree management, rule forms, and explicit proxy-policy profiles with advanced request and response controls.
+- Visual editing of `redirects.json`: group tree management, rule descriptions, and rule form editing.
 - GitHub Repository-only rules source override and JSON editor with line highlighting and syntax validation.
 - Visual, validated `config.json` settings with a raw recovery editor only when the current document cannot be represented safely.
 - First-run database initialization without hand-written JSON or a seed command.
 - Immutable document history with Git-style line diffs, non-destructive rollback, and atomic JSON backup import/export.
 - Authenticated plugin status reporting for installed manifests, configuration state, capabilities, missing bindings, and selected-Store health.
 - Form behavior aligned with the schema (specification source: [https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json](https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json)).
-- Supports undo/redo for quick editing rollback.
+- GitHub Contents keeps local undo/redo until its explicit page-level save.
 - Saves through the selected versioned Repository and rejects stale revisions instead of overwriting newer content.
 - Shows a Repository result link after saves when the selected Repository provides one.
 

@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/controls/button";
 import { ConfirmationDialog } from "@/components/ui/feedback/confirmation-dialog";
 import type { RedirectEntry } from "@/composables/redirects-groups/model";
+import type { RedirectsMutationResult } from "@/composables/redirects-groups";
 
 export type RouteEntriesCatalogProps = {
   entries: RedirectEntry[];
@@ -15,7 +16,7 @@ export type RouteEntriesCatalogProps = {
   onAddRule?: () => void;
   addRuleLabel?: string;
   onLocateEntry?: (entryId: string) => void;
-  onRemoveEntry?: (entryId: string) => void;
+  onRemoveEntry?: (entryId: string) => Promise<RedirectsMutationResult>;
   showLocateButton?: boolean;
 };
 
@@ -33,6 +34,8 @@ export function RouteEntriesCatalog({
   const tEntries = useTranslations("entries");
   const [entriesExpanded, setEntriesExpanded] = useState(true);
   const [pendingDeleteEntryId, setPendingDeleteEntryId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   if (!entries.length) {
     return null;
@@ -231,14 +234,36 @@ export function RouteEntriesCatalog({
         description={tEntries("confirmDeleteRule")}
         cancelLabel={tEntries("cancelDelete")}
         confirmLabel={tEntries("deleteRule")}
+        errorMessage={deleteError}
+        isPending={isDeleting}
+        pendingLabel={tEntries("deletingRule")}
         tone="danger"
-        onCancel={() => setPendingDeleteEntryId(null)}
+        onCancel={() => {
+          setDeleteError(null);
+          setPendingDeleteEntryId(null);
+        }}
         onConfirm={() => {
-          if (!pendingDeleteEntryId || !onRemoveEntry) {
+          if (!pendingDeleteEntryId || !onRemoveEntry || isDeleting) {
             return;
           }
-          onRemoveEntry(pendingDeleteEntryId);
-          setPendingDeleteEntryId(null);
+          setIsDeleting(true);
+          setDeleteError(null);
+          void onRemoveEntry(pendingDeleteEntryId)
+            .then((result) => {
+              if (result.isSuccess) {
+                setPendingDeleteEntryId(null);
+                return;
+              }
+              setDeleteError(result.errorMessage ?? tEntries("saveRuleFail"));
+            })
+            .catch((error: unknown) => {
+              setDeleteError(
+                error instanceof Error
+                  ? error.message
+                  : tEntries("saveRuleFail"),
+              );
+            })
+            .finally(() => setIsDeleting(false));
         }}
       />
     </>

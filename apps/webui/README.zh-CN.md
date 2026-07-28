@@ -62,7 +62,7 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
 
 仓库当前通过 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 选择 PostgreSQL，并使用 `DATABASE_URL`。支持 D1 的 WebUI 宿主可以选择 `provider: "d1"`，并在首次使用 Repository 前通过 `configureAppDataRepositoryBinding` 注入 `D1Database` binding。
 
-PostgreSQL 与 D1 由同一套共享行为契约约束。首次初始化会原子创建两份文档，并拒绝只存在其中一份文档的半初始化数据库。每次保存都会创建不可变版本；导入会先校验两份 JSON，再原子替换；恢复则把旧内容复制为新的活动版本，不会改写历史。管理者可以在 **设置 → 数据与历史** 中导出、导入、查看和恢复版本。
+PostgreSQL 与 D1 由同一套共享行为契约约束。首次初始化会原子创建两份文档，并拒绝只存在其中一份文档的半初始化数据库。在可视化规则弹窗中确认后，该次修改会立即保存并创建不可变版本。GitHub Contents 会声明手动保存能力，因此仍保留页面级保存和本地撤销/重做。导入会先校验两份 JSON，再原子替换；恢复则把旧内容复制为新的活动版本，不会改写历史。管理者可以在 **设置 → 数据与历史** 中导出、导入、查看和恢复版本。
 
 D1 使用 [../../plugins/repository/d1/migrations](../../plugins/repository/d1/migrations) 中的独立迁移。打开初始化页面前，需要明确将这些迁移应用到绑定的数据库。当前 Vercel 部署仍使用 PostgreSQL，因为 Vercel 不提供原生 D1 binding。
 
@@ -135,14 +135,14 @@ WebUI 不会把原有非敏感环境变量作为覆盖值或回退值读取。Ve
 ## 功能概览
 
 - 通过版本化配置选择任意已登录用户、数字用户 ID 白名单或带指定管理员与可选黑名单的 GitHub 全员只读模式。
-- 可视化编辑 `redirects.json`：分组树、规则表单，以及带高级请求与响应控制的显式代理策略预设。
+- 可视化编辑 `redirects.json`：分组树、规则描述和规则表单编辑。
 - GitHub Repository 专属的规则来源切换和 JSON 编辑器，支持当前行高亮与语法校验。
 - 可视化并校验 `config.json`；只有当前文档无法安全转换为表单时，才显示原始内容恢复编辑器。
 - 数据库首次初始化，无需手写 JSON 或执行 seed。
 - 带 Git 风格行差异的不可变文档历史、非破坏性回滚，以及原子 JSON 备份导入导出。
 - 通过认证后查看已安装 Manifest、配置状态、能力、缺失绑定和所选 Store 健康状态。
 - 表单行为对齐 Schema（规范来源：[https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json](https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json)）。
-- 支持撤销/重做，便于快速回退编辑。
+- GitHub Contents 在页面级显式保存前保留本地撤销/重做。
 - 通过所选版本化 Repository 保存；revision 过期时拒绝覆盖较新的内容。
 - 所选 Repository 提供结果链接时，保存成功通知会显示该链接。
 

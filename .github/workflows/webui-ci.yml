@@ -14,6 +14,7 @@ on:
       - packages/config/**
       - packages/plugin-api/**
       - packages/plugin-catalog/**
+      - packages/plugin-sdk/**
       - packages/runtime-build/src/config.ts
       - packages/analytics-domain/**
       - plugins/repository/**
@@ -37,6 +38,7 @@ on:
       - packages/config/**
       - packages/plugin-api/**
       - packages/plugin-catalog/**
+      - packages/plugin-sdk/**
       - packages/runtime-build/src/config.ts
       - packages/analytics-domain/**
       - plugins/repository/**

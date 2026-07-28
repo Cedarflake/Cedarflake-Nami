@@ -90,6 +90,7 @@ test("passes the shared analytics store behavior contract", {
     occurredAt: new Date(
       occurredAt.getTime() - 182 * 24 * 60 * 60 * 1000,
     ).toISOString(),
+    entryDomain: "stale.i0c.cc",
   }
   const otherSourceExpiredEvent: CanonicalAnalyticsLinkEvent = {
     ...expiredEvent,
@@ -112,8 +113,23 @@ test("passes the shared analytics store behavior contract", {
       sourceId,
       query: { range, entryDomain, timeZone: "UTC" },
     }),
+    detailInput: {
+      sourceId,
+      analyticsId: event.analyticsId,
+      query: { range: "1d", entryDomain: "all", timeZone: "UTC" },
+    },
+    missingDetailInput: {
+      sourceId,
+      analyticsId: "missing-analytics-id",
+      query: { range: "1d", entryDomain: "all", timeZone: "UTC" },
+    },
     rebuildInput: {
       sourceId,
+      start: rebuildStart.toISOString(),
+      end: rebuildEnd.toISOString(),
+    },
+    invalidRebuildInput: {
+      sourceId: "   ",
       start: rebuildStart.toISOString(),
       end: rebuildEnd.toISOString(),
     },
@@ -144,13 +160,25 @@ test("passes the shared analytics store behavior contract", {
     },
     expectedEntryDomain: event.entryDomain,
     expectedOtherEntryDomain: otherEntryDomainEvent.entryDomain,
+    expectedExpiredEntryDomain: expiredEvent.entryDomain,
     expectedEstimatedRequests: 2,
     getOverviewObservedRequests: (overview) => overview.totals.requests,
+    getOverviewOutcomeObservedRequests: (overview) =>
+      overview.botBreakdowns.outcomes.reduce(
+        (total, point) => total + point.observedRequests,
+        0,
+      ),
     getAutomationObservedRequests: (overview) => overview.totals.observedRequests,
     getAutomationEstimatedRequests: (overview) => overview.totals.estimatedRequests,
+    getAutomationOutcomeObservedRequests: (overview) =>
+      overview.botBreakdowns.outcomes.reduce(
+        (total, point) => total + point.observedRequests,
+        0,
+      ),
     getOverviewSeriesTimestamps: (overview) =>
       overview.series.map((point) => point.timestamp),
     getEntryDomainValues: (values) => values.map((value) => value.value),
+    getDetailObservedRequests: (detail) => detail?.totals.requests ?? null,
     getIsDuplicate: (result) => result.isDuplicate,
     getRebuildReplayedEvents: (result) =>
       result.accessEventsReplayed + result.runtimeEventsReplayed,
