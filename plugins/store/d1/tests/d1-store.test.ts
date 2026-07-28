@@ -70,6 +70,7 @@ const expiredEvent: CanonicalAnalyticsLinkEvent = {
   ...event,
   eventId: "d1-contract-expired-event",
   occurredAt: "2025-12-01T09:30:00.000Z",
+  entryDomain: "stale.i0c.cc",
 }
 
 test("declares a valid D1 store manifest", () => {
@@ -316,8 +317,23 @@ test("passes the shared analytics store behavior contract", async () => {
         sourceId: event.sourceId,
         query: { range, entryDomain, timeZone: "UTC" },
       }),
+      detailInput: {
+        sourceId: event.sourceId,
+        analyticsId: event.analyticsId,
+        query: { range: "1d", entryDomain: "all", timeZone: "UTC" },
+      },
+      missingDetailInput: {
+        sourceId: event.sourceId,
+        analyticsId: "missing-analytics-id",
+        query: { range: "1d", entryDomain: "all", timeZone: "UTC" },
+      },
       rebuildInput: {
         sourceId: event.sourceId,
+        start: "2026-07-22T00:00:00.000Z",
+        end: "2026-07-23T00:00:00.000Z",
+      },
+      invalidRebuildInput: {
+        sourceId: "   ",
         start: "2026-07-22T00:00:00.000Z",
         end: "2026-07-23T00:00:00.000Z",
       },
@@ -327,15 +343,27 @@ test("passes the shared analytics store behavior contract", async () => {
       },
       expectedEntryDomain: event.entryDomain,
       expectedOtherEntryDomain: otherEntryDomainEvent.entryDomain,
+      expectedExpiredEntryDomain: expiredEvent.entryDomain,
       expectedEstimatedRequests: 4,
       getOverviewObservedRequests: (overview) => overview.totals.requests,
+      getOverviewOutcomeObservedRequests: (overview) =>
+        overview.botBreakdowns.outcomes.reduce(
+          (total, point) => total + point.observedRequests,
+          0,
+        ),
       getAutomationObservedRequests: (overview) =>
         overview.totals.observedRequests,
       getAutomationEstimatedRequests: (overview) =>
         overview.totals.estimatedRequests,
+      getAutomationOutcomeObservedRequests: (overview) =>
+        overview.botBreakdowns.outcomes.reduce(
+          (total, point) => total + point.observedRequests,
+          0,
+        ),
       getOverviewSeriesTimestamps: (overview) =>
         overview.series.map((point) => point.timestamp),
       getEntryDomainValues: (values) => values.map((value) => value.value),
+      getDetailObservedRequests: (detail) => detail?.totals.requests ?? null,
       getIsDuplicate: (result) => result.isDuplicate,
       getRebuildReplayedEvents: (result) =>
         result.accessEventsReplayed + result.runtimeEventsReplayed,
@@ -379,6 +407,57 @@ test("groups daily series by the requested device time zone", async () => {
       suspectedAutomation: 0,
       errors: 0,
     })
+  } finally {
+    database.close()
+  }
+})
+
+test("matches PostgreSQL dimension limits and required fallback values", async () => {
+  const database = new SQLiteD1Database()
+  try {
+    await createD1MigrationProvider(database, await loadMigrations()).applyMigrations()
+    const store = createD1AnalyticsStore(defaultD1AnalyticsStoreConfig, {
+      database,
+      clock: () => new Date(now),
+    })
+    const countries = [
+      "AA",
+      "AB",
+      "AC",
+      "AD",
+      "AE",
+      "AF",
+      "AG",
+      "AH",
+      "AI",
+      "AJ",
+      "AK",
+      null,
+    ] as const
+
+    for (const [index, countryCode] of countries.entries()) {
+      await store.ingest({
+        ...event,
+        eventId: `d1-dimension-event-${index}`,
+        analyticsId: `d1-dimension-link-${index}`,
+        routePath: `/dimension-${index}`,
+        entryDomain: `d${index}.i0c.cc`,
+        provider: `provider-${index}`,
+        countryCode,
+      })
+    }
+
+    const scope = {
+      sourceId: event.sourceId,
+      query: { range: "1d" as const, entryDomain: "all", timeZone: "UTC" },
+    }
+    const overview = await store.getOverview(scope)
+    const automation = await store.getAutomation(scope)
+
+    assert.equal(overview.countries.length, 11)
+    assert.ok(overview.countries.some((point) => point.key === "unknown"))
+    assert.equal(automation.providers.length, countries.length)
+    assert.equal(automation.entryDomains.length, countries.length)
   } finally {
     database.close()
   }

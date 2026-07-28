@@ -23,6 +23,22 @@ test("keeps the recognized plugin ID list synchronized with manifests", () => {
   )
 })
 
+test("keeps D1 and PostgreSQL analytics capabilities aligned", () => {
+  const postgres = installedPluginManifests.find(
+    (manifest) => manifest.id === "@i0c/analytics-store-postgres",
+  )
+  const d1 = installedPluginManifests.find(
+    (manifest) => manifest.id === "@i0c/analytics-store-d1",
+  )
+
+  assert.ok(postgres)
+  assert.ok(d1)
+  assert.deepEqual(
+    [...d1.capabilities].sort(),
+    [...postgres.capabilities].sort(),
+  )
+})
+
 test("keeps installed plugin descriptions available for the WebUI", () => {
   for (const manifest of installedPluginManifests) {
     assert.equal(typeof manifest.description?.summary, "object")

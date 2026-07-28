@@ -1,3 +1,4 @@
+import { ANALYTICS_RAW_EVENT_RETENTION_DAYS } from "@i0c/analytics-domain/store"
 import type { JsonObject } from "@i0c/plugin-api"
 
 export interface D1AnalyticsStoreConfig {
@@ -5,7 +6,7 @@ export interface D1AnalyticsStoreConfig {
 }
 
 export const defaultD1AnalyticsStoreConfig = {
-  retentionDays: 181,
+  retentionDays: ANALYTICS_RAW_EVENT_RETENTION_DAYS,
 } as const satisfies D1AnalyticsStoreConfig
 
 export const d1AnalyticsStoreConfigSchema = {
@@ -13,7 +14,7 @@ export const d1AnalyticsStoreConfigSchema = {
   additionalProperties: false,
   required: ["retentionDays"],
   properties: {
-    retentionDays: { const: 181 },
+    retentionDays: { const: ANALYTICS_RAW_EVENT_RETENTION_DAYS },
   },
 } satisfies JsonObject
 
@@ -21,8 +22,8 @@ export function resolveD1AnalyticsStoreConfig(
   value: JsonObject | undefined,
 ): D1AnalyticsStoreConfig {
   return {
-    retentionDays: value?.retentionDays === 181
-      ? 181
+    retentionDays: value?.retentionDays === ANALYTICS_RAW_EVENT_RETENTION_DAYS
+      ? ANALYTICS_RAW_EVENT_RETENTION_DAYS
       : defaultD1AnalyticsStoreConfig.retentionDays,
   }
 }

@@ -7,6 +7,20 @@ import type {
   AnalyticsQueryScope,
 } from "./types"
 
+export const ANALYTICS_ENTRY_DOMAIN_LOOKBACK_DAYS = 90
+export const ANALYTICS_RAW_EVENT_RETENTION_DAYS = 181
+export const ANALYTICS_DIMENSION_LIMIT = 10
+export const ANALYTICS_LINK_SUMMARY_LIMIT = 500
+export const ANALYTICS_AUTOMATION_LINK_LIMIT = 20
+
+export function resolveAnalyticsEntryDomainCutoff(now: Date): string {
+  return new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate() - ANALYTICS_ENTRY_DOMAIN_LOOKBACK_DAYS + 1,
+  )).toISOString()
+}
+
 export interface AnalyticsStoreQueryInput {
   sourceId: string
   query: AnalyticsQueryScope

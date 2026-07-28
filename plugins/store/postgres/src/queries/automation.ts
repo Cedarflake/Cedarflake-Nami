@@ -6,6 +6,10 @@ import type {
   AnalyticsBotBreakdowns,
 } from "@i0c/analytics-domain/types"
 import { resolveSeriesBucket } from "@i0c/analytics-domain/range"
+import {
+  ANALYTICS_AUTOMATION_LINK_LIMIT,
+  ANALYTICS_DIMENSION_LIMIT,
+} from "@i0c/analytics-domain/store"
 
 import { getDatabase } from "../database"
 import type { ResolvedQueryScope } from "../scope"
@@ -160,7 +164,7 @@ async function getEventLinkBotBreakdowns(
     )
     SELECT dimension, key, label, observed_requests, estimated_requests
     FROM ranked
-    WHERE rank <= 10
+    WHERE rank <= ${ANALYTICS_DIMENSION_LIMIT}
     ORDER BY dimension ASC, observed_requests DESC, key ASC
   `;
 
@@ -287,7 +291,7 @@ async function getEventAutomationLinks(
       AND event.traffic_class IN ('declared_bot', 'suspected_automation')
     GROUP BY link.analytics_id, link.route_path, link.link_type
     ORDER BY COUNT(*) DESC, link.route_path ASC
-    LIMIT 20
+    LIMIT ${ANALYTICS_AUTOMATION_LINK_LIMIT}
   `;
 
   return rows.map((row) => ({
@@ -387,7 +391,7 @@ export async function getLinkBotBreakdowns(
     )
     SELECT dimension, key, label, observed_requests, estimated_requests
     FROM ranked
-    WHERE rank <= 10
+    WHERE rank <= ${ANALYTICS_DIMENSION_LIMIT}
     ORDER BY dimension ASC, observed_requests DESC, key ASC
   `;
 
@@ -580,7 +584,7 @@ export async function getRuntimeBotBreakdowns(
     )
     SELECT dimension, key, label, observed_requests, estimated_requests
     FROM ranked
-    WHERE rank <= 10
+    WHERE rank <= ${ANALYTICS_DIMENSION_LIMIT}
     ORDER BY dimension ASC, observed_requests DESC, key ASC
   `;
 
@@ -669,7 +673,7 @@ export async function getAutomationLinks(
       AND stats.traffic_class IN ('declared_bot', 'suspected_automation')
     GROUP BY link.analytics_id, link.route_path, link.link_type
     ORDER BY SUM(stats.observed_requests) DESC, link.route_path ASC
-    LIMIT 20
+    LIMIT ${ANALYTICS_AUTOMATION_LINK_LIMIT}
   `;
 
   return rows.map((row) => ({
