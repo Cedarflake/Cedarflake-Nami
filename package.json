@@ -12,7 +12,8 @@
   "scripts": {
     "check": "pnpm config:check && pnpm plugins:check && pnpm runtime:check && pnpm runtime:test && pnpm runtime:build && pnpm webui:test && pnpm webui:lint && pnpm webui:build",
     "config:check": "pnpm --filter @i0c/config check",
-    "plugins:check": "pnpm --filter @i0c/analytics-domain check && pnpm --filter @i0c/plugin-api check && pnpm --filter @i0c/plugin-testkit check && pnpm --filter @i0c/plugin-testkit test && pnpm --filter @i0c/plugin-catalog check && pnpm --filter @i0c/plugin-catalog test && pnpm --filter @i0c/runtime-build check && pnpm --filter @i0c/runtime-build test && pnpm --filter @i0c/runtime-host check && pnpm --filter @i0c/runtime-host test && pnpm --filter @i0c/runtime-fixture-external check && pnpm --filter @i0c/runtime-fixture-external test && pnpm --workspace-concurrency=1 --filter \"./plugins/**\" check && pnpm --workspace-concurrency=1 --filter \"./plugins/**\" test && pnpm plugins:boundaries",
+    "plugin:create": "node packages/plugin-sdk/scripts/create-plugin.mjs",
+    "plugins:check": "pnpm --filter @i0c/analytics-domain check && pnpm --filter @i0c/plugin-api check && pnpm --filter @i0c/plugin-sdk check && pnpm --filter @i0c/plugin-sdk test && pnpm --filter @i0c/plugin-testkit check && pnpm --filter @i0c/plugin-testkit test && pnpm --filter @i0c/plugin-catalog check && pnpm --filter @i0c/plugin-catalog test && pnpm --filter @i0c/runtime-build check && pnpm --filter @i0c/runtime-build test && pnpm --filter @i0c/runtime-host check && pnpm --filter @i0c/runtime-host test && pnpm --filter @i0c/runtime-fixture-external check && pnpm --filter @i0c/runtime-fixture-external test && pnpm --workspace-concurrency=1 --filter \"./plugins/**\" check && pnpm --workspace-concurrency=1 --filter \"./plugins/**\" test && pnpm plugins:boundaries",
     "plugins:boundaries": "node packages/plugin-testkit/scripts/check-boundaries.mjs",
     "runtime:check": "pnpm --filter i0c-redirect-worker check",
     "runtime:test": "pnpm --filter i0c-redirect-worker test",
@@ -43,6 +44,7 @@
     "@i0c/plugin-data-repository-d1": "workspace:*",
     "@i0c/plugin-data-repository-postgres": "workspace:*",
     "@i0c/plugin-api": "workspace:*",
+    "@i0c/plugin-sdk": "workspace:*",
     "@i0c/plugin-feature-bot-classifier": "workspace:*",
     "@i0c/plugin-github-data": "workspace:*",
     "@i0c/plugin-http-snapshot-source": "workspace:*",

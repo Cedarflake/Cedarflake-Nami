@@ -12,6 +12,7 @@ on:
       - packages/config/**
       - packages/plugin-api/**
       - packages/plugin-catalog/**
+      - packages/plugin-sdk/**
       - packages/runtime-build/**
       - packages/runtime-host/**
       - packages/analytics-domain/**
@@ -34,6 +35,7 @@ on:
       - packages/config/**
       - packages/plugin-api/**
       - packages/plugin-catalog/**
+      - packages/plugin-sdk/**
       - packages/runtime-build/**
       - packages/runtime-host/**
       - packages/analytics-domain/**

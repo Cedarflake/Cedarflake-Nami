@@ -18,6 +18,7 @@ i0c.cc 是一个以数据库为控制面、默认启用 PostgreSQL、并保留�
 | WebUI | [apps/webui](apps/webui) | 基于 Next.js 的管理面板，用于编辑 `config.json` 与 `redirects.json`、查看插件状态并查询统计。 |
 | 配置 | [packages/config](packages/config) | 两个应用共用的启动默认值、两份数据文档 Schema 与校验。 |
 | 插件 API | [packages/plugin-api](packages/plugin-api) | 官方插件使用的稳定编译期 Manifest、生命周期契约与类型化扩展边界。 |
+| 插件 SDK | [packages/plugin-sdk](packages/plugin-sdk) | 用于开发 workspace 编译期插件的内部辅助函数与脚手架。 |
 | 插件 Testkit | [packages/plugin-testkit](packages/plugin-testkit) | 共享插件契约与依赖边界检查。 |
 | 插件目录 | [packages/plugin-catalog](packages/plugin-catalog) | 可选的官方预设与按宿主执行的插件配置校验。 |
 | Runtime 宿主 | [packages/runtime-host](packages/runtime-host) | 平台无关的 Runtime 部署与可执行插件安装契约。 |

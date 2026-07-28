@@ -1,24 +1,25 @@
 import type { AnalyticsClassificationHookContext } from "@i0c/analytics-domain/classification"
-import {
-  PLUGIN_API_VERSION,
-  type PluginManifest,
-  type RuntimeFeatureRegistration,
-} from "@i0c/plugin-api"
+import type { RuntimeFeatureRegistration } from "@i0c/plugin-api"
+import { defineRuntimeFeatureManifest } from "@i0c/plugin-sdk"
+import { defineRuntimeFeaturePlugin } from "@i0c/plugin-sdk/runtime"
 
-export const externalRuntimeFeatureManifest = {
+export const externalRuntimeFeatureManifest = defineRuntimeFeatureManifest({
   id: "@example/runtime-feature-external",
   name: "External Runtime feature fixture",
   version: "1.0.0",
-  apiVersion: PLUGIN_API_VERSION,
-  kind: "feature",
   slot: "feature:external-fixture",
-  hosts: ["runtime"],
   capabilities: ["hook:on-analytics-event"],
+  description: {
+    summary: {
+      en: "Passes analytics events through an external Runtime feature.",
+      "zh-CN": "通过外部 Runtime Feature 原样传递统计事件。",
+    },
+  },
   config: { version: 1 },
   secrets: {},
-} as const satisfies PluginManifest<"feature", "runtime">
+})
 
-export const externalRuntimeFeaturePlugin = {
+export const externalRuntimeFeaturePlugin = defineRuntimeFeaturePlugin({
   manifest: externalRuntimeFeatureManifest,
   create: (): RuntimeFeatureRegistration<AnalyticsClassificationHookContext> => ({
     id: externalRuntimeFeatureManifest.id,
@@ -29,4 +30,4 @@ export const externalRuntimeFeaturePlugin = {
       onAnalyticsEvent: (context) => context,
     },
   }),
-}
+})

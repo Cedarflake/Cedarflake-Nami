@@ -15,7 +15,8 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
-    "@i0c/plugin-api": "workspace:*"
+    "@i0c/plugin-api": "workspace:*",
+    "@i0c/plugin-sdk": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

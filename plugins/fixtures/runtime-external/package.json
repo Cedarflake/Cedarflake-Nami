@@ -19,8 +19,7 @@
   "dependencies": {
     "@i0c/analytics-domain": "workspace:*",
     "@i0c/plugin-api": "workspace:*",
-    "@i0c/runtime-build": "workspace:*",
-    "@i0c/runtime-host": "workspace:*"
+    "@i0c/plugin-sdk": "workspace:*"
   },
   "devDependencies": {
     "@i0c/plugin-analytics-sink-http": "workspace:*",

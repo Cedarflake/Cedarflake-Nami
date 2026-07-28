@@ -167,6 +167,7 @@ for (const packageRoot of collectPackageRoots(pluginsRoot)) {
     if (
       dependency.startsWith("@i0c/plugin-")
       && dependency !== "@i0c/plugin-api"
+      && dependency !== "@i0c/plugin-sdk"
     ) {
       addIssue(
         packageJsonPath,
