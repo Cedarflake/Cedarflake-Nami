@@ -18,7 +18,6 @@ import type {
 } from "@i0c/analytics-domain/classification";
 import type {
   DataConfig,
-  ProxyPolicy,
   RedirectsConfig as SharedRedirectsConfig,
   SlotBranch as SharedSlotBranch
 } from "@i0c/config";
@@ -34,7 +33,6 @@ import type {
 import type { RuntimePluginInstallations } from "@i0c/runtime-host/installations";
 
 export type RouteType = "prefix" | "exact" | "proxy";
-export type RouteMatchType = "exact" | "prefix" | "pattern";
 export type AnalyticsProvider = AnalyticsProviderType;
 export type AnalyticsRequestClass = "human" | "link_preview" | "crawler" | "monitor" | "asset" | "unknown";
 export type AnalyticsEventKind = "link" | "runtime";
@@ -66,6 +64,7 @@ export type RouteValueEntry = RouteValue | RouteValue[];
 
 export interface RouteConfig {
   analyticsId?: string;
+  description?: string;
   type?: string;
   target?: string;
   to?: string;
@@ -73,37 +72,15 @@ export interface RouteConfig {
   appendPath?: boolean;
   status?: number | string;
   priority?: number | string;
-  proxyPolicy?: ProxyPolicy;
 }
-
-export interface NormalizedRouteMatch {
-  type: RouteMatchType;
-}
-
-export interface NormalizedRedirectAction {
-  type: "redirect";
-  target: string;
-  appendPath: boolean;
-  status: number;
-}
-
-export interface NormalizedProxyAction {
-  type: "proxy";
-  target: string;
-  appendPath: boolean;
-  policy?: ProxyPolicy;
-}
-
-export type NormalizedRouteAction =
-  | NormalizedProxyAction
-  | NormalizedRedirectAction;
 
 export interface NormalizedRule {
   analyticsId?: string;
-  match: NormalizedRouteMatch;
-  action: NormalizedRouteAction;
+  type: RouteType;
+  target: string;
+  appendPath: boolean;
+  status: number;
   priority: number;
-  sourceType: RouteType;
 }
 
 export interface CompiledEntry {

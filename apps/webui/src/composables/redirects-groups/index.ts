@@ -1,6 +1,12 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -17,8 +23,8 @@ import {
   removeGroupConfirmed,
   selectGroup as selectGroupState,
   toSnapshot,
-  updateEntryKey as updateEntryKeyState,
-  updateEntryValue as updateEntryValueState,
+  updateEntry as updateEntryState,
+  type GroupsEditorState,
   type GroupsSnapshot,
 } from "./editor-state";
 import type { RedirectEntryDraft } from "./model";
@@ -31,12 +37,20 @@ import {
   parseInitialContent,
 } from "./serialization";
 
-export function useRedirectsGroups() {
+export interface RedirectsMutationResult {
+  errorMessage?: string;
+  isSuccess: boolean;
+}
+
+export function useRedirectsGroups(options: {
+  usesManualSave: boolean;
+}) {
   const tGroups = useTranslations("groups");
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveValidationError, setSaveValidationError] = useState<string | null>(null);
   const [editorState, setEditorState] = useState(createInitialGroupsEditorState);
+  const mutationInFlightRef = useRef(false);
   const configFile = useRedirectsConfigFile({
     fallbackLoadErrorText: tGroups("loadFail"),
     fallbackSaveErrorText: tGroups("saveFail"),
@@ -146,50 +160,119 @@ export function useRedirectsGroups() {
     setEditorState((prev) => cancelRenameState(prev));
   }, []);
 
+  const commitEditorMutation = useCallback(
+    async (
+      mutation: (state: GroupsEditorState) => GroupsEditorState,
+    ): Promise<RedirectsMutationResult> => {
+      if (mutationInFlightRef.current) {
+        return { isSuccess: false };
+      }
+
+      const nextState = mutation(editorState);
+      if (nextState === editorState) {
+        return { isSuccess: true };
+      }
+
+      if (options.usesManualSave) {
+        pushCurrentSnapshot();
+        setEditorState(nextState);
+        return { isSuccess: true };
+      }
+
+      let content: string;
+      try {
+        content = JSON.stringify(
+          buildConfig(
+            nextState.rootGroup,
+            nextState.baseConfig,
+            nextState.slotsKey,
+          ),
+          null,
+          2,
+        );
+        setSaveValidationError(null);
+      } catch (error) {
+        const errorMessage = formatSerializationError(error);
+        setSaveValidationError(errorMessage);
+        return { errorMessage, isSuccess: false };
+      }
+
+      mutationInFlightRef.current = true;
+      try {
+        const result = await saveConfig(content);
+        if (!result.isSuccess) {
+          return result;
+        }
+        setEditorState(nextState);
+        resetHistory();
+        return result;
+      } finally {
+        mutationInFlightRef.current = false;
+      }
+    },
+    [
+      editorState,
+      formatSerializationError,
+      options.usesManualSave,
+      pushCurrentSnapshot,
+      resetHistory,
+      saveConfig,
+    ],
+  );
+
   const commitRename = useCallback(
     (groupId: string) => {
-      pushCurrentSnapshot();
-      setEditorState((prev) => commitRenameState(prev, groupId, tGroups("newGroup")));
+      return commitEditorMutation((state) =>
+        commitRenameState(state, groupId, tGroups("newGroup"))
+      );
     },
-    [pushCurrentSnapshot, tGroups]
+    [commitEditorMutation, tGroups],
   );
 
   const addGroup = useCallback((parentId: string) => {
-    pushCurrentSnapshot();
-    setEditorState((prev) => addGroupState(prev, parentId, tGroups("newGroup")));
-  }, [pushCurrentSnapshot, tGroups]);
+    return commitEditorMutation((state) =>
+      addGroupState(state, parentId, tGroups("newGroup"))
+    );
+  }, [commitEditorMutation, tGroups]);
 
   const addEntry = useCallback((groupId: string, draft?: RedirectEntryDraft) => {
-    pushCurrentSnapshot();
-    setEditorState((prev) => addEntryState(prev, groupId, draft));
-  }, [pushCurrentSnapshot]);
+    return commitEditorMutation((state) => addEntryState(state, groupId, draft));
+  }, [commitEditorMutation]);
 
   const removeEntry = useCallback((groupId: string, entryId: string) => {
-    pushCurrentSnapshot();
-    setEditorState((prev) => removeEntryState(prev, groupId, entryId));
-  }, [pushCurrentSnapshot]);
+    return commitEditorMutation((state) =>
+      removeEntryState(state, groupId, entryId)
+    );
+  }, [commitEditorMutation]);
 
-  const updateEntryKey = useCallback((groupId: string, entryId: string, nextKey: string) => {
-    pushCurrentSnapshot();
-    setEditorState((prev) => updateEntryKeyState(prev, groupId, entryId, nextKey));
-  }, [pushCurrentSnapshot]);
-
-  const updateEntryValue = useCallback((groupId: string, entryId: string, nextValue: unknown) => {
-    pushCurrentSnapshot();
-    setEditorState((prev) => updateEntryValueState(prev, groupId, entryId, nextValue));
-  }, [pushCurrentSnapshot]);
+  const updateEntry = useCallback((
+    groupId: string,
+    entryId: string,
+    draft: RedirectEntryDraft,
+  ) => {
+    return commitEditorMutation((state) =>
+      updateEntryState(state, groupId, entryId, draft)
+    );
+  }, [commitEditorMutation]);
 
   const removeGroup = useCallback(
     (groupId: string) => {
-      if (groupId === rootGroup.id) {
-        return;
-      }
-
-      pushCurrentSnapshot();
-      setEditorState((prev) => removeGroupConfirmed(prev, groupId));
+      return commitEditorMutation((state) => {
+        if (groupId === state.rootGroup.id) {
+          return state;
+        }
+        return removeGroupConfirmed(state, groupId);
+      });
     },
-    [pushCurrentSnapshot, rootGroup]
+    [commitEditorMutation],
   );
+
+  /*
+   * Manual-save repositories keep their local undo stack until the user
+   * commits the document. Immediate repositories create immutable revisions
+   * for each confirmed mutation, so recovery belongs to repository history.
+   */
+  const canUseLocalHistory = options.usesManualSave;
 
   const applyJson = useCallback(
     async (content: string) => {
@@ -215,7 +298,7 @@ export function useRedirectsGroups() {
       const content = overrideContent
         ?? JSON.stringify(buildConfig(rootGroup, baseConfig, slotsKey), null, 2);
       setSaveValidationError(null);
-      return await saveConfig(content);
+      return (await saveConfig(content)).isSuccess;
     } catch (error) {
       setSaveValidationError(formatSerializationError(error));
       return false;
@@ -273,11 +356,10 @@ export function useRedirectsGroups() {
     addGroup,
     addEntry,
     removeEntry,
-    updateEntryKey,
-    updateEntryValue,
+    updateEntry,
     removeGroup,
-    canUndo,
-    canRedo,
+    canUndo: canUseLocalHistory && canUndo,
+    canRedo: canUseLocalHistory && canRedo,
     undo,
     redo,
     isPending: configFile.isPending,

@@ -90,7 +90,7 @@ export function inferEffectivePath(
 
       let bestBase: string | null = null;
       for (const entry of compiledList) {
-        if (entry.rule.action.type !== "proxy") continue;
+        if (entry.rule.type !== "proxy") continue;
         const base = entry.base;
         if (base === "/") continue;
         if (refPath === base || refPath.startsWith(`${base}/`)) {

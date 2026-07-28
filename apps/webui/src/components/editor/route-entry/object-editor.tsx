@@ -9,30 +9,24 @@ import {
   formControlClassName,
 } from "@/components/ui/controls/form-control";
 import { LabelWithTooltip } from "@/components/ui/controls/label-with-tooltip";
-import { QRCodeButton } from "@/components/ui/controls/qr-code";
 import {
   asString,
   getDestinationKey,
   normalizePriority,
   normalizeStatus,
   setExclusiveDestination,
-  setRouteType,
   type DestinationKey,
 } from "@/composables/editor/route-utils";
-
-import { ProxyPolicyEditor } from "./proxy-policy-editor";
 
 interface RouteObjectEditorProps {
   value: Record<string, unknown>;
   onChange: (next: Record<string, unknown>) => void;
-  pathKey: string;
   isReadOnly: boolean;
 }
 
 export function RouteObjectEditor({
   value,
   onChange,
-  pathKey,
   isReadOnly,
 }: RouteObjectEditorProps) {
   const t = useTranslations("routeEntry");
@@ -54,7 +48,10 @@ export function RouteObjectEditor({
             value={(value.type as string | undefined) ?? "prefix"}
             disabled={isReadOnly}
             onChange={(next) => {
-              onChange(setRouteType(value, next));
+              const nextConfig: Record<string, unknown> = { ...value, type: next };
+              if (next === "proxy") delete nextConfig.status;
+              if (next === "exact") delete nextConfig.appendPath;
+              onChange(nextConfig);
             }}
             options={[
               { value: "prefix", label: "prefix" },
@@ -113,7 +110,6 @@ export function RouteObjectEditor({
               readOnly={isReadOnly}
               className={formControlClassName({ className: "flex-1" })}
             />
-            {pathKey && <QRCodeButton pathKey={pathKey} />}
           </div>
         </div>
 
@@ -167,14 +163,6 @@ export function RouteObjectEditor({
           {priorityInvalid ? <p className="mt-1 text-xs text-rose-600">{t("priorityInvalid")}</p> : null}
         </div>
       </div>
-
-      {routeType === "proxy" ? (
-        <ProxyPolicyEditor
-          value={value.proxyPolicy}
-          onChange={(next) => onChange({ ...value, proxyPolicy: next })}
-          isReadOnly={isReadOnly}
-        />
-      ) : null}
 
       <div>
         <LabelWithTooltip label={t("analyticsIdLabel")} tooltip={t("analyticsIdTooltip")} />

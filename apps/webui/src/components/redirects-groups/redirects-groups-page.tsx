@@ -20,6 +20,7 @@ export function RedirectsGroupsPage({
     <RedirectsGroupsManager
       initialView={initialView}
       isReadOnly={isReadOnly}
+      usesManualSave={editorCapabilities.usesManualSave}
       supportsJsonEditor={editorCapabilities.supportsJsonEditor}
       supportsSourceOverride={editorCapabilities.supportsSourceOverride}
     />

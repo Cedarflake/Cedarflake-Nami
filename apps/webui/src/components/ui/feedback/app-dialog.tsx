@@ -7,6 +7,7 @@ import {
 } from "react";
 
 interface AppDialogProps {
+  ariaLabelledBy?: string;
   children: ReactNode;
   className?: string;
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface AppDialogProps {
 }
 
 export function AppDialog({
+  ariaLabelledBy,
   children,
   className,
   isOpen,
@@ -40,6 +42,7 @@ export function AppDialog({
   return (
     <dialog
       ref={dialogRef}
+      aria-labelledby={ariaLabelledBy}
       onCancel={(event) => {
         event.preventDefault();
         if (!preventClose) {
@@ -52,12 +55,14 @@ export function AppDialog({
         }
       }}
       className={[
-        "m-auto w-[calc(100%_-_2rem)] rounded-2xl border border-line bg-panel p-0 text-ink backdrop:bg-ink/30 backdrop:backdrop-blur-[2px]",
+        "m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%_-_2rem)] overflow-hidden rounded-2xl border border-line bg-panel p-0 text-ink backdrop:bg-ink/30 backdrop:backdrop-blur-[2px]",
         widthClassName,
         className,
       ].filter(Boolean).join(" ")}
     >
-      {children}
+      <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
+        {children}
+      </div>
     </dialog>
   );
 }

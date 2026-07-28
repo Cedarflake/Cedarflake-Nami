@@ -90,16 +90,16 @@ export function buildCompiledList(rulesIn: Record<string, RouteValueEntry>): Com
     }
 
     const values = toRouteArray(rawValue);
-    const compiled = compilePattern(base);
     let fallbackPriority = 0;
 
     for (const entry of values) {
       fallbackPriority += 1;
-      const rule = normaliseRule(entry, fallbackPriority, compiled.isParam);
+      const rule = normaliseRule(entry, fallbackPriority);
       if (!rule) {
         continue;
       }
 
+      const compiled = compilePattern(base);
       list.push({ base, rule, ...compiled, order: sequence });
       sequence += 1;
     }
@@ -131,29 +131,15 @@ export function getCompiledList(source: SlotBranch): CompiledEntry[] {
   return compiled;
 }
 
-function normaliseRule(
-  value: RouteValue,
-  fallbackPriority: number,
-  isParam: boolean
-): NormalizedRule | null {
+function normaliseRule(value: RouteValue, fallbackPriority: number): NormalizedRule | null {
   if (typeof value === "string") {
     return value
-      ? {
-          match: { type: isParam ? "pattern" : "prefix" },
-          action: {
-            type: "redirect",
-            target: value,
-            appendPath: true,
-            status: DEFAULT_STATUS
-          },
-          priority: fallbackPriority,
-          sourceType: "prefix"
-        }
+      ? { type: "prefix", target: value, appendPath: true, status: DEFAULT_STATUS, priority: fallbackPriority }
       : null;
   }
 
   if (value && typeof value === "object") {
-    const sourceType: RouteType = value.type === "exact" ? "exact" : value.type === "proxy" ? "proxy" : "prefix";
+    const type: RouteType = value.type === "exact" ? "exact" : value.type === "proxy" ? "proxy" : "prefix";
     const targetValue = value.target ?? value.to ?? value.url;
     if (typeof targetValue !== "string" || !targetValue) {
       return null;
@@ -170,31 +156,7 @@ function normaliseRule(
       ? value.analyticsId.trim()
       : undefined;
 
-    return {
-      analyticsId,
-      match: {
-        type: isParam
-          ? "pattern"
-          : sourceType === "exact"
-            ? "exact"
-            : "prefix"
-      },
-      action: sourceType === "proxy"
-        ? {
-            type: "proxy",
-            target: targetValue,
-            appendPath,
-            policy: value.proxyPolicy
-          }
-        : {
-            type: "redirect",
-            target: targetValue,
-            appendPath,
-            status
-          },
-      priority,
-      sourceType
-    };
+    return { analyticsId, type, target: targetValue, appendPath, status, priority };
   }
 
   return null;
@@ -247,18 +209,18 @@ export function applyTemplate(target: string, match: RegExpMatchArray, names: st
 }
 
 export function resolvePrefixTarget(pathname: string, search: string, rule: NormalizedRule, base: string): string | null {
-  const targetBase = rule.action.target;
+  const targetBase = String(rule.target);
 
   if (base === "/") {
     const rest = pathname === "/" ? "" : pathname;
-    const resolved = rule.action.appendPath ? appendTargetPath(targetBase, rest) : targetBase;
+    const resolved = rule.appendPath ? appendTargetPath(targetBase, rest) : targetBase;
     return appendOriginalQuery(resolved, search);
   }
 
   if (pathname === base || pathname.startsWith(`${base}/`)) {
     let rest = pathname.slice(base.length);
     rest = rest.startsWith("/") ? rest : rest ? `/${rest}` : "";
-    const resolved = rule.action.appendPath ? appendTargetPath(targetBase, rest) : targetBase;
+    const resolved = rule.appendPath ? appendTargetPath(targetBase, rest) : targetBase;
     return appendOriginalQuery(resolved, search);
   }
 
@@ -303,9 +265,9 @@ export function resolveCompiledTarget(
   let targetUrl: string | null = null;
 
   if (match) {
-    const resolved = applyTemplate(entry.rule.action.target, match, entry.names);
+    const resolved = applyTemplate(entry.rule.target, match, entry.names);
     targetUrl = appendOriginalQuery(resolved, search);
-  } else if (entry.rule.match.type === "prefix") {
+  } else if ((entry.rule.type === "prefix" || entry.rule.type === "proxy") && !entry.isParam) {
     targetUrl = resolvePrefixTarget(pathname, search, entry.rule, entry.base);
   }
 
@@ -334,12 +296,12 @@ export function collectProxyRaceCandidates(
   const candidates: Array<{ base: string; matchKind: AnalyticsLinkMatchKind; rule: NormalizedRule; targetUrl: string }> = [];
 
   const maybeAdd = (entry: CompiledEntry): void => {
-    if (!entry.rule.action.target) {
+    if (!entry.rule.target) {
       return;
     }
 
     const resolved = resolveCompiledTarget(entry, pathname, search);
-    if (resolved && entry.rule.action.type === "proxy") {
+    if (resolved && entry.rule.type === "proxy") {
       candidates.push({
         base: entry.base,
         matchKind: resolved.matchKind,
@@ -368,12 +330,12 @@ export function collectProxyRaceCandidates(
 function resolveMatchKind(entry: CompiledEntry): AnalyticsLinkMatchKind {
   if (
     entry.base.split("/").includes("*") ||
-    (entry.base === "/" && entry.rule.match.type === "prefix")
+    (entry.base === "/" && (entry.rule.type === "prefix" || entry.rule.type === "proxy"))
   ) {
     return "catch_all";
   }
   if (entry.isParam) {
     return "parameterized";
   }
-  return entry.rule.match.type === "exact" ? "exact" : "prefix";
+  return entry.rule.type === "exact" ? "exact" : "prefix";
 }

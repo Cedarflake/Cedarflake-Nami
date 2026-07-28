@@ -29,6 +29,77 @@ export function getMode(value: unknown): RouteMode {
   return "string";
 }
 
+export function getRouteDescription(value: unknown): string {
+  const candidate = Array.isArray(value) ? value[0] : value;
+  return isRecord(candidate) ? asString(candidate.description).trim() : "";
+}
+
+export function getTargetFaviconUrl(target: string): string | null {
+  try {
+    const url = new URL(target);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return null;
+    }
+    return `https://unavatar.webp.se/${encodeURIComponent(url.hostname)}?fallback=false`;
+  } catch {
+    return null;
+  }
+}
+
+export function stripRetiredProxyPolicy(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(stripRetiredProxyPolicy);
+  }
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  const next = { ...value };
+  delete next.proxyPolicy;
+  return next;
+}
+
+export function setRouteDescription(
+  value: unknown,
+  description: string,
+): unknown {
+  const normalizedDescription = description.trim();
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return normalizedDescription
+        ? [setRouteDescription("", normalizedDescription)]
+        : value;
+    }
+    const [first, ...remaining] = value;
+    const nextFirst = setRouteDescription(first, normalizedDescription);
+    return [nextFirst, ...remaining];
+  }
+
+  if (isRecord(value)) {
+    const next = { ...value };
+    if (normalizedDescription) {
+      next.description = normalizedDescription;
+    } else {
+      delete next.description;
+    }
+    return next;
+  }
+
+  if (!normalizedDescription) {
+    return value;
+  }
+
+  return {
+    ...setExclusiveDestination(
+      createEmptyConfig(),
+      "target",
+      asString(value).trim(),
+    ),
+    description: normalizedDescription,
+  };
+}
+
 export function createAnalyticsId(): string {
   if (typeof globalThis.crypto?.randomUUID === "function") {
     return globalThis.crypto.randomUUID();
@@ -101,24 +172,5 @@ export function setExclusiveDestination(
   delete next.to;
   delete next.url;
   next[key] = value;
-  return next;
-}
-
-export function setRouteType(
-  config: Record<string, unknown>,
-  nextType: string,
-): Record<string, unknown> {
-  const next: Record<string, unknown> = { ...config, type: nextType };
-  if (nextType === "proxy") {
-    delete next.status;
-    if (next.proxyPolicy === undefined) {
-      next.proxyPolicy = { profile: "isolated" };
-    }
-  } else {
-    delete next.proxyPolicy;
-  }
-  if (nextType === "exact") {
-    delete next.appendPath;
-  }
   return next;
 }

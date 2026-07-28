@@ -3,54 +3,69 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
+import { WebUiPluginSlot } from "@/components/plugins/plugin-slot";
 import { Button } from "@/components/ui/controls/button";
-import { AppDialog } from "@/components/ui/feedback/app-dialog";
 import {
   fieldLabelClassName,
   fieldLabelRowClassName,
   formControlClassName,
 } from "@/components/ui/controls/form-control";
+import { AppDialog } from "@/components/ui/feedback/app-dialog";
 import {
+  getRouteDescription,
   setRouteDescription,
   stripRetiredProxyPolicy,
 } from "@/composables/editor/route-utils";
+import type {
+  RedirectEntry,
+  RedirectEntryDraft,
+  RedirectGroup,
+} from "@/composables/redirects-groups/model";
 import type { RedirectsMutationResult } from "@/composables/redirects-groups";
-import type { RedirectEntryDraft } from "@/composables/redirects-groups/model";
 
-import { RouteEntryEditor } from "./route-entry/route-entry-editor";
+import { RouteEntryEditor } from "./route-entry-editor";
 
-interface NewRouteEntryDialogProps {
-  groupName: string;
-  isOpen: boolean;
-  onClose: () => void;
-  onCreate: (draft: RedirectEntryDraft) => Promise<RedirectsMutationResult>;
+interface EditRouteEntryDialogProps {
+  entry: RedirectEntry;
+  group: RedirectGroup;
+  isReadOnly: boolean;
   savesImmediately: boolean;
+  onApply: (draft: RedirectEntryDraft) => Promise<RedirectsMutationResult>;
+  onClose: () => void;
 }
 
-export function NewRouteEntryDialog({
-  groupName,
-  isOpen,
-  onClose,
-  onCreate,
+export function EditRouteEntryDialog({
+  entry,
+  group,
+  isReadOnly,
   savesImmediately,
-}: NewRouteEntryDialogProps) {
+  onApply,
+  onClose,
+}: EditRouteEntryDialogProps) {
   const t = useTranslations("entries");
-  const [pathKey, setPathKey] = useState("");
-  const [description, setDescription] = useState("");
-  const [value, setValue] = useState<unknown>("");
+  const [pathKey, setPathKey] = useState(entry.key);
+  const [description, setDescription] = useState(
+    getRouteDescription(entry.value),
+  );
+  const [value, setValue] = useState(entry.value);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const normalizedPathKey = pathKey.trim();
-  const canCreate = normalizedPathKey.length > 0;
+  const canApply = normalizedPathKey.length > 0;
+  const draftEntry: RedirectEntry = {
+    ...entry,
+    key: pathKey,
+    value,
+  };
 
-  async function createEntry() {
-    if (!canCreate || isSaving) {
+  async function applyEntry() {
+    if (!canApply || isReadOnly || isSaving) {
       return;
     }
     setIsSaving(true);
     setSaveError(null);
     try {
-      const result = await onCreate({
+      const result = await onApply({
         key: normalizedPathKey,
         value: setRouteDescription(
           stripRetiredProxyPolicy(value),
@@ -73,30 +88,36 @@ export function NewRouteEntryDialog({
 
   return (
     <AppDialog
-      ariaLabelledBy="new-route-entry-title"
-      isOpen={isOpen}
+      ariaLabelledBy="edit-route-entry-title"
+      isOpen
       onClose={onClose}
       preventClose={isSaving}
-      widthClassName="max-w-3xl"
+      widthClassName="max-w-4xl"
     >
       <form
         method="dialog"
         onSubmit={(event) => {
           event.preventDefault();
-          void createEntry();
+          if (isReadOnly) {
+            onClose();
+            return;
+          }
+          void applyEntry();
         }}
         className="p-5 sm:p-6"
       >
         <div className="flex items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <h2
-              id="new-route-entry-title"
+              id="edit-route-entry-title"
               className="text-lg font-semibold text-ink"
             >
-              {t("newRuleTitle")}
+              {t(isReadOnly ? "viewRuleTitle" : "editRuleTitle")}
             </h2>
             <p className="mt-1 text-sm leading-6 text-muted">
-              {t("newRuleDescription", { group: groupName })}
+              {t("editRuleDescription", {
+                path: entry.key.trim() || t("rulePathMissing"),
+              })}
             </p>
           </div>
           <Button
@@ -104,8 +125,8 @@ export function NewRouteEntryDialog({
             disabled={isSaving}
             size="icon"
             variant="ghost"
-            title={t("newRuleCancel")}
-            aria-label={t("newRuleCancel")}
+            title={t("closeRule")}
+            aria-label={t("closeRule")}
           >
             <svg
               viewBox="0 0 24 24"
@@ -128,26 +149,26 @@ export function NewRouteEntryDialog({
             value={pathKey}
             onChange={(event) => setPathKey(event.target.value)}
             placeholder={t("pathKeyPlaceholder")}
+            readOnly={isReadOnly}
             className={formControlClassName({ className: "w-full" })}
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
-            autoFocus
           />
-          <p className="mt-1.5 text-xs leading-5 text-muted">
-            {t("newRulePathHint")}
-          </p>
         </div>
 
         <div className="mt-5">
           <label className={fieldLabelRowClassName}>
-            <span className={fieldLabelClassName}>{t("ruleDescription")}</span>
+            <span className={fieldLabelClassName}>
+              {t("ruleDescription")}
+            </span>
           </label>
           <textarea
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             placeholder={t("ruleDescriptionPlaceholder")}
             maxLength={500}
+            readOnly={isReadOnly}
             className={formControlClassName({
               className: "w-full resize-y",
               size: "textarea",
@@ -163,6 +184,11 @@ export function NewRouteEntryDialog({
             pathKey={normalizedPathKey}
             value={value}
             onChange={setValue}
+            isReadOnly={isReadOnly}
+          />
+          <WebUiPluginSlot
+            name="rule-editor.fields"
+            context={{ entry: draftEntry, group, isReadOnly }}
           />
         </div>
 
@@ -176,22 +202,30 @@ export function NewRouteEntryDialog({
         ) : null}
 
         <div className="mt-6 flex justify-end gap-2">
-          <Button
-            onClick={onClose}
-            disabled={isSaving}
-            variant="secondary"
-          >
-            {t("newRuleCancel")}
-          </Button>
-          <Button
-            type="submit"
-            disabled={!canCreate || isSaving}
-            variant="primary"
-          >
-            {isSaving
-              ? t("savingRule")
-              : t(savesImmediately ? "saveNewRule" : "newRuleCreate")}
-          </Button>
+          {isReadOnly ? (
+            <Button type="submit" variant="primary">
+              {t("closeRule")}
+            </Button>
+          ) : (
+            <>
+              <Button
+                onClick={onClose}
+                disabled={isSaving}
+                variant="secondary"
+              >
+                {t("editRuleCancel")}
+              </Button>
+              <Button
+                type="submit"
+                disabled={!canApply || isSaving}
+                variant="primary"
+              >
+                {isSaving
+                  ? t("savingRule")
+                  : t(savesImmediately ? "saveRuleChanges" : "editRuleApply")}
+              </Button>
+            </>
+          )}
         </div>
       </form>
     </AppDialog>

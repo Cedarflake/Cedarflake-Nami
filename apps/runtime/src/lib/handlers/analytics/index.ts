@@ -164,7 +164,7 @@ async function finalizeMatchedAnalyticsInternal(input: MatchedAnalyticsInput): P
   let finalResponse = input.response;
   const attributionKey = input.analytics.settings.attributionKey;
   const sourceHostname = input.analytics.settings.sourceHostname;
-  if (input.rule.action.type !== "proxy" && attributionKey && sourceHostname) {
+  if (input.rule.type !== "proxy" && attributionKey && sourceHostname) {
     try {
       finalResponse = await attachUpstreamAttribution(
         finalResponse,
