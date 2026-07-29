@@ -85,9 +85,9 @@ export function NewRouteEntryDialog({
           event.preventDefault();
           void createEntry();
         }}
-        className="p-5 sm:p-6"
+        className="p-0"
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-line bg-panel px-5 py-4 sm:px-6">
           <div>
             <h2
               id="new-route-entry-title"
@@ -120,62 +120,66 @@ export function NewRouteEntryDialog({
           </Button>
         </div>
 
-        <div className="mt-5">
-          <label className={fieldLabelRowClassName}>
-            <span className={fieldLabelClassName}>{t("pathKey")}</span>
-          </label>
-          <input
-            value={pathKey}
-            onChange={(event) => setPathKey(event.target.value)}
-            placeholder={t("pathKeyPlaceholder")}
-            className={formControlClassName({ className: "w-full" })}
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            autoFocus
-          />
-          <p className="mt-1.5 text-xs leading-5 text-muted">
-            {t("newRulePathHint")}
-          </p>
+        <div className="px-5 py-5 sm:px-6">
+          <div>
+            <label className={fieldLabelRowClassName}>
+              <span className={fieldLabelClassName}>{t("pathKey")}</span>
+            </label>
+            <input
+              value={pathKey}
+              onChange={(event) => setPathKey(event.target.value)}
+              placeholder={t("pathKeyPlaceholder")}
+              className={formControlClassName({ className: "w-full" })}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              autoFocus
+            />
+            <p className="mt-1.5 text-xs leading-5 text-muted">
+              {t("newRulePathHint")}
+            </p>
+          </div>
+
+          <div className="mt-5">
+            <label className={fieldLabelRowClassName}>
+              <span className={fieldLabelClassName}>
+                {t("ruleDescription")}
+              </span>
+            </label>
+            <textarea
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder={t("ruleDescriptionPlaceholder")}
+              maxLength={500}
+              className={formControlClassName({
+                className: "w-full resize-y",
+                size: "textarea",
+              })}
+            />
+            <p className="mt-1.5 text-xs leading-5 text-muted">
+              {t("ruleDescriptionHint")}
+            </p>
+          </div>
+
+          <div className="mt-5">
+            <RouteEntryEditor
+              pathKey={normalizedPathKey}
+              value={value}
+              onChange={setValue}
+            />
+          </div>
+
+          {saveError ? (
+            <p
+              role="alert"
+              className="mt-5 border-l-2 border-rose-400 bg-rose-50 px-3 py-2 text-sm text-rose-700"
+            >
+              {saveError}
+            </p>
+          ) : null}
         </div>
 
-        <div className="mt-5">
-          <label className={fieldLabelRowClassName}>
-            <span className={fieldLabelClassName}>{t("ruleDescription")}</span>
-          </label>
-          <textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder={t("ruleDescriptionPlaceholder")}
-            maxLength={500}
-            className={formControlClassName({
-              className: "w-full resize-y",
-              size: "textarea",
-            })}
-          />
-          <p className="mt-1.5 text-xs leading-5 text-muted">
-            {t("ruleDescriptionHint")}
-          </p>
-        </div>
-
-        <div className="mt-5">
-          <RouteEntryEditor
-            pathKey={normalizedPathKey}
-            value={value}
-            onChange={setValue}
-          />
-        </div>
-
-        {saveError ? (
-          <p
-            role="alert"
-            className="mt-5 border-l-2 border-rose-400 bg-rose-50 px-3 py-2 text-sm text-rose-700"
-          >
-            {saveError}
-          </p>
-        ) : null}
-
-        <div className="mt-6 flex justify-end gap-2">
+        <div className="sticky bottom-0 z-10 flex justify-end gap-2 border-t border-line bg-panel px-5 py-4 sm:px-6">
           <Button
             onClick={onClose}
             disabled={isSaving}

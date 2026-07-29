@@ -520,8 +520,8 @@ export function DataManagementPanel({
         onClose={closePreview}
         widthClassName="max-w-4xl"
       >
-        <div className="p-5 sm:p-6">
-          <div className="flex items-center justify-between gap-4">
+        <div className="p-0">
+          <div className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-line bg-panel px-5 py-4 sm:px-6">
             <div>
               <h2 className="text-lg font-semibold text-ink">
                 {t("history.previewTitle", {
@@ -532,57 +532,76 @@ export function DataManagementPanel({
                 {preview ? t(`kinds.${preview.target.kind}`) : ""}
               </p>
             </div>
-            <Button onClick={closePreview} size="sm">
-              {t("close")}
+            <Button
+              onClick={closePreview}
+              size="icon"
+              variant="ghost"
+              title={t("close")}
+              aria-label={t("close")}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                className="h-4 w-4"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path
+                  d="M6 6l12 12M18 6 6 18"
+                  strokeLinecap="round"
+                />
+              </svg>
             </Button>
           </div>
-          {preview?.loaded ? (
-            <RevisionDiff
-              key={`${preview.loaded.current.kind}:${preview.loaded.current.revision}`}
-              previousRevision={preview.loaded.previous}
-              revision={preview.loaded.current}
-            />
-          ) : preview?.error ? (
-            <div
-              className="mt-4 rounded-xl border border-danger/25 bg-danger/5 p-4"
-              role="alert"
-            >
-              <p className="font-semibold text-danger">
-                {t("history.previewError")}
-              </p>
-              <p className="mt-1 text-sm text-danger">{preview.error}</p>
-            </div>
-          ) : (
-            <SkeletonPulse
-              aria-label={t("history.previewLoading")}
-              className="mt-4"
-              role="status"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <SkeletonBlock className="h-9 w-44 rounded-xl" />
-                <SkeletonBlock className="h-4 w-36" />
+          <div className="px-5 py-5 sm:px-6">
+            {preview?.loaded ? (
+              <RevisionDiff
+                key={`${preview.loaded.current.kind}:${preview.loaded.current.revision}`}
+                previousRevision={preview.loaded.previous}
+                revision={preview.loaded.current}
+              />
+            ) : preview?.error ? (
+              <div
+                className="rounded-xl border border-danger/25 bg-danger/5 p-4"
+                role="alert"
+              >
+                <p className="font-semibold text-danger">
+                  {t("history.previewError")}
+                </p>
+                <p className="mt-1 text-sm text-danger">{preview.error}</p>
               </div>
-              <div className="mt-4 overflow-hidden rounded-xl border border-line">
-                {Array.from({ length: 9 }, (_, index) => (
-                  <div
-                    key={index}
-                    className="flex h-6 border-b border-line last:border-b-0"
-                  >
-                    <SkeletonBlock className="h-full w-9 rounded-none border-r border-line" />
-                    <div className="w-7 shrink-0" />
-                    <div className="flex flex-1 items-center px-2 pr-4">
-                      <SkeletonBlock
-                        className={[
-                          "h-2.5",
-                          index % 3 === 0 ? "w-3/5" : "w-4/5",
-                        ].join(" ")}
-                      />
+            ) : (
+              <SkeletonPulse
+                aria-label={t("history.previewLoading")}
+                role="status"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <SkeletonBlock className="h-9 w-44 rounded-xl" />
+                  <SkeletonBlock className="h-4 w-36" />
+                </div>
+                <div className="mt-4 overflow-hidden rounded-xl border border-line">
+                  {Array.from({ length: 9 }, (_, index) => (
+                    <div
+                      key={index}
+                      className="flex h-6 border-b border-line last:border-b-0"
+                    >
+                      <SkeletonBlock className="h-full w-9 rounded-none border-r border-line" />
+                      <div className="w-7 shrink-0" />
+                      <div className="flex flex-1 items-center px-2 pr-4">
+                        <SkeletonBlock
+                          className={[
+                            "h-2.5",
+                            index % 3 === 0 ? "w-3/5" : "w-4/5",
+                          ].join(" ")}
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </SkeletonPulse>
-          )}
+                  ))}
+                </div>
+              </SkeletonPulse>
+            )}
+          </div>
         </div>
       </AppDialog>
     </>
