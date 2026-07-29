@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/controls/button";
@@ -20,6 +26,100 @@ interface RouteEntryCardProps {
   isReadOnly: boolean;
   onDelete: () => void;
   onOpen: () => void;
+}
+
+function ScrollableRouteText({
+  text,
+  variant,
+}: {
+  text: string;
+  variant: "subtitle" | "title";
+}) {
+  const scrollRef = useRef<HTMLSpanElement | null>(null);
+  const [overflowHints, setOverflowHints] = useState({
+    hasHiddenEnd: false,
+    hasHiddenStart: false,
+  });
+
+  const updateOverflowHint = useCallback(() => {
+    const element = scrollRef.current;
+    if (!element) {
+      return;
+    }
+
+    const nextHints = {
+      hasHiddenEnd:
+        element.scrollWidth - element.scrollLeft - element.clientWidth > 1,
+      hasHiddenStart: element.scrollLeft > 1,
+    };
+    setOverflowHints((currentHints) => (
+      currentHints.hasHiddenEnd === nextHints.hasHiddenEnd
+      && currentHints.hasHiddenStart === nextHints.hasHiddenStart
+        ? currentHints
+        : nextHints
+    ));
+  }, []);
+
+  useEffect(() => {
+    let isActive = true;
+    const animationFrame = window.requestAnimationFrame(updateOverflowHint);
+    const resizeObserver = typeof ResizeObserver === "undefined"
+      ? null
+      : new ResizeObserver(updateOverflowHint);
+    if (scrollRef.current) {
+      resizeObserver?.observe(scrollRef.current);
+    }
+    void document.fonts.ready.then(() => {
+      if (isActive) {
+        updateOverflowHint();
+      }
+    });
+
+    return () => {
+      isActive = false;
+      window.cancelAnimationFrame(animationFrame);
+      resizeObserver?.disconnect();
+    };
+  }, [updateOverflowHint]);
+
+  return (
+    <span
+      className={`relative block max-w-full ${
+        variant === "subtitle" ? "mt-1.5" : ""
+      }`}
+    >
+      <span
+        ref={scrollRef}
+        onScroll={updateOverflowHint}
+        className={`block max-w-full touch-pan-x overflow-x-auto overscroll-x-contain whitespace-nowrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+          variant === "title"
+            ? "text-base font-semibold leading-6 text-ink hover:text-accent hover:underline"
+            : "font-mono text-sm text-muted"
+        }`}
+        title={text}
+      >
+        {text}
+      </span>
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-y-0 left-0 w-10 transition-opacity ${
+          overflowHints.hasHiddenStart ? "opacity-100" : "opacity-0"
+        }`}
+        style={{
+          background: "linear-gradient(to right, var(--panel), transparent)",
+        }}
+      />
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute inset-y-0 right-0 w-10 transition-opacity ${
+          overflowHints.hasHiddenEnd ? "opacity-100" : "opacity-0"
+        }`}
+        style={{
+          background: "linear-gradient(to right, transparent, var(--panel))",
+        }}
+      />
+    </span>
+  );
 }
 
 function getFirstDestination(value: unknown): string {
@@ -75,12 +175,8 @@ export function RouteEntryCard({
           <span className="flex min-w-0 items-start gap-3">
             <TargetFavicon target={target} />
             <span className="min-w-0 flex-1">
-              <span className="line-clamp-2 break-all text-base font-semibold leading-6 text-ink">
-                {destination}
-              </span>
-              <span className="mt-1.5 block truncate font-mono text-sm text-muted">
-                {pathLabel}
-              </span>
+              <ScrollableRouteText text={destination} variant="title" />
+              <ScrollableRouteText text={pathLabel} variant="subtitle" />
             </span>
           </span>
         </button>
@@ -90,11 +186,11 @@ export function RouteEntryCard({
         </span>
       </div>
 
-      <p className="mt-4 line-clamp-3 text-sm leading-6 text-muted">
+      <p className="mt-4 h-12 line-clamp-2 text-sm leading-6 text-muted">
         {description}
       </p>
 
-      <div className="mt-auto flex items-center gap-2 pt-6">
+      <div className="mt-auto flex items-center justify-end gap-2 pt-6">
         <QRCodeButton pathKey={entry.key.trim()} />
         <Button
           onClick={onOpen}

@@ -14,10 +14,17 @@ function createNextConfig(phase: string): NextConfig {
       root: path.resolve(process.cwd(), "../.."),
     },
     images: {
+      minimumCacheTTL: 86_400,
       remotePatterns: [
         {
           protocol: "https",
           hostname: "avatars.githubusercontent.com",
+        },
+        {
+          protocol: "https",
+          hostname: "unavatar.webp.se",
+          pathname: "/**",
+          search: "?fallback=false",
         },
       ],
     },

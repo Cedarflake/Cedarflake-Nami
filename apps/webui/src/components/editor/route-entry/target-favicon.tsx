@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { getTargetFaviconUrl } from "@/composables/editor/route-utils";
 
 interface TargetFaviconProps {
@@ -21,14 +23,13 @@ export function TargetFavicon({ target }: TargetFaviconProps) {
         <path d="M3 12h18M12 3c2.4 2.5 3.6 5.5 3.6 9S14.4 18.5 12 21c-2.4-2.5-3.6-5.5-3.6-9S9.6 5.5 12 3Z" />
       </svg>
       {faviconUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
+        <Image
           key={faviconUrl}
           src={faviconUrl}
           alt=""
+          fill
+          sizes="50px"
           className="absolute inset-0 h-full w-full bg-panel object-contain p-2.5"
-          decoding="async"
-          loading="lazy"
           referrerPolicy="no-referrer"
           onError={(event) => {
             event.currentTarget.hidden = true;
