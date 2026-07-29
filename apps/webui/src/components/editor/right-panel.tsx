@@ -148,10 +148,12 @@ export function RightPanel({
               <Button
                 onClick={onSave}
                 disabled={isPending}
+                isPending={isPending}
+                pendingLabel={tGroups("saving")}
                 size="sm"
                 variant="primary"
               >
-                {isPending ? tGroups("saving") : tGroups("save")}
+                {tGroups("save")}
               </Button>
             ) : null}
           </div>

@@ -12,10 +12,11 @@
     "selectHint": "从右侧选择分组",
     "undo": "撤回",
     "redo": "恢复",
-    "saving": "保存中...",
+    "saving": "保存中",
     "save": "保存改动",
     "viewCommit": "查看提交",
     "dismissNotification": "关闭通知",
+    "notifications": "通知",
     "configUrl": "规则 JSON 地址",
     "configUrlPlaceholder": "粘贴 GitHub 的 redirects.json 地址（https://...）",
     "configUrlInvalid": "请输入有效的 https 链接。",
@@ -71,7 +72,7 @@
     "editRuleCancel": "取消",
     "editRuleApply": "应用修改",
     "saveRuleChanges": "保存修改",
-    "savingRule": "正在保存…",
+    "savingRule": "正在保存",
     "saveRuleFail": "规则未能保存，请检查表单内容后重试。",
     "closeRule": "关闭",
     "editRule": "编辑规则",
@@ -109,7 +110,7 @@
     "cancel": "继续编辑",
     "discard": "不保存",
     "save": "保存并继续",
-    "saving": "保存中…"
+    "saving": "保存中"
   },
   "instanceConfig": {
     "navigationLabel": "设置",

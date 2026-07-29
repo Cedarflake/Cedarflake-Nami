@@ -31,7 +31,13 @@ export function getMode(value: unknown): RouteMode {
 
 export function getRouteDescription(value: unknown): string {
   const candidate = Array.isArray(value) ? value[0] : value;
-  return isRecord(candidate) ? asString(candidate.description).trim() : "";
+  return isRecord(candidate)
+    ? normalizeRouteDescriptionInput(asString(candidate.description)).trim()
+    : "";
+}
+
+export function normalizeRouteDescriptionInput(value: string): string {
+  return value.replace(/[ \t]*[\r\n\u2028\u2029]+[ \t]*/g, " ");
 }
 
 export function getTargetFaviconUrl(target: string): string | null {
@@ -63,7 +69,7 @@ export function setRouteDescription(
   value: unknown,
   description: string,
 ): unknown {
-  const normalizedDescription = description.trim();
+  const normalizedDescription = normalizeRouteDescriptionInput(description).trim();
 
   if (Array.isArray(value)) {
     if (value.length === 0) {

@@ -129,7 +129,7 @@ export function RedirectsGroupsManager({
     useState<SettingsCategory>("runtime");
   const [lastSaveTarget, setLastSaveTarget] = useState<"rules" | "settings">("rules");
   const [localSaveError, setLocalSaveError] = useState<string | null>(null);
-  const [saveAttempt, setSaveAttempt] = useState(0);
+  const [saveNotificationId, setSaveNotificationId] = useState(0);
   const [pendingLeave, setPendingLeave] = useState<PendingLeave | null>(null);
   const [isResolvingLeave, setIsResolvingLeave] = useState(false);
   const [newEntryGroupId, setNewEntryGroupId] = useState<string | null>(null);
@@ -252,7 +252,6 @@ export function RedirectsGroupsManager({
       return false;
     }
 
-    setSaveAttempt((value) => value + 1);
     setLastSaveTarget(editorMode === "settings" ? "settings" : "rules");
     setLocalSaveError(null);
 
@@ -263,11 +262,14 @@ export function RedirectsGroupsManager({
         setConfigDraft(normalized);
         setConfigValue(nextConfig);
         setConfigError(null);
-        return await dataConfigFile.save(normalized);
+        const isSuccess = await dataConfigFile.save(normalized);
+        setSaveNotificationId((value) => value + 1);
+        return isSuccess;
       } catch (error) {
         const message = error instanceof Error ? error.message : tEditor("jsonParseFail");
         setConfigError(message);
         setLocalSaveError(message);
+        setSaveNotificationId((value) => value + 1);
         return false;
       }
     }
@@ -278,16 +280,21 @@ export function RedirectsGroupsManager({
         setJsonError(null);
         const hydrated = await applyJson(normalized);
         setJsonDraft(hydrated);
-        return await save(hydrated);
+        const isSuccess = await save(hydrated);
+        setSaveNotificationId((value) => value + 1);
+        return isSuccess;
       } catch (error) {
         const message = error instanceof Error ? error.message : tEditor("jsonParseFail");
         setJsonError(message);
         setLocalSaveError(message);
+        setSaveNotificationId((value) => value + 1);
         return false;
       }
     }
 
-    return await save();
+    const isSuccess = await save();
+    setSaveNotificationId((value) => value + 1);
+    return isSuccess;
   }, [
     applyJson,
     configDraft,
@@ -322,13 +329,15 @@ export function RedirectsGroupsManager({
       mutation: () => Promise<RedirectsMutationResult>,
     ): Promise<RedirectsMutationResult> => {
       if (!usesManualSave) {
-        setSaveAttempt((value) => value + 1);
         setLastSaveTarget("rules");
         setLocalSaveError(null);
       }
       const result = await mutation();
       if (!result.isSuccess && result.errorMessage) {
         setLocalSaveError(result.errorMessage);
+      }
+      if (!usesManualSave) {
+        setSaveNotificationId((value) => value + 1);
       }
       return result;
     },
@@ -837,7 +846,7 @@ export function RedirectsGroupsManager({
           </main>
         </AppShell>
         <SaveNotification
-          key={saveAttempt}
+          notificationId={saveNotificationId}
           message={notificationMessage}
           commitUrl={notificationCommitUrl}
           status={notificationStatus}

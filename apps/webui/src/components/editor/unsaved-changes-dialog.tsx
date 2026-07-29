@@ -56,9 +56,11 @@ export function UnsavedChangesDialog({
           <Button
             onClick={onSave}
             disabled={isSaving}
+            isPending={isSaving}
+            pendingLabel={t("saving")}
             variant="primary"
           >
-            {isSaving ? t("saving") : t("save")}
+            {t("save")}
           </Button>
         </div>
       </div>

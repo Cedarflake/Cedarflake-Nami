@@ -163,7 +163,7 @@ export function RouteEntryCard({
   return (
     <article
       id={`entry-${entry.id}`}
-      className="flex min-h-48 flex-col rounded-xl border border-line bg-panel p-4 transition hover:border-line-strong"
+      className="flex h-full flex-col rounded-xl border border-line bg-panel p-4 transition hover:border-line-strong"
     >
       <div className="flex items-start justify-between gap-4">
         <button
@@ -186,47 +186,19 @@ export function RouteEntryCard({
         </span>
       </div>
 
-      <p className="mt-4 h-12 line-clamp-2 text-sm leading-6 text-muted">
-        {description}
-      </p>
+      <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end">
+        <p className="h-12 min-w-0 flex-1 line-clamp-2 text-sm leading-6 text-muted">
+          {description}
+        </p>
 
-      <div className="mt-auto flex items-center justify-end gap-2 pt-6">
-        <QRCodeButton pathKey={entry.key.trim()} />
-        <Button
-          onClick={onOpen}
-          size="icon"
-          variant="secondary"
-          title={openLabel}
-          aria-label={`${openLabel}: ${pathLabel}`}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            className="h-4 w-4"
-            stroke="currentColor"
-            strokeWidth="2"
-            aria-hidden="true"
-          >
-            {isReadOnly ? (
-              <>
-                <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" strokeLinejoin="round" />
-                <circle cx="12" cy="12" r="2.5" />
-              </>
-            ) : (
-              <>
-                <path d="m4 16-.75 4.75L8 20l10.5-10.5-4-4L4 16Z" strokeLinejoin="round" />
-                <path d="m12.75 7.25 4 4" />
-              </>
-            )}
-          </svg>
-        </Button>
-        {isReadOnly ? null : (
+        <div className="flex shrink-0 items-center justify-end gap-2">
+          <QRCodeButton pathKey={entry.key.trim()} />
           <Button
-            onClick={onDelete}
+            onClick={onOpen}
             size="icon"
-            variant="danger"
-            title={t("deleteRule")}
-            aria-label={`${t("deleteRule")}: ${pathLabel}`}
+            variant="secondary"
+            title={openLabel}
+            aria-label={`${openLabel}: ${pathLabel}`}
           >
             <svg
               viewBox="0 0 24 24"
@@ -236,15 +208,45 @@ export function RouteEntryCard({
               strokeWidth="2"
               aria-hidden="true"
             >
-              <path
-                d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path d="M10 11v6M14 11v6" strokeLinecap="round" />
+              {isReadOnly ? (
+                <>
+                  <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" strokeLinejoin="round" />
+                  <circle cx="12" cy="12" r="2.5" />
+                </>
+              ) : (
+                <>
+                  <path d="m4 16-.75 4.75L8 20l10.5-10.5-4-4L4 16Z" strokeLinejoin="round" />
+                  <path d="m12.75 7.25 4 4" />
+                </>
+              )}
             </svg>
           </Button>
-        )}
+          {isReadOnly ? null : (
+            <Button
+              onClick={onDelete}
+              size="icon"
+              variant="danger"
+              title={t("deleteRule")}
+              aria-label={`${t("deleteRule")}: ${pathLabel}`}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                className="h-4 w-4"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path d="M10 11v6M14 11v6" strokeLinecap="round" />
+              </svg>
+            </Button>
+          )}
+        </div>
       </div>
     </article>
   );

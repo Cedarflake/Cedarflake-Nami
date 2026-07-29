@@ -12,10 +12,11 @@
     "selectHint": "Select a group on the right",
     "undo": "Undo",
     "redo": "Redo",
-    "saving": "Saving...",
+    "saving": "Saving",
     "save": "Save changes",
     "viewCommit": "View commit",
     "dismissNotification": "Dismiss notification",
+    "notifications": "Notifications",
     "saveOk": "Saved",
     "configUrl": "Rules JSON URL",
     "configUrlPlaceholder": "Paste a GitHub redirects.json URL (https://...)",
@@ -71,7 +72,7 @@
     "editRuleCancel": "Cancel",
     "editRuleApply": "Apply changes",
     "saveRuleChanges": "Save changes",
-    "savingRule": "Saving...",
+    "savingRule": "Saving",
     "saveRuleFail": "The rule could not be saved. Review the fields and try again.",
     "closeRule": "Close",
     "editRule": "Edit rule",
@@ -109,7 +110,7 @@
     "cancel": "Keep editing",
     "discard": "Discard",
     "save": "Save and continue",
-    "saving": "Saving…"
+    "saving": "Saving"
   },
   "instanceConfig": {
     "navigationLabel": "Settings",

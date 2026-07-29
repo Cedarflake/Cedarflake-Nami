@@ -119,7 +119,12 @@ export function GroupEntriesEditor({
           </div>
         </div>
       ) : (
-        <div className="mt-6 grid grid-cols-1 gap-3 xl:grid-cols-2">
+        <div
+          className="mt-6 grid auto-rows-fr gap-3"
+          style={{
+            gridTemplateColumns: "repeat(auto-fill, minmax(min(20rem, 100%), 1fr))",
+          }}
+        >
           {group.entries.map((entry) => (
             <RouteEntryCard
               key={entry.id}

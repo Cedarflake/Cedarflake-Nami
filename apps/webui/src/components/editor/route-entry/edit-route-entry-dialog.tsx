@@ -13,6 +13,7 @@ import {
 import { AppDialog } from "@/components/ui/feedback/app-dialog";
 import {
   getRouteDescription,
+  normalizeRouteDescriptionInput,
   setRouteDescription,
   stripRetiredProxyPolicy,
 } from "@/composables/editor/route-utils";
@@ -166,12 +167,21 @@ export function EditRouteEntryDialog({
             </label>
             <textarea
               value={description}
-              onChange={(event) => setDescription(event.target.value)}
+              onChange={(event) => {
+                setDescription(normalizeRouteDescriptionInput(event.target.value));
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+                  event.preventDefault();
+                }
+              }}
               placeholder={t("ruleDescriptionPlaceholder")}
               maxLength={500}
               readOnly={isReadOnly}
+              rows={3}
+              wrap="soft"
               className={formControlClassName({
-                className: "w-full resize-y",
+                className: "w-full resize-none leading-6",
                 size: "textarea",
               })}
             />
@@ -220,11 +230,11 @@ export function EditRouteEntryDialog({
               <Button
                 type="submit"
                 disabled={!canApply || isSaving}
+                isPending={isSaving}
+                pendingLabel={t("savingRule")}
                 variant="primary"
               >
-                {isSaving
-                  ? t("savingRule")
-                  : t(savesImmediately ? "saveRuleChanges" : "editRuleApply")}
+                {t(savesImmediately ? "saveRuleChanges" : "editRuleApply")}
               </Button>
             </>
           )}

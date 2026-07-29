@@ -22,14 +22,14 @@
   "dependencies": {
     "@i0c/analytics-domain": "workspace:*",
     "@i0c/config": "workspace:*",
+    "@i0c/plugin-analytics-store-d1": "workspace:*",
+    "@i0c/plugin-analytics-store-postgres": "workspace:*",
+    "@i0c/plugin-api": "workspace:*",
     "@i0c/plugin-catalog": "workspace:*",
     "@i0c/plugin-data-repository-d1": "workspace:*",
     "@i0c/plugin-data-repository-postgres": "workspace:*",
     "@i0c/plugin-github-data": "workspace:*",
-    "@i0c/plugin-api": "workspace:*",
     "@i0c/plugin-sdk": "workspace:*",
-    "@i0c/plugin-analytics-store-postgres": "workspace:*",
-    "@i0c/plugin-analytics-store-d1": "workspace:*",
     "@visx/axis": "^4.0.0",
     "@visx/event": "^4.0.0",
     "@visx/grid": "^4.0.0",
@@ -46,6 +46,7 @@
     "qrcode.react": "^4.2.0",
     "react": "19.2.7",
     "react-dom": "19.2.7",
+    "sonner": "2.0.7",
     "zod": "^4.2.1"
   },
   "devDependencies": {

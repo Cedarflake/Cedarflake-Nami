@@ -11,6 +11,7 @@ import {
   formControlClassName,
 } from "@/components/ui/controls/form-control";
 import {
+  normalizeRouteDescriptionInput,
   setRouteDescription,
   stripRetiredProxyPolicy,
 } from "@/composables/editor/route-utils";
@@ -148,11 +149,20 @@ export function NewRouteEntryDialog({
             </label>
             <textarea
               value={description}
-              onChange={(event) => setDescription(event.target.value)}
+              onChange={(event) => {
+                setDescription(normalizeRouteDescriptionInput(event.target.value));
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+                  event.preventDefault();
+                }
+              }}
               placeholder={t("ruleDescriptionPlaceholder")}
               maxLength={500}
+              rows={3}
+              wrap="soft"
               className={formControlClassName({
-                className: "w-full resize-y",
+                className: "w-full resize-none leading-6",
                 size: "textarea",
               })}
             />
@@ -190,11 +200,11 @@ export function NewRouteEntryDialog({
           <Button
             type="submit"
             disabled={!canCreate || isSaving}
+            isPending={isSaving}
+            pendingLabel={t("savingRule")}
             variant="primary"
           >
-            {isSaving
-              ? t("savingRule")
-              : t(savesImmediately ? "saveNewRule" : "newRuleCreate")}
+            {t(savesImmediately ? "saveNewRule" : "newRuleCreate")}
           </Button>
         </div>
       </form>

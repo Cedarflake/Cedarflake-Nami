@@ -57,9 +57,11 @@ export function ConfirmationDialog({
           <Button
             onClick={onConfirm}
             disabled={isPending}
+            isPending={isPending}
+            pendingLabel={pendingLabel ?? confirmLabel}
             variant={tone === "danger" ? "danger" : "primary"}
           >
-            {isPending ? pendingLabel ?? confirmLabel : confirmLabel}
+            {confirmLabel}
           </Button>
         </div>
       </div>
