@@ -125,6 +125,7 @@ Provide a `Slots` object in `redirects.json` to define routing rules. The table 
 | `target` | string | `""` | Destination URL. Use exactly one of `target`, `to`, or `url`. |
 | `to` / `url` | string | `""` | Alias fields. Use exactly one of `target`, `to`, or `url`. |
 | `appendPath` | boolean | `true` | Whether to append the remaining path when using `prefix` or `proxy` mode. Not applicable to `exact`. |
+| `proxyOptions` | object | omitted | Optional request headers, response headers, redirect, cookie, timeout, and request-body overrides for `proxy` rules. |
 | `status` | number | `302` | HTTP status code from 200 through 599 for non-proxy responses. Do not set for `proxy`. |
 | `priority` | number | by order | Determines rule precedence for the same path. Smaller numbers are matched first. |
 
@@ -133,6 +134,8 @@ Provide a `Slots` object in `redirects.json` to define routing rules. The table 
 - The `proxy` type forwards the request to the destination and returns the upstream response. Other types respond with a `Location` redirect.
 - Proxy requests preserve application headers such as `Cookie`, `Authorization`, `Origin`, and `Referer`. The Runtime removes hop-by-hop headers, replaces `X-Forwarded-Host` and `X-Forwarded-Proto`, and drops credentials when an upstream redirect changes origin.
 - Upstream response headers, including security headers and separate `Set-Cookie` fields, are preserved. Cookie `Domain` attributes are removed so cookies bind to the public proxy hostname.
+- `proxyOptions.requestHeaders` and `proxyOptions.responseHeaders` use string values to set headers and `null` to remove them. Runtime-managed protocol headers cannot be overridden. Configured request headers are not reapplied after a redirect changes origin.
+- Proxy redirects are followed up to five times by default. `proxyOptions.redirects` can change the limit or pass the upstream redirect through. Optional timeout and request-body limits use seconds and megabytes; provider limits still apply.
 - To configure multiple rules for the same path, provide an array. Array order controls the default priority, or you can specify `priority` explicitly.
 
 Add the schema reference below to unlock autocomplete and validation in supporting editors. The schema lives on `main`, so it still applies if the JSON sits in a data branch:
@@ -193,7 +196,17 @@ Add the schema reference below to unlock autocomplete and validation in supporti
     ],
     "/media/*": {
       "type": "proxy",
-      "target": "https://cdn.example.com/$1"
+      "target": "https://cdn.example.com/$1",
+      "proxyOptions": {
+        "requestHeaders": {
+          "Referer": "https://www.example.com/"
+        },
+        "redirects": {
+          "maxHops": 3
+        },
+        "timeoutSeconds": 10,
+        "maxRequestBodyMegabytes": 5
+      }
     },
     "/admin": {
       "type": "prefix",

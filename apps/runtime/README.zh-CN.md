@@ -125,6 +125,7 @@ pnpm runtime:build:nf
 | `target` | string | `""` | 目标地址，`target`、`to`、`url` 三选一。 |
 | `to` / `url` | string | `""` | `target` 的别名字段，`target`、`to`、`url` 三选一。 |
 | `appendPath` | boolean | `true` | `prefix` 或 `proxy` 模式下是否拼接剩余路径，`exact` 不适用。 |
+| `proxyOptions` | object | 省略 | `proxy` 规则可选的请求头、响应头、跳转、Cookie、超时和请求体限制覆盖。 |
 | `status` | number | `302` | 非 `proxy` 响应使用 200 到 599 的状态码，`proxy` 不要设置。 |
 | `priority` | number | 按顺序 | 同一路径存在多条规则时用于排序，数字越小越先匹配。 |
 
@@ -133,6 +134,8 @@ pnpm runtime:build:nf
 - `proxy` 类型会把请求转发到目标地址并返回上游响应，其他类型返回 `Location` 重定向。
 - 代理请求会保留 `Cookie`、`Authorization`、`Origin`、`Referer` 等应用层请求头。Runtime 会删除逐跳头，重设 `X-Forwarded-Host` 与 `X-Forwarded-Proto`，并在上游跳转到不同源时停止转发凭据。
 - 上游安全响应头和多个独立的 `Set-Cookie` 等响应头会得到保留。Cookie 的 `Domain` 属性会被移除，使其绑定到公开代理域名。
+- `proxyOptions.requestHeaders` 与 `proxyOptions.responseHeaders` 使用字符串设置对应头字段，使用 `null` 删除对应头字段。Runtime 管理的协议头不能覆盖；上游跳转到不同源后也不会重新应用自定义请求头。
+- 代理默认最多跟随五次上游跳转。`proxyOptions.redirects` 可以修改次数或直接返回上游跳转；可选超时和请求体限制分别使用秒与 MB，部署平台自身限制仍然有效。
 - 如果需要为同一路径配置多条规则，可以把值写成数组。数组顺序决定默认优先级，也可以通过 `priority` 显式指定。
 
 在文件顶部添加下面的 schema 引用，可以在支持的编辑器里获得自动补全和校验。Schema 放在 `main` 分支，即使 `redirects.json` 在 `data` 分支也能生效：
@@ -193,7 +196,17 @@ pnpm runtime:build:nf
     ],
     "/media/*": {
       "type": "proxy",
-      "target": "https://cdn.example.com/$1"
+      "target": "https://cdn.example.com/$1",
+      "proxyOptions": {
+        "requestHeaders": {
+          "Referer": "https://www.example.com/"
+        },
+        "redirects": {
+          "maxHops": 3
+        },
+        "timeoutSeconds": 10,
+        "maxRequestBodyMegabytes": 5
+      }
     },
     "/admin": {
       "type": "prefix",

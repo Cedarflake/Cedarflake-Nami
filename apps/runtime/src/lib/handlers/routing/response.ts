@@ -13,6 +13,15 @@
 
 import { DEFAULT_STATUS, HSTS_HEADER_VALUE } from "../core/constants";
 import type { NormalizedRule, ResolvedRuntime } from "../core/types";
+import {
+  applyProxyHeaderOverrides,
+  createProxyAbortContext,
+  ProxyRequestBodyTooLargeError,
+  readProxyRequestBody,
+  resolveProxyOptions,
+  type ProxyAbortContext,
+  type ResolvedProxyOptions
+} from "./proxy-options";
 
 const HOP_BY_HOP_HEADERS = [
   "connection",
@@ -33,7 +42,6 @@ const REQUEST_BODY_HEADERS = [
   "content-type"
 ] as const;
 const HEADER_NAME_PATTERN = /^[!#$%&'*+.^_`|~0-9a-z-]+$/i;
-const MAX_PROXY_REDIRECTS = 5;
 
 interface ExtendedHeaders {
   getAll?(name: string): string[];
@@ -181,7 +189,7 @@ export async function respondUsingRule(
   signal?: AbortSignal
 ): Promise<Response> {
   if (rule.type === "proxy") {
-    return proxyRequest(request, targetUrl, runtime, basePath, signal);
+    return proxyRequest(request, targetUrl, runtime, rule, basePath, signal);
   }
 
   return redirectResponse(targetUrl, rule.status);
@@ -191,9 +199,36 @@ async function proxyRequest(
   request: Request,
   targetUrl: string,
   runtime: ResolvedRuntime,
+  rule: NormalizedRule,
   basePath: string = "",
   signal: AbortSignal = request.signal
 ): Promise<Response> {
+  const options = resolveProxyOptions(rule.proxyOptions);
+  const abortContext = createProxyAbortContext(signal, options.timeoutMilliseconds);
+
+  try {
+    return await executeProxyRequest(
+      request,
+      targetUrl,
+      runtime,
+      options,
+      abortContext,
+      basePath
+    );
+  } finally {
+    abortContext.cleanup();
+  }
+}
+
+async function executeProxyRequest(
+  request: Request,
+  targetUrl: string,
+  runtime: ResolvedRuntime,
+  options: ResolvedProxyOptions,
+  abortContext: ProxyAbortContext,
+  basePath: string
+): Promise<Response> {
+  const signal = abortContext.signal;
   const originalUrl = new URL(request.url);
   const originalHost = originalUrl.host;
   const targetUrlObj = new URL(targetUrl);
@@ -211,7 +246,14 @@ async function proxyRequest(
   let bodyBuffer: ArrayBuffer | undefined;
   const originalMethod = request.method.toUpperCase();
   if (originalMethod !== "GET" && originalMethod !== "HEAD" && request.body) {
-    bodyBuffer = await request.arrayBuffer();
+    try {
+      bodyBuffer = await readProxyRequestBody(request, options.maxRequestBodyBytes);
+    } catch (error) {
+      if (error instanceof ProxyRequestBodyTooLargeError) {
+        return new Response("Payload Too Large", { status: 413 });
+      }
+      return new Response("Bad Request: Unable to read request body.", { status: 400 });
+    }
   }
 
   let effectiveMethod = originalMethod;
@@ -230,6 +272,9 @@ async function proxyRequest(
 
     headers.delete("host");
     stripHopByHopHeaders(headers);
+    if (currentUrlObj.origin === targetUrlObj.origin) {
+      applyProxyHeaderOverrides(headers, options.requestHeaders);
+    }
     if (shouldDropBodyHeaders) {
       for (const name of REQUEST_BODY_HEADERS) {
         headers.delete(name);
@@ -257,8 +302,14 @@ async function proxyRequest(
     });
 
     try {
-      lastResponse = await runtime.fetchImpl(forwarded);
+      const upstreamRequest = runtime.fetchImpl(forwarded);
+      lastResponse = abortContext.timeoutPromise
+        ? await Promise.race([upstreamRequest, abortContext.timeoutPromise])
+        : await upstreamRequest;
     } catch (e) {
+      if (abortContext.didTimeout()) {
+        return new Response("Gateway Timeout: Upstream request timed out.", { status: 504 });
+      }
       if (!signal.aborted) {
         console.error(`Proxy fetch failed for ${currentTarget}:`, e);
       }
@@ -280,7 +331,10 @@ async function proxyRequest(
         return new Response("Bad Gateway: Unsafe upstream redirect.", { status: 502 });
       }
 
-      if (redirectCount >= MAX_PROXY_REDIRECTS) {
+      if (
+        options.redirectMode === "passthrough"
+        || redirectCount >= options.maxRedirectHops
+      ) {
         break;
       }
 
@@ -314,7 +368,9 @@ async function proxyRequest(
   responseHeaders.set("Strict-Transport-Security", HSTS_HEADER_VALUE);
 
   const setCookies = getSetCookieValues(lastResponse.headers);
-  if (setCookies.length > 0) {
+  if (options.cookieMode === "strip") {
+    responseHeaders.delete("set-cookie");
+  } else if (options.cookieMode === "rewrite-domain" && setCookies.length > 0) {
     responseHeaders.delete("set-cookie");
     for (const setCookie of setCookies) {
       responseHeaders.append("set-cookie", removeCookieDomain(setCookie));
@@ -342,6 +398,8 @@ async function proxyRequest(
 
     responseHeaders.set("Location", finalLocation);
   }
+
+  applyProxyHeaderOverrides(responseHeaders, options.responseHeaders);
 
   const contentType = responseHeaders.get("content-type") || "";
   const shouldRewriteHtml = basePath && basePath !== "/" && contentType.includes("text/html");

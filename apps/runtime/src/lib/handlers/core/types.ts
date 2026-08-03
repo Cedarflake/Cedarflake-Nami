@@ -18,6 +18,7 @@ import type {
 } from "@i0c/analytics-domain/classification";
 import type {
   DataConfig,
+  ProxyOptions,
   RedirectsConfig as SharedRedirectsConfig,
   SlotBranch as SharedSlotBranch
 } from "@i0c/config";
@@ -70,6 +71,7 @@ export interface RouteConfig {
   to?: string;
   url?: string;
   appendPath?: boolean;
+  proxyOptions?: ProxyOptions;
   status?: number | string;
   priority?: number | string;
 }
@@ -79,6 +81,7 @@ export interface NormalizedRule {
   type: RouteType;
   target: string;
   appendPath: boolean;
+  proxyOptions?: ProxyOptions;
   status: number;
   priority: number;
 }
