@@ -7,6 +7,13 @@ export {
   dataDocumentKinds,
 } from "./data-repository"
 export { validateRedirectsConfig } from "./redirects-validation"
+export {
+  defaultProxyOptions,
+  isConfigurableProxyHeaderName,
+  proxyCookieModes,
+  proxyOptionLimits,
+  proxyRedirectModes,
+} from "./proxy-options"
 export { isPluginInstanceConfig, validateDataConfig } from "./validation"
 export type {
   DataDocument,
@@ -26,6 +33,15 @@ export type {
   DataRepositoryWriteInput,
   DataRepositoryWriteResult,
 } from "./data-repository"
+export type {
+  ProxyCookieMode,
+  ProxyCookieOptions,
+  ProxyHeaderDirection,
+  ProxyHeaderOverrides,
+  ProxyOptions,
+  ProxyRedirectMode,
+  ProxyRedirectOptions,
+} from "./proxy-options"
 export type {
   BootstrapConfig,
   DataConfig,

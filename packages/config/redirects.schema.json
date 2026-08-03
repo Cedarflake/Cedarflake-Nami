@@ -48,6 +48,87 @@
       "minLength": 1,
       "description": "Shortcut form equivalent to a prefix redirect rule."
     },
+    "proxyHeaderOverrides": {
+      "type": "object",
+      "description": "Header overrides. String values set headers and null values remove them.",
+      "maxProperties": 32,
+      "propertyNames": {
+        "pattern": "^[!#$%&'*+.^_`|~0-9A-Za-z-]+$"
+      },
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "string",
+            "maxLength": 8192,
+            "pattern": "^[^\\u0000\\r\\n]*$"
+          },
+          { "type": "null" }
+        ]
+      }
+    },
+    "proxyOptions": {
+      "type": "object",
+      "description": "Optional overrides for the transparent single-upstream proxy.",
+      "properties": {
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 120,
+          "description": "Maximum wait for the upstream redirect chain to return final response headers."
+        },
+        "maxRequestBodyMegabytes": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 100,
+          "description": "Application-level request body limit in megabytes. Provider limits still apply."
+        },
+        "requestHeaders": {
+          "$ref": "#/definitions/proxyHeaderOverrides"
+        },
+        "responseHeaders": {
+          "$ref": "#/definitions/proxyHeaderOverrides"
+        },
+        "redirects": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["follow", "passthrough"]
+            },
+            "maxHops": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "mode": { "const": "passthrough" }
+                },
+                "required": ["mode"]
+              },
+              "then": {
+                "not": { "required": ["maxHops"] }
+              }
+            }
+          ],
+          "additionalProperties": false
+        },
+        "cookies": {
+          "type": "object",
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["rewrite-domain", "preserve", "strip"]
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "routeConfig": {
       "type": "object",
       "description": "Explicit redirect or proxy configuration.",
@@ -66,6 +147,9 @@
           "type": "object",
           "deprecated": true,
           "description": "Retired field accepted temporarily for rollback compatibility. Runtime ignores it."
+        },
+        "proxyOptions": {
+          "$ref": "#/definitions/proxyOptions"
         },
         "type": {
           "type": "string",
@@ -161,6 +245,19 @@
           },
           "then": {
             "not": { "required": ["appendPath"] }
+          }
+        },
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "type": { "const": "proxy" }
+              },
+              "required": ["type"]
+            }
+          },
+          "then": {
+            "not": { "required": ["proxyOptions"] }
           }
         }
       ],
