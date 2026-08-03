@@ -16,6 +16,8 @@ interface NestedRouteEntryEditorProps {
   allowArray?: boolean;
   pathKey?: string;
   isReadOnly?: boolean;
+  isProxyOptionsOpen?: boolean;
+  onProxyOptionsOpenChange?: (isOpen: boolean) => void;
 }
 
 interface RouteArrayEditorProps {
@@ -24,6 +26,8 @@ interface RouteArrayEditorProps {
   level: number;
   pathKey: string;
   isReadOnly: boolean;
+  isProxyOptionsOpen?: boolean;
+  onProxyOptionsOpenChange?: (isOpen: boolean) => void;
   EntryEditor: ComponentType<NestedRouteEntryEditorProps>;
 }
 
@@ -33,10 +37,13 @@ export function RouteArrayEditor({
   level,
   pathKey,
   isReadOnly,
+  isProxyOptionsOpen,
+  onProxyOptionsOpenChange,
   EntryEditor,
 }: RouteArrayEditorProps) {
   const t = useTranslations("routeEntry");
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(null);
+  const [proxyOptionsIndex, setProxyOptionsIndex] = useState<number | null>(null);
 
   function confirmDeleteItem() {
     if (pendingDeleteIndex === null) {
@@ -52,6 +59,27 @@ export function RouteArrayEditor({
     next.splice(pendingDeleteIndex, 1);
     onChange(next);
     setPendingDeleteIndex(null);
+  }
+
+  if (isProxyOptionsOpen && proxyOptionsIndex !== null) {
+    const item = value[proxyOptionsIndex];
+    return (
+      <EntryEditor
+        value={Array.isArray(item) ? "" : item}
+        allowArray={false}
+        level={level + 1}
+        pathKey={pathKey}
+        isReadOnly={isReadOnly}
+        isProxyOptionsOpen
+        onProxyOptionsOpenChange={onProxyOptionsOpenChange}
+        onChange={(nextItem) => {
+          const safeNext = Array.isArray(nextItem) ? "" : nextItem;
+          const next = value.slice();
+          next[proxyOptionsIndex] = safeNext;
+          onChange(next);
+        }}
+      />
+    );
   }
 
   return (
@@ -92,6 +120,15 @@ export function RouteArrayEditor({
               level={level + 1}
               pathKey={pathKey}
               isReadOnly={isReadOnly}
+              isProxyOptionsOpen={onProxyOptionsOpenChange ? false : undefined}
+              onProxyOptionsOpenChange={onProxyOptionsOpenChange
+                ? (isOpen) => {
+                  if (isOpen) {
+                    setProxyOptionsIndex(index);
+                  }
+                  onProxyOptionsOpenChange(isOpen);
+                }
+                : undefined}
               onChange={(nextItem) => {
                 const safeNext = Array.isArray(nextItem) ? "" : nextItem;
                 const next = value.slice();

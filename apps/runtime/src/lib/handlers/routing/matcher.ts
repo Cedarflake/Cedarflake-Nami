@@ -156,7 +156,9 @@ function normaliseRule(value: RouteValue, fallbackPriority: number): NormalizedR
       ? value.analyticsId.trim()
       : undefined;
 
-    return { analyticsId, type, target: targetValue, appendPath, status, priority };
+    const proxyOptions = type === "proxy" ? value.proxyOptions : undefined;
+
+    return { analyticsId, type, target: targetValue, appendPath, proxyOptions, status, priority };
   }
 
   return null;

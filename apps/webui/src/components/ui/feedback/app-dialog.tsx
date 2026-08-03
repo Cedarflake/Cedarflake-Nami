@@ -13,6 +13,7 @@ interface AppDialogProps {
   isOpen: boolean;
   onClose: () => void;
   preventClose?: boolean;
+  scrollResetKey?: boolean | number | string;
   widthClassName?: string;
 }
 
@@ -23,9 +24,11 @@ export function AppDialog({
   isOpen,
   onClose,
   preventClose = false,
+  scrollResetKey,
   widthClassName = "max-w-md",
 }: AppDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -38,6 +41,10 @@ export function AppDialog({
       dialog.close();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    contentRef.current?.scrollTo({ top: 0 });
+  }, [scrollResetKey]);
 
   return (
     <dialog
@@ -60,7 +67,10 @@ export function AppDialog({
         className,
       ].filter(Boolean).join(" ")}
     >
-      <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain">
+      <div
+        ref={contentRef}
+        className="max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain"
+      >
         {children}
       </div>
     </dialog>

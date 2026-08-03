@@ -124,3 +124,30 @@ test("normalizes schema-compatible numeric strings", () => {
   assert.equal(entry.rule.status, 307);
   assert.equal(entry.rule.priority, -2);
 });
+
+test("preserves proxy options on compiled proxy rules", () => {
+  const [entry] = buildCompiledList({
+    "/images": {
+      type: "proxy",
+      target: "https://images.example.com",
+      proxyOptions: {
+        requestHeaders: {
+          Referer: "https://www.example.com/"
+        },
+        redirects: {
+          mode: "passthrough"
+        }
+      }
+    }
+  });
+
+  assert.ok(entry);
+  assert.deepEqual(entry.rule.proxyOptions, {
+    requestHeaders: {
+      Referer: "https://www.example.com/"
+    },
+    redirects: {
+      mode: "passthrough"
+    }
+  });
+});

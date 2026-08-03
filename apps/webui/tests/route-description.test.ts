@@ -69,6 +69,9 @@ test("removes retired proxy policies from every rule when saving", () => {
     stripRetiredProxyPolicy([
       {
         proxyPolicy: { profile: "isolated" },
+        proxyOptions: {
+          requestHeaders: { Referer: "https://www.example.com/" },
+        },
         target: "https://a.example.com",
       },
       {
@@ -77,7 +80,12 @@ test("removes retired proxy policies from every rule when saving", () => {
       },
     ]),
     [
-      { target: "https://a.example.com" },
+      {
+        proxyOptions: {
+          requestHeaders: { Referer: "https://www.example.com/" },
+        },
+        target: "https://a.example.com",
+      },
       { target: "https://b.example.com" },
     ],
   );

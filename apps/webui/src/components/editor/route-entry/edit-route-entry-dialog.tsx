@@ -44,6 +44,7 @@ export function EditRouteEntryDialog({
   onClose,
 }: EditRouteEntryDialogProps) {
   const t = useTranslations("entries");
+  const routeT = useTranslations("routeEntry");
   const [pathKey, setPathKey] = useState(entry.key);
   const [description, setDescription] = useState(
     getRouteDescription(entry.value),
@@ -51,6 +52,7 @@ export function EditRouteEntryDialog({
   const [value, setValue] = useState(entry.value);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [isProxyOptionsOpen, setIsProxyOptionsOpen] = useState(false);
   const normalizedPathKey = pathKey.trim();
   const canApply = normalizedPathKey.length > 0;
   const draftEntry: RedirectEntry = {
@@ -58,6 +60,11 @@ export function EditRouteEntryDialog({
     key: pathKey,
     value,
   };
+
+  function closeDialog() {
+    setIsProxyOptionsOpen(false);
+    onClose();
+  }
 
   async function applyEntry() {
     if (!canApply || isReadOnly || isSaving) {
@@ -75,7 +82,7 @@ export function EditRouteEntryDialog({
       });
       setIsSaving(false);
       if (result.isSuccess) {
-        onClose();
+        closeDialog();
         return;
       }
       setSaveError(result.errorMessage ?? t("saveRuleFail"));
@@ -91,8 +98,9 @@ export function EditRouteEntryDialog({
     <AppDialog
       ariaLabelledBy="edit-route-entry-title"
       isOpen
-      onClose={onClose}
+      onClose={closeDialog}
       preventClose={isSaving}
+      scrollResetKey={isProxyOptionsOpen}
       widthClassName="max-w-4xl"
     >
       <form
@@ -100,7 +108,7 @@ export function EditRouteEntryDialog({
         onSubmit={(event) => {
           event.preventDefault();
           if (isReadOnly) {
-            onClose();
+            closeDialog();
             return;
           }
           void applyEntry();
@@ -108,21 +116,46 @@ export function EditRouteEntryDialog({
         className="p-0"
       >
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-line bg-panel px-5 py-4 sm:px-6">
-          <div className="min-w-0">
-            <h2
-              id="edit-route-entry-title"
-              className="text-lg font-semibold text-ink"
-            >
-              {t(isReadOnly ? "viewRuleTitle" : "editRuleTitle")}
-            </h2>
-            <p className="mt-1 text-sm leading-6 text-muted">
-              {t("editRuleDescription", {
-                path: entry.key.trim() || t("rulePathMissing"),
-              })}
-            </p>
+          <div className={`flex min-w-0 gap-2 ${isProxyOptionsOpen ? "items-center" : "items-start"}`}>
+            {isProxyOptionsOpen ? (
+              <Button
+                aria-label={routeT("proxyAdvancedBack")}
+                onClick={() => setIsProxyOptionsOpen(false)}
+                size="icon"
+                variant="ghost"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="h-4 w-4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="m15 18-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Button>
+            ) : null}
+            <div className="min-w-0">
+              <h2
+                id="edit-route-entry-title"
+                className="text-lg font-semibold text-ink"
+              >
+                {isProxyOptionsOpen
+                  ? routeT("proxyAdvancedTitle")
+                  : t(isReadOnly ? "viewRuleTitle" : "editRuleTitle")}
+              </h2>
+              {!isProxyOptionsOpen ? (
+                <p className="mt-1 text-sm leading-6 text-muted">
+                  {t("editRuleDescription", {
+                    path: entry.key.trim() || t("rulePathMissing"),
+                  })}
+                </p>
+              ) : null}
+            </div>
           </div>
           <Button
-            onClick={onClose}
+            onClick={closeDialog}
             disabled={isSaving}
             size="icon"
             variant="ghost"
@@ -143,7 +176,7 @@ export function EditRouteEntryDialog({
         </div>
 
         <div className="px-5 py-5 sm:px-6">
-          <div>
+          {!isProxyOptionsOpen ? <div>
             <label className={fieldLabelRowClassName}>
               <span className={fieldLabelClassName}>{t("pathKey")}</span>
             </label>
@@ -157,9 +190,9 @@ export function EditRouteEntryDialog({
               autoCorrect="off"
               spellCheck={false}
             />
-          </div>
+          </div> : null}
 
-          <div className="mt-5">
+          {!isProxyOptionsOpen ? <div className="mt-5">
             <label className={fieldLabelRowClassName}>
               <span className={fieldLabelClassName}>
                 {t("ruleDescription")}
@@ -188,19 +221,23 @@ export function EditRouteEntryDialog({
             <p className="mt-1.5 text-xs leading-5 text-muted">
               {t("ruleDescriptionHint")}
             </p>
-          </div>
+          </div> : null}
 
-          <div className="mt-5">
+          <div className={isProxyOptionsOpen ? "" : "mt-5"}>
             <RouteEntryEditor
               pathKey={normalizedPathKey}
               value={value}
               onChange={setValue}
               isReadOnly={isReadOnly}
+              isProxyOptionsOpen={isProxyOptionsOpen}
+              onProxyOptionsOpenChange={setIsProxyOptionsOpen}
             />
-            <WebUiPluginSlot
-              name="rule-editor.fields"
-              context={{ entry: draftEntry, group, isReadOnly }}
-            />
+            {!isProxyOptionsOpen ? (
+              <WebUiPluginSlot
+                name="rule-editor.fields"
+                context={{ entry: draftEntry, group, isReadOnly }}
+              />
+            ) : null}
           </div>
 
           {saveError ? (
@@ -221,7 +258,7 @@ export function EditRouteEntryDialog({
           ) : (
             <>
               <Button
-                onClick={onClose}
+                onClick={closeDialog}
                 disabled={isSaving}
                 variant="secondary"
               >

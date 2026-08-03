@@ -407,3 +407,231 @@ test("reports only upstream redirects that were followed", async () => {
   assert.equal(response.status, 302);
   assert.equal(response.headers.get("x-proxy-redirects-followed"), "5");
 });
+
+test("applies configured request and response header overrides", async () => {
+  let forwarded: Request | undefined;
+  const runtime = createRuntime(async (input) => {
+    forwarded = input instanceof Request ? input : new Request(input);
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Cache-Control": "private",
+        "X-Upstream": "remove-me"
+      }
+    });
+  });
+  const rule: NormalizedRule = {
+    ...proxyRule,
+    proxyOptions: {
+      requestHeaders: {
+        Referer: "https://www.example.com/",
+        "X-Remove": null
+      },
+      responseHeaders: {
+        "Cache-Control": "public, max-age=60",
+        "X-Upstream": null
+      }
+    }
+  };
+
+  const response = await respondUsingRule(
+    new Request("https://i0c.cc/proxy", {
+      headers: {
+        Referer: "https://i0c.cc/",
+        "X-Remove": "remove-me"
+      }
+    }),
+    rule,
+    "https://example.com/start",
+    runtime,
+    "/proxy"
+  );
+
+  assert.ok(forwarded);
+  assert.equal(forwarded.headers.get("referer"), "https://www.example.com/");
+  assert.equal(forwarded.headers.get("x-remove"), null);
+  assert.equal(response.headers.get("cache-control"), "public, max-age=60");
+  assert.equal(response.headers.get("x-upstream"), null);
+});
+
+test("does not reapply request header overrides after a cross-origin redirect", async () => {
+  const forwarded: Request[] = [];
+  const runtime = createRuntime(async (input) => {
+    const request = input instanceof Request ? input : new Request(input);
+    forwarded.push(request);
+    return forwarded.length === 1
+      ? new Response(null, {
+        status: 302,
+        headers: { Location: "https://redirected.example/final" }
+      })
+      : new Response(null, { status: 204 });
+  });
+  const rule: NormalizedRule = {
+    ...proxyRule,
+    proxyOptions: {
+      requestHeaders: {
+        Authorization: "Bearer configured",
+        "X-Upstream-Key": "configured"
+      }
+    }
+  };
+
+  const response = await respondUsingRule(
+    new Request("https://i0c.cc/proxy"),
+    rule,
+    "https://example.com/start",
+    runtime,
+    "/proxy"
+  );
+
+  assert.equal(response.status, 204);
+  assert.equal(forwarded[0]?.headers.get("authorization"), "Bearer configured");
+  assert.equal(forwarded[0]?.headers.get("x-upstream-key"), "configured");
+  assert.equal(forwarded[1]?.headers.get("authorization"), null);
+  assert.equal(forwarded[1]?.headers.get("x-upstream-key"), null);
+});
+
+test("can pass upstream redirects through without following them", async () => {
+  let fetchCalls = 0;
+  const runtime = createRuntime(async () => {
+    fetchCalls += 1;
+    return new Response(null, {
+      status: 302,
+      headers: { Location: "/next" }
+    });
+  });
+  const rule: NormalizedRule = {
+    ...proxyRule,
+    proxyOptions: {
+      redirects: {
+        mode: "passthrough"
+      }
+    }
+  };
+
+  const response = await respondUsingRule(
+    new Request("https://i0c.cc/proxy"),
+    rule,
+    "https://example.com/start",
+    runtime,
+    "/proxy"
+  );
+
+  assert.equal(fetchCalls, 1);
+  assert.equal(response.status, 302);
+  assert.equal(response.headers.get("location"), "https://i0c.cc/proxy/next");
+  assert.equal(response.headers.get("x-proxy-redirects-followed"), "0");
+});
+
+test("respects a configured upstream redirect limit", async () => {
+  let fetchCalls = 0;
+  const runtime = createRuntime(async () => {
+    fetchCalls += 1;
+    return new Response(null, {
+      status: 302,
+      headers: { Location: `https://example.com/${fetchCalls}` }
+    });
+  });
+  const rule: NormalizedRule = {
+    ...proxyRule,
+    proxyOptions: {
+      redirects: {
+        maxHops: 1
+      }
+    }
+  };
+
+  const response = await respondUsingRule(
+    new Request("https://i0c.cc/proxy"),
+    rule,
+    "https://example.com/start",
+    runtime,
+    "/proxy"
+  );
+
+  assert.equal(fetchCalls, 2);
+  assert.equal(response.status, 302);
+  assert.equal(response.headers.get("x-proxy-redirects-followed"), "1");
+});
+
+test("supports preserving or stripping upstream cookies", async () => {
+  const upstreamHeaders = new Headers();
+  upstreamHeaders.append(
+    "Set-Cookie",
+    "session=secret; Domain=example.com; Path=/; HttpOnly"
+  );
+  const runtime = createRuntime(async () => new Response(null, {
+    status: 204,
+    headers: upstreamHeaders
+  }));
+
+  const preserved = await respondUsingRule(
+    new Request("https://i0c.cc/proxy"),
+    {
+      ...proxyRule,
+      proxyOptions: { cookies: { mode: "preserve" } }
+    },
+    "https://example.com/start",
+    runtime,
+    "/proxy"
+  );
+  const stripped = await respondUsingRule(
+    new Request("https://i0c.cc/proxy"),
+    {
+      ...proxyRule,
+      proxyOptions: { cookies: { mode: "strip" } }
+    },
+    "https://example.com/start",
+    runtime,
+    "/proxy"
+  );
+
+  assert.match(preserved.headers.get("set-cookie") ?? "", /Domain=example\.com/i);
+  assert.equal(stripped.headers.get("set-cookie"), null);
+});
+
+test("rejects request bodies that exceed the configured limit", async () => {
+  let fetchCalls = 0;
+  const runtime = createRuntime(async () => {
+    fetchCalls += 1;
+    return new Response(null, { status: 204 });
+  });
+  const response = await respondUsingRule(
+    new Request("https://i0c.cc/proxy", {
+      method: "POST",
+      body: "small body",
+      headers: { "Content-Length": "2000000" }
+    }),
+    {
+      ...proxyRule,
+      proxyOptions: { maxRequestBodyMegabytes: 1 }
+    },
+    "https://example.com/start",
+    runtime,
+    "/proxy"
+  );
+
+  assert.equal(response.status, 413);
+  assert.equal(fetchCalls, 0);
+});
+
+test("returns 504 when the configured upstream timeout expires", async () => {
+  const runtime = createRuntime(async (input) => {
+    const request = input instanceof Request ? input : new Request(input);
+    return new Promise<Response>((_resolve, reject) => {
+      request.signal.addEventListener("abort", () => reject(request.signal.reason), { once: true });
+    });
+  });
+  const response = await respondUsingRule(
+    new Request("https://i0c.cc/proxy"),
+    {
+      ...proxyRule,
+      proxyOptions: { timeoutSeconds: 1 }
+    },
+    "https://example.com/start",
+    runtime,
+    "/proxy"
+  );
+
+  assert.equal(response.status, 504);
+});

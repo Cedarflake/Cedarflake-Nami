@@ -36,13 +36,20 @@ export function NewRouteEntryDialog({
   savesImmediately,
 }: NewRouteEntryDialogProps) {
   const t = useTranslations("entries");
+  const routeT = useTranslations("routeEntry");
   const [pathKey, setPathKey] = useState("");
   const [description, setDescription] = useState("");
   const [value, setValue] = useState<unknown>("");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [isProxyOptionsOpen, setIsProxyOptionsOpen] = useState(false);
   const normalizedPathKey = pathKey.trim();
   const canCreate = normalizedPathKey.length > 0;
+
+  function closeDialog() {
+    setIsProxyOptionsOpen(false);
+    onClose();
+  }
 
   async function createEntry() {
     if (!canCreate || isSaving) {
@@ -60,7 +67,7 @@ export function NewRouteEntryDialog({
       });
       setIsSaving(false);
       if (result.isSuccess) {
-        onClose();
+        closeDialog();
         return;
       }
       setSaveError(result.errorMessage ?? t("saveRuleFail"));
@@ -76,8 +83,9 @@ export function NewRouteEntryDialog({
     <AppDialog
       ariaLabelledBy="new-route-entry-title"
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={closeDialog}
       preventClose={isSaving}
+      scrollResetKey={isProxyOptionsOpen}
       widthClassName="max-w-3xl"
     >
       <form
@@ -89,19 +97,42 @@ export function NewRouteEntryDialog({
         className="p-0"
       >
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-line bg-panel px-5 py-4 sm:px-6">
-          <div>
-            <h2
-              id="new-route-entry-title"
-              className="text-lg font-semibold text-ink"
-            >
-              {t("newRuleTitle")}
-            </h2>
-            <p className="mt-1 text-sm leading-6 text-muted">
-              {t("newRuleDescription", { group: groupName })}
-            </p>
+          <div className={`flex min-w-0 gap-2 ${isProxyOptionsOpen ? "items-center" : "items-start"}`}>
+            {isProxyOptionsOpen ? (
+              <Button
+                aria-label={routeT("proxyAdvancedBack")}
+                onClick={() => setIsProxyOptionsOpen(false)}
+                size="icon"
+                variant="ghost"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="h-4 w-4"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="m15 18-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Button>
+            ) : null}
+            <div className="min-w-0">
+              <h2
+                id="new-route-entry-title"
+                className="text-lg font-semibold text-ink"
+              >
+                {isProxyOptionsOpen ? routeT("proxyAdvancedTitle") : t("newRuleTitle")}
+              </h2>
+              {!isProxyOptionsOpen ? (
+                <p className="mt-1 text-sm leading-6 text-muted">
+                  {t("newRuleDescription", { group: groupName })}
+                </p>
+              ) : null}
+            </div>
           </div>
           <Button
-            onClick={onClose}
+            onClick={closeDialog}
             disabled={isSaving}
             size="icon"
             variant="ghost"
@@ -122,7 +153,7 @@ export function NewRouteEntryDialog({
         </div>
 
         <div className="px-5 py-5 sm:px-6">
-          <div>
+          {!isProxyOptionsOpen ? <div>
             <label className={fieldLabelRowClassName}>
               <span className={fieldLabelClassName}>{t("pathKey")}</span>
             </label>
@@ -139,9 +170,9 @@ export function NewRouteEntryDialog({
             <p className="mt-1.5 text-xs leading-5 text-muted">
               {t("newRulePathHint")}
             </p>
-          </div>
+          </div> : null}
 
-          <div className="mt-5">
+          {!isProxyOptionsOpen ? <div className="mt-5">
             <label className={fieldLabelRowClassName}>
               <span className={fieldLabelClassName}>
                 {t("ruleDescription")}
@@ -169,13 +200,15 @@ export function NewRouteEntryDialog({
             <p className="mt-1.5 text-xs leading-5 text-muted">
               {t("ruleDescriptionHint")}
             </p>
-          </div>
+          </div> : null}
 
-          <div className="mt-5">
+          <div className={isProxyOptionsOpen ? "" : "mt-5"}>
             <RouteEntryEditor
               pathKey={normalizedPathKey}
               value={value}
               onChange={setValue}
+              isProxyOptionsOpen={isProxyOptionsOpen}
+              onProxyOptionsOpenChange={setIsProxyOptionsOpen}
             />
           </div>
 
@@ -191,7 +224,7 @@ export function NewRouteEntryDialog({
 
         <div className="sticky bottom-0 z-10 flex justify-end gap-2 border-t border-line bg-panel px-5 py-4 sm:px-6">
           <Button
-            onClick={onClose}
+            onClick={closeDialog}
             disabled={isSaving}
             variant="secondary"
           >
