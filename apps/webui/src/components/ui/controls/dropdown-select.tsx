@@ -1,28 +1,33 @@
 'use client';
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type Dispatch,
+  type Ref,
+  type RefObject,
+  type SetStateAction,
+} from "react";
 
 import { formControlClassName } from "@/components/ui/controls/form-control";
 
 export type DropdownOption = { value: string; label: string };
 
-export function DropdownSelect({
-  value,
-  options,
-  onChange,
-  className,
-  disabled = false,
-}: {
-  value: string;
+interface DropdownOptionsProps {
+  listboxId?: string;
+  onSelect: (value: string) => void;
   options: DropdownOption[];
-  onChange: (next: string) => void;
-  className?: string;
-  disabled?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const selected = options.find((option) => option.value === value);
+  preserveInputFocus?: boolean;
+  selectedValue: string;
+}
 
+function useDropdownDismiss(
+  open: boolean,
+  rootRef: RefObject<HTMLDivElement | null>,
+  setOpen: Dispatch<SetStateAction<boolean>>,
+) {
   useEffect(() => {
     if (!open) return;
     const onMouseDown = (event: MouseEvent) => {
@@ -41,7 +46,83 @@ export function DropdownSelect({
       document.removeEventListener("mousedown", onMouseDown);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [open]);
+  }, [open, rootRef, setOpen]);
+}
+
+function DropdownChevron() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      className="h-4 w-4"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function DropdownOptions({
+  listboxId,
+  onSelect,
+  options,
+  preserveInputFocus = false,
+  selectedValue,
+}: DropdownOptionsProps) {
+  return (
+    <div
+      id={listboxId}
+      role="listbox"
+      className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-line bg-panel shadow-[0_18px_40px_-24px_rgb(23_32_51_/_45%)]"
+    >
+      <div className="max-h-60 overflow-auto py-1">
+        {options.map((option) => {
+          const isSelected = option.value === selectedValue;
+          return (
+            <button
+              key={option.value}
+              type="button"
+              role="option"
+              aria-selected={isSelected}
+              onMouseDown={(event) => {
+                if (preserveInputFocus) event.preventDefault();
+              }}
+              onClick={() => onSelect(option.value)}
+              className={
+                "w-full px-3 py-2 text-left text-sm transition focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent " +
+                (isSelected
+                  ? "bg-accent-soft font-semibold text-accent-strong"
+                  : "text-ink hover:bg-panel-muted")
+              }
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function DropdownSelect({
+  value,
+  options,
+  onChange,
+  className,
+  disabled = false,
+}: {
+  value: string;
+  options: DropdownOption[];
+  onChange: (next: string) => void;
+  className?: string;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const selected = options.find((option) => option.value === value);
+  useDropdownDismiss(open, rootRef, setOpen);
 
   return (
     <div ref={rootRef} className={"relative " + (className ?? "")}>
@@ -56,43 +137,101 @@ export function DropdownSelect({
         aria-expanded={open && !disabled}
       >
         {selected?.label ?? value}
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted">
+          <DropdownChevron />
+        </span>
       </button>
 
       {open && !disabled ? (
-        <div className="absolute z-10 mt-1 w-full overflow-hidden rounded-xl border border-line bg-panel shadow-[0_18px_40px_-24px_rgb(23_32_51_/_45%)]">
-          <div className="max-h-60 overflow-auto py-1">
-            {options.map((option) => {
-              const isSelected = option.value === value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    onChange(option.value);
-                    setOpen(false);
-                  }}
-                  className={
-                    "w-full px-3 py-2 text-left text-sm transition focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent " +
-                    (isSelected
-                      ? "bg-accent-soft font-semibold text-accent-strong"
-                      : "text-ink hover:bg-panel-muted")
-                  }
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <DropdownOptions
+          options={options}
+          selectedValue={value}
+          onSelect={(nextValue) => {
+            onChange(nextValue);
+            setOpen(false);
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+interface EditableDropdownSelectProps {
+  ariaLabel: string;
+  className?: string;
+  disabled?: boolean;
+  inputRef?: Ref<HTMLInputElement>;
+  onChange: (next: string) => void;
+  options: DropdownOption[];
+  placeholder?: string;
+  toggleLabel: string;
+  value: string;
+}
+
+export function EditableDropdownSelect({
+  ariaLabel,
+  className,
+  disabled = false,
+  inputRef,
+  onChange,
+  options,
+  placeholder,
+  toggleLabel,
+  value,
+}: EditableDropdownSelectProps) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const listboxId = useId();
+  useDropdownDismiss(open, rootRef, setOpen);
+
+  return (
+    <div ref={rootRef} className={"relative " + (className ?? "")}>
+      <input
+        ref={inputRef}
+        role="combobox"
+        aria-autocomplete="list"
+        aria-controls={listboxId}
+        aria-expanded={open && !disabled}
+        aria-label={ariaLabel}
+        value={value}
+        disabled={disabled}
+        autoCapitalize="none"
+        autoComplete="off"
+        spellCheck={false}
+        onFocus={() => setOpen(true)}
+        onChange={(event) => onChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowDown") setOpen(true);
+          if (event.key === "Escape") setOpen(false);
+        }}
+        placeholder={placeholder}
+        className={formControlClassName({ className: "w-full pr-10" })}
+      />
+      <button
+        type="button"
+        aria-label={toggleLabel}
+        aria-haspopup="listbox"
+        aria-expanded={open && !disabled}
+        disabled={disabled}
+        tabIndex={-1}
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={() => setOpen((previous) => !previous)}
+        className="absolute right-0 top-0 flex h-10 w-10 items-center justify-center text-muted transition hover:text-ink disabled:pointer-events-none disabled:opacity-50"
+      >
+        <DropdownChevron />
+      </button>
+
+      {open && !disabled ? (
+        <DropdownOptions
+          listboxId={listboxId}
+          options={options}
+          selectedValue={value}
+          preserveInputFocus
+          onSelect={(nextValue) => {
+            onChange(nextValue);
+            setOpen(false);
+          }}
+        />
       ) : null}
     </div>
   );

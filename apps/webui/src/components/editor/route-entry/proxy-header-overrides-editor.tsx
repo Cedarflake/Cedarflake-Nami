@@ -1,5 +1,6 @@
 'use client';
 
+import { useId, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import {
@@ -10,7 +11,10 @@ import {
 } from "@i0c/config";
 
 import { Button } from "@/components/ui/controls/button";
-import { DropdownSelect } from "@/components/ui/controls/dropdown-select";
+import {
+  DropdownSelect,
+  EditableDropdownSelect,
+} from "@/components/ui/controls/dropdown-select";
 import { formControlClassName } from "@/components/ui/controls/form-control";
 
 interface ProxyHeaderOverridesEditorProps {
@@ -20,19 +24,33 @@ interface ProxyHeaderOverridesEditorProps {
   value: ProxyHeaderOverrides;
 }
 
-function createHeaderName(value: ProxyHeaderOverrides): string {
-  const names = new Set(Object.keys(value).map((name) => name.toLowerCase()));
-  const baseName = "X-Custom-Header";
-  if (!names.has(baseName.toLowerCase())) {
-    return baseName;
-  }
-
-  let index = 2;
-  while (names.has(`${baseName}-${index}`.toLowerCase())) {
-    index += 1;
-  }
-  return `${baseName}-${index}`;
-}
+const commonProxyHeaders: Readonly<Record<ProxyHeaderDirection, readonly string[]>> = {
+  request: [
+    "Accept",
+    "Accept-Language",
+    "Cache-Control",
+    "Content-Type",
+    "Origin",
+    "Range",
+    "Referer",
+    "User-Agent",
+    "X-Requested-With",
+  ],
+  response: [
+    "Access-Control-Allow-Origin",
+    "Cache-Control",
+    "Content-Disposition",
+    "Content-Language",
+    "Content-Security-Policy",
+    "Content-Type",
+    "Cross-Origin-Resource-Policy",
+    "ETag",
+    "Referrer-Policy",
+    "Vary",
+    "X-Content-Type-Options",
+    "X-Frame-Options",
+  ],
+};
 
 export function ProxyHeaderOverridesEditor({
   direction,
@@ -41,18 +59,71 @@ export function ProxyHeaderOverridesEditor({
   value,
 }: ProxyHeaderOverridesEditorProps) {
   const t = useTranslations("routeEntry");
+  const listId = useId();
+  const initialHeaderNames = Object.keys(value);
+  const nextRowIdRef = useRef(initialHeaderNames.length);
+  const [rowIds, setRowIds] = useState<Record<string, string>>(() => (
+    Object.fromEntries(initialHeaderNames.map((name, index) => [
+      name,
+      `${listId}-header-${index}`,
+    ]))
+  ));
+  const nameInputRefs = useRef(new Map<string, HTMLInputElement>());
+  const pendingFocusRowIdRef = useRef<string | null>(null);
   const entries = Object.entries(value);
+  const configuredHeaderNames = new Set(
+    Object.keys(value).map((name) => name.toLowerCase()),
+  );
+  const cannotAddHeader = isReadOnly
+    || entries.length >= proxyOptionLimits.maximumHeaderCount;
+
+  const addHeader = (name: string) => {
+    const existingName = Object.keys(value).find(
+      (configuredName) => configuredName.toLowerCase() === name.toLowerCase(),
+    );
+    if (existingName !== undefined) {
+      const existingRowId = rowIds[existingName];
+      const input = existingRowId ? nameInputRefs.current.get(existingRowId) : undefined;
+      input?.focus();
+      input?.select();
+      return;
+    }
+
+    const rowId = `${listId}-header-${nextRowIdRef.current}`;
+    nextRowIdRef.current += 1;
+    pendingFocusRowIdRef.current = rowId;
+    setRowIds((current) => ({ ...current, [name]: rowId }));
+    onChange({ ...value, [name]: "" });
+  };
 
   const renameHeader = (currentName: string, nextName: string) => {
-    const hasCollision = Object.keys(value).some((name) => (
+    const collisionName = Object.keys(value).find((name) => (
       name !== currentName && name.toLowerCase() === nextName.toLowerCase()
     ));
-    if (hasCollision) return;
+    if (collisionName) {
+      const collisionRowId = rowIds[collisionName];
+      const input = collisionRowId ? nameInputRefs.current.get(collisionRowId) : undefined;
+      input?.focus();
+      input?.select();
+      return;
+    }
 
     const next: ProxyHeaderOverrides = {};
     for (const [name, headerValue] of Object.entries(value)) {
       next[name === currentName ? nextName : name] = headerValue;
     }
+
+    let rowId = rowIds[currentName];
+    if (!rowId) {
+      rowId = `${listId}-header-${nextRowIdRef.current}`;
+      nextRowIdRef.current += 1;
+    }
+    setRowIds((current) => {
+      const nextRowIds = { ...current };
+      delete nextRowIds[currentName];
+      nextRowIds[nextName] = rowId;
+      return nextRowIds;
+    });
     onChange(next);
   };
 
@@ -65,27 +136,44 @@ export function ProxyHeaderOverridesEditor({
       ) : null}
 
       {entries.map(([name, headerValue]) => {
+        const rowId = rowIds[name] ?? `${listId}-external-${name}`;
         const operation = headerValue === null ? "remove" : "set";
-        const isNameInvalid = !isConfigurableProxyHeaderName(name, direction);
+        const isNameInvalid = name !== "" && !isConfigurableProxyHeaderName(name, direction);
         const isValueInvalid = typeof headerValue === "string" && (
           headerValue.length > proxyOptionLimits.maximumHeaderValueLength
           || /[\u0000\r\n]/u.test(headerValue)
         );
         return (
           <div
-            key={name}
+            key={rowId}
             className="rounded-xl border border-line bg-panel-muted p-3"
           >
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_8rem_minmax(0,1.2fr)_auto]">
-              <input
-                aria-label={t("proxyHeaderName")}
+              <EditableDropdownSelect
+                inputRef={(node) => {
+                  if (node) {
+                    nameInputRefs.current.set(rowId, node);
+                    if (pendingFocusRowIdRef.current === rowId) {
+                      pendingFocusRowIdRef.current = null;
+                      node.focus({ preventScroll: true });
+                    }
+                  } else {
+                    nameInputRefs.current.delete(rowId);
+                  }
+                }}
+                ariaLabel={t("proxyHeaderName")}
                 value={name}
-                readOnly={isReadOnly}
-                onChange={(event) => renameHeader(name, event.target.value)}
-                placeholder="Referer"
-                className={formControlClassName({
-                  className: `min-w-0 ${isNameInvalid ? "border-rose-300" : ""}`,
-                })}
+                disabled={isReadOnly}
+                onChange={(nextName) => renameHeader(name, nextName)}
+                options={commonProxyHeaders[direction].map((headerName) => ({
+                  value: headerName,
+                  label: configuredHeaderNames.has(headerName.toLowerCase())
+                    ? t("proxyHeaderConfigured", { name: headerName })
+                    : headerName,
+                }))}
+                placeholder={t("proxyHeaderNamePlaceholder")}
+                toggleLabel={t("proxyHeaderSuggestions")}
+                className={isNameInvalid ? "[&_input]:border-rose-300" : ""}
               />
               <DropdownSelect
                 value={operation}
@@ -106,6 +194,9 @@ export function ProxyHeaderOverridesEditor({
                 value={headerValue ?? ""}
                 readOnly={isReadOnly || operation === "remove"}
                 disabled={operation === "remove"}
+                autoCapitalize="none"
+                autoComplete="off"
+                spellCheck={false}
                 onChange={(event) => onChange({ ...value, [name]: event.target.value })}
                 placeholder="https://www.example.com/"
                 className={formControlClassName({
@@ -118,6 +209,12 @@ export function ProxyHeaderOverridesEditor({
                 onClick={() => {
                   const next = { ...value };
                   delete next[name];
+                  nameInputRefs.current.delete(rowId);
+                  setRowIds((current) => {
+                    const nextRowIds = { ...current };
+                    delete nextRowIds[name];
+                    return nextRowIds;
+                  });
                   onChange(next);
                 }}
                 size="icon-lg"
@@ -145,24 +242,11 @@ export function ProxyHeaderOverridesEditor({
       })}
 
       <Button
-        disabled={isReadOnly || entries.length >= proxyOptionLimits.maximumHeaderCount}
-        onClick={() => {
-          const name = createHeaderName(value);
-          onChange({ ...value, [name]: "" });
-        }}
+        disabled={isReadOnly || (cannotAddHeader && !configuredHeaderNames.has(""))}
+        onClick={() => addHeader("")}
         size="sm"
         variant="secondary"
       >
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          fill="none"
-          className="h-4 w-4"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M12 5v14M5 12h14" strokeLinecap="round" />
-        </svg>
         {t(direction === "request" ? "proxyAddRequestHeader" : "proxyAddResponseHeader")}
       </Button>
       {entries.length >= proxyOptionLimits.maximumHeaderCount ? (
