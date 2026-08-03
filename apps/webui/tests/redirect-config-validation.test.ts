@@ -67,6 +67,123 @@ test("accepts retired proxy policies during rollback", () => {
   assert.equal(validateRedirectsConfig(config).status, "valid");
 });
 
+test("accepts optional advanced proxy options", () => {
+  const config = {
+    Slots: {
+      Main: {
+        "/images": {
+          type: "proxy",
+          target: "https://images.example.com",
+          proxyOptions: {
+            timeoutSeconds: 10,
+            maxRequestBodyMegabytes: 2.5,
+            requestHeaders: {
+              Referer: "https://www.example.com/",
+              "X-Remove-Me": null,
+            },
+            responseHeaders: {
+              "Cache-Control": "public, max-age=60",
+            },
+            redirects: {
+              mode: "follow",
+              maxHops: 3,
+            },
+            cookies: {
+              mode: "preserve",
+            },
+          },
+        },
+      },
+    },
+  };
+
+  assert.deepEqual(validateRedirectConfig(config), { status: "valid" });
+  assert.equal(validateRedirectsConfig(config).status, "valid");
+});
+
+test("rejects proxy options on redirect rules", () => {
+  const result = validateRedirectConfig({
+    Slots: {
+      Main: {
+        "/docs": {
+          type: "prefix",
+          target: "https://example.com/docs",
+          proxyOptions: {
+            timeoutSeconds: 10,
+          },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.status, "invalid");
+});
+
+test("rejects unsafe proxy header overrides", () => {
+  for (const requestHeaders of [
+    { Host: "example.com" },
+    { Connection: "keep-alive" },
+    { " X-Test ": "invalid whitespace" },
+    { "X-Test": "valid", "x-test": "duplicate" },
+    { "X-Test": "first line\r\nsecond line" },
+  ]) {
+    const result = validateRedirectConfig({
+      Slots: {
+        Main: {
+          "/proxy": {
+            type: "proxy",
+            target: "https://example.com",
+            proxyOptions: { requestHeaders },
+          },
+        },
+      },
+    });
+
+    assert.equal(result.status, "invalid");
+  }
+});
+
+test("rejects Set-Cookie in generic response header overrides", () => {
+  const result = validateRedirectConfig({
+    Slots: {
+      Main: {
+        "/proxy": {
+          type: "proxy",
+          target: "https://example.com",
+          proxyOptions: {
+            responseHeaders: {
+              "Set-Cookie": "session=secret",
+            },
+          },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.status, "invalid");
+});
+
+test("rejects redirect hop limits when redirects are passed through", () => {
+  const result = validateRedirectConfig({
+    Slots: {
+      Main: {
+        "/proxy": {
+          type: "proxy",
+          target: "https://example.com",
+          proxyOptions: {
+            redirects: {
+              mode: "passthrough",
+              maxHops: 1,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  assert.equal(result.status, "invalid");
+});
+
 test("rejects response status strings outside the Response range", () => {
   const result = validateRedirectConfig({
     Slots: {

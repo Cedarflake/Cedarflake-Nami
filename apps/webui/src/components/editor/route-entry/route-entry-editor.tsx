@@ -26,6 +26,8 @@ export type RouteEntryEditorProps = {
   allowArray?: boolean;
   pathKey?: string;
   isReadOnly?: boolean;
+  isProxyOptionsOpen?: boolean;
+  onProxyOptionsOpenChange?: (isOpen: boolean) => void;
 };
 
 export function RouteEntryEditor({
@@ -35,6 +37,8 @@ export function RouteEntryEditor({
   allowArray = true,
   pathKey = "",
   isReadOnly = false,
+  isProxyOptionsOpen,
+  onProxyOptionsOpenChange,
 }: RouteEntryEditorProps) {
   const t = useTranslations("routeEntry");
   const mode = useMemo(() => getMode(value), [value]);
@@ -135,6 +139,33 @@ export function RouteEntryEditor({
 
   const containerClassName = level > 0 ? "mt-3 rounded-xl border border-line bg-panel-muted p-4" : "";
 
+  if (mode === "object" && configValue && isProxyOptionsOpen) {
+    return (
+      <RouteObjectEditor
+        value={configValue}
+        onChange={onChange}
+        isReadOnly={isReadOnly}
+        isProxyOptionsOpen
+        onProxyOptionsOpenChange={onProxyOptionsOpenChange}
+      />
+    );
+  }
+
+  if (mode === "array" && arrayValue && isProxyOptionsOpen) {
+    return (
+      <RouteArrayEditor
+        value={arrayValue}
+        onChange={onChange}
+        level={level}
+        pathKey={pathKey}
+        isReadOnly={isReadOnly}
+        isProxyOptionsOpen
+        onProxyOptionsOpenChange={onProxyOptionsOpenChange}
+        EntryEditor={RouteEntryEditor}
+      />
+    );
+  }
+
   return (
     <div className={containerClassName}>
       <div className="space-y-2">
@@ -192,6 +223,8 @@ export function RouteEntryEditor({
           level={level}
           pathKey={pathKey}
           isReadOnly={isReadOnly}
+          isProxyOptionsOpen={isProxyOptionsOpen}
+          onProxyOptionsOpenChange={onProxyOptionsOpenChange}
           EntryEditor={RouteEntryEditor}
         />
       ) : null}
@@ -201,6 +234,8 @@ export function RouteEntryEditor({
           value={configValue}
           onChange={onChange}
           isReadOnly={isReadOnly}
+          isProxyOptionsOpen={isProxyOptionsOpen}
+          onProxyOptionsOpenChange={onProxyOptionsOpenChange}
         />
       ) : null}
     </div>
