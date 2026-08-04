@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/Revaea/i0c.cc.git"
   },
-  "homepage": "https://github.com/Revaea/i0c.cc",
+  "homepage": "https://u.i0c.cc",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

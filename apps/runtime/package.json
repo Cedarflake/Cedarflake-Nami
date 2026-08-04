@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/Revaea/i0c.cc.git"
   },
-  "homepage": "https://github.com/Revaea/i0c.cc",
+  "homepage": "https://i0c.cc",
   "scripts": {
     "check": "tsc --noEmit",
     "build": "pnpm build:cf && pnpm build:platform vercel --preserve-output && node scripts/prepare-vercel-output.mjs && node scripts/check-platform-build.mjs vercel api/index.js --allow-additional && pnpm build:platform netlify --preserve-output && node scripts/prepare-netlify-output.mjs && node scripts/check-platform-build.mjs netlify platforms/netlify-edge.js --allow-additional",
