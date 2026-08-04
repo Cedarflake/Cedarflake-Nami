@@ -17,7 +17,7 @@ The generated `.vitepress/dist` directory is local build output and must not be 
 
 ## Vercel deployment
 
-Create a separate Vercel project with `apps/docs` as its Root Directory. The checked-in [package.json](package.json) declares VitePress and [vercel.json](vercel.json) pins the build command to `pnpm build`; Vercel's VitePress preset serves `.vitepress/dist`. No repository-root Vercel configuration is required for the documentation site.
+Create a separate Vercel project with `apps/docs` as its Root Directory. The checked-in [package.json](package.json) declares VitePress and [vercel.json](vercel.json) pins the build command to `pnpm build` and the output directory to `.vitepress/dist`. No repository-root Vercel configuration is required for the documentation site.
 
 Attach `d.i0c.cc` only after the deployment is healthy. Project creation, deployment, domain attachment, and DNS changes remain explicit external operations.
 

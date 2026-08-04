@@ -17,7 +17,7 @@ pnpm docs:preview
 
 ## Vercel 部署
 
-创建独立的 Vercel 项目，并把 Root Directory 设为 `apps/docs`。仓库内的 [package.json](package.json) 声明 VitePress，[vercel.json](vercel.json) 只把构建命令固定为 `pnpm build`；Vercel 的 VitePress 预设会发布 `.vitepress/dist`。文档站不需要在仓库根目录放置 Vercel 配置。
+创建独立的 Vercel 项目，并把 Root Directory 设为 `apps/docs`。仓库内的 [package.json](package.json) 声明 VitePress，[vercel.json](vercel.json) 把构建命令固定为 `pnpm build`，并把输出目录指定为 `.vitepress/dist`。文档站不需要在仓库根目录放置 Vercel 配置。
 
 确认部署健康后再绑定 `d.i0c.cc`。创建项目、部署、绑定域名与修改 DNS 仍属于需要明确执行的外部操作。
 
