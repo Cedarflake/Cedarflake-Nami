@@ -38,10 +38,11 @@ WebUI 使用仓库内配置的 OAuth Scope，以及实例访问设置中的 GitH
 
 - Repository：`Revaea/i0c.cc` 或你的 Fork
 - Root Directory：`apps/webui`
-- Build command：`pnpm build`
+- Install command：`corepack pnpm -C ../.. install --frozen-lockfile`
+- Build command：`corepack pnpm build`
 - Framework：Next.js
 
-所有密钥都应保存在 Vercel 项目环境中。pnpm 会从仓库根工作区安装 Monorepo 依赖。
+仓库内的 `vercel.json` 会覆盖 Vercel 自动探测的安装和构建命令，要求 Corepack 使用仓库固定的 pnpm 版本，并从仓库根安装 Monorepo 工作区。所有密钥都应保存在 Vercel 项目环境中。
 
 ## 初始化存储
 

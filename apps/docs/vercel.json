@@ -1,4 +1,5 @@
 {
-  "buildCommand": "pnpm build",
+  "buildCommand": "corepack pnpm build",
+  "installCommand": "corepack pnpm -C ../.. install --frozen-lockfile",
   "outputDirectory": ".vitepress/dist"
 }

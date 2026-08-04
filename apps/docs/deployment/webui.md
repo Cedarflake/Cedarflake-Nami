@@ -38,10 +38,11 @@ The WebUI uses the checked-in OAuth scope and numeric GitHub IDs from instance a
 
 - Repository: `Revaea/i0c.cc` or your fork
 - Root Directory: `apps/webui`
-- Build command: `pnpm build`
+- Install command: `corepack pnpm -C ../.. install --frozen-lockfile`
+- Build command: `corepack pnpm build`
 - Framework: Next.js
 
-Keep all secrets in the Vercel project environment. The monorepo workspace dependencies are installed from the repository root by pnpm.
+The checked-in `vercel.json` overrides Vercel's install and build detection. It asks Corepack to use the repository's pinned pnpm version and installs the monorepo workspace from the repository root. Keep all secrets in the Vercel project environment.
 
 ## Initialize storage
 

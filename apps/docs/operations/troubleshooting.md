@@ -39,6 +39,10 @@ Inspect whether the snapshot could be loaded and validated, whether the active p
 
 Verify the callback URL, clear only the application's own session when testing, and inspect the Auth.js error rather than unrelated browser manifest-icon warnings. Organization OAuth restrictions can also reject repository access after sign-in succeeds.
 
+## Vercel runs `npm install` in the pnpm workspace
+
+The app-level Vercel project did not reliably discover the repository-root `pnpm-lock.yaml` and `packageManager` declaration. Do not add a second lockfile or run npm in the workspace. Keep the project Root Directory on `apps/webui` or `apps/docs`; the checked-in app-level `vercel.json` explicitly runs `corepack pnpm -C ../.. install --frozen-lockfile` so the repository's pinned pnpm version installs the workspace from its root.
+
 ## Provider build succeeds but deployment fails
 
 Build success only proves local output generation. Inspect the provider's unsupported-module, edge-runtime, output-directory, and root-directory diagnostics. Use the provider-specific build command before changing deployment settings.

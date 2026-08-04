@@ -39,6 +39,10 @@ description: 按所有权边界诊断常见 WebUI、Runtime、统计、OAuth 与
 
 核对回调 URL；测试时只清理本应用自己的 Session；检查 Auth.js 错误，而不是无关的浏览器 Manifest 图标警告。组织 OAuth 限制也可能导致登录成功后仍无法访问仓库。
 
+## Vercel 在 pnpm 工作区运行了 `npm install`
+
+应用级 Vercel 项目没有稳定识别仓库根的 `pnpm-lock.yaml` 与 `packageManager` 声明。不要为子应用增加第二份锁文件，也不要在工作区运行 npm。项目 Root Directory 仍保持为 `apps/webui` 或 `apps/docs`；仓库内相应的 `vercel.json` 会明确执行 `corepack pnpm -C ../.. install --frozen-lockfile`，由仓库固定的 pnpm 版本从工作区根安装依赖。
+
 ## 平台构建成功但部署失败
 
 构建成功只证明本地输出生成完成。请检查平台报告的 Unsupported Module、Edge Runtime、输出目录和 Root Directory 信息，并先运行平台专用构建命令再修改部署设置。
