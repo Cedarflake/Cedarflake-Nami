@@ -17,7 +17,7 @@ import type {
 } from "@i0c/analytics-domain/types"
 import type {
   AnalyticsStore,
-  PluginMigrationProvider,
+  PluginSchemaMigrationProvider,
 } from "@i0c/plugin-api"
 
 import {
@@ -50,7 +50,7 @@ interface QueryContext {
 
 export interface D1AnalyticsStoreServices {
   database: D1Database
-  migrations?: PluginMigrationProvider
+  schemaMigrations?: PluginSchemaMigrationProvider
   clock?: () => Date
 }
 
@@ -66,7 +66,9 @@ export function createD1AnalyticsStore(
 
   return {
     configured: true,
-    ...(services.migrations ? { migrations: services.migrations } : {}),
+    ...(services.schemaMigrations
+      ? { schemaMigrations: services.schemaMigrations }
+      : {}),
     ingest: (event) => ingestD1Event(services.database, event, clock),
     getOverview: (input) => queryOverview(services.database, input, clock),
     getAutomation: (input) => queryAutomation(services.database, input, clock),

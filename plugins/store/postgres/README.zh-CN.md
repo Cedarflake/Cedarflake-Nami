@@ -6,4 +6,4 @@ PostgreSQL 与 D1 共用同一套统计语义、能力集合与行为契约；�
 
 插件负责统计表结构与领域查询；共用的 PostgreSQL 客户端创建和迁移历史校验位于 `@i0c/database-postgres`。
 
-迁移只能通过插件的显式迁移命令运行；构建、应用启动和普通请求不会自动执行迁移。
+首次使用新数据库时运行 `pnpm database:init` 完成初始化；后续 Analytics Schema 变更使用 `pnpm database:update postgres analytics` 更新。构建、应用启动和普通请求不会自动更新 Schema。

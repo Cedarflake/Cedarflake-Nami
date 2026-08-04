@@ -14,20 +14,20 @@ interface RedirectSource {
 }
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
-const repoRoot = path.resolve(scriptDir, "../../..")
+const repoRoot = path.resolve(scriptDir, "../..")
 const defaultSchemaPath = path.join(repoRoot, "packages/config/redirects.schema.json")
 const defaultSource = "origin/data:redirects.json"
 const userArgs = process.argv.slice(2).filter((arg) => arg !== "--")
 
 function printHelp() {
-  console.log(`Usage: pnpm validate:redirects [source] [--source <source>] [--schema <schema>]
+  console.log(`Usage: pnpm data:validate:redirects [source] [--source <source>] [--schema <schema>]
 
 Sources can be local JSON files or git object refs such as origin/data:redirects.json.
 
 Examples:
-  pnpm validate:redirects
-  pnpm validate:redirects -- --source origin/data:redirects.json
-  pnpm validate:redirects -- ./redirects.json
+  pnpm data:validate:redirects
+  pnpm data:validate:redirects -- --source origin/data:redirects.json
+  pnpm data:validate:redirects -- ./redirects.json
 `)
 }
 

@@ -7,7 +7,7 @@ import type { CanonicalAnalyticsLinkEvent } from "@i0c/analytics-domain/events"
 import { SQLiteD1Database } from "@i0c/database-d1/testkit"
 import {
   assertAnalyticsStoreBehaviorContract,
-  assertMigrationState,
+  assertSchemaMigrationState,
   assertPluginManifest,
 } from "@i0c/plugin-testkit"
 
@@ -18,8 +18,8 @@ import {
 import { d1All, d1Run } from "../src/d1"
 import { d1AnalyticsStoreManifest } from "../src/manifest"
 import {
-  createD1MigrationProvider,
-  type D1Migration,
+  createD1SchemaMigrationProvider,
+  type D1SchemaMigration,
 } from "../src/migrations"
 import { createD1AnalyticsStore } from "../src/store"
 import type { D1AnalyticsStoreTypes } from "../src/types"
@@ -105,12 +105,12 @@ test("owns and applies independent D1 migrations", async () => {
   const database = new SQLiteD1Database()
   try {
     const migrations = await loadMigrations()
-    const provider = createD1MigrationProvider(database, migrations)
-    await assertMigrationState(provider, "001_analytics_store.sql")
-    const result = await provider.applyMigrations({ expectedCurrentVersion: null })
+    const provider = createD1SchemaMigrationProvider(database, migrations)
+    await assertSchemaMigrationState(provider, "001_analytics_store.sql")
+    const result = await provider.applySchemaMigrations({ expectedCurrentVersion: null })
     assert.deepEqual(result.applied, ["001_analytics_store.sql"])
-    await assertMigrationState(provider, "001_analytics_store.sql")
-    assert.equal((await provider.migrationStatus()).pending, 0)
+    await assertSchemaMigrationState(provider, "001_analytics_store.sql")
+    assert.equal((await provider.schemaMigrationStatus()).pending, 0)
   } finally {
     database.close()
   }
@@ -120,15 +120,15 @@ test("concurrent D1 migration runners converge without an expected version", asy
   const database = new SQLiteD1Database()
   try {
     const migrations = await loadMigrations()
-    const first = createD1MigrationProvider(database, migrations)
-    const second = createD1MigrationProvider(database, migrations)
+    const first = createD1SchemaMigrationProvider(database, migrations)
+    const second = createD1SchemaMigrationProvider(database, migrations)
     const results = await Promise.all([
-      first.applyMigrations(),
-      second.applyMigrations(),
+      first.applySchemaMigrations(),
+      second.applySchemaMigrations(),
     ])
 
     assert.equal(results.flatMap((result) => result.applied).length, 1)
-    assert.equal((await first.migrationStatus()).pending, 0)
+    assert.equal((await first.schemaMigrationStatus()).pending, 0)
   } finally {
     database.close()
   }
@@ -138,11 +138,11 @@ test("concurrent D1 migration runners preserve expected-version conflicts", asyn
   const database = new SQLiteD1Database()
   try {
     const migrations = await loadMigrations()
-    const first = createD1MigrationProvider(database, migrations)
-    const second = createD1MigrationProvider(database, migrations)
+    const first = createD1SchemaMigrationProvider(database, migrations)
+    const second = createD1SchemaMigrationProvider(database, migrations)
     const results = await Promise.allSettled([
-      first.applyMigrations({ expectedCurrentVersion: null }),
-      second.applyMigrations({ expectedCurrentVersion: null }),
+      first.applySchemaMigrations({ expectedCurrentVersion: null }),
+      second.applySchemaMigrations({ expectedCurrentVersion: null }),
     ])
 
     assert.equal(
@@ -161,7 +161,7 @@ test("concurrent D1 migration runners preserve expected-version conflicts", asyn
 test("rolls back a failed D1 migration and its version record", async () => {
   const database = new SQLiteD1Database()
   try {
-    const provider = createD1MigrationProvider(database, [{
+    const provider = createD1SchemaMigrationProvider(database, [{
       id: "001_failure.sql",
       sql: `
         CREATE TABLE partial_migration (id TEXT PRIMARY KEY);
@@ -170,7 +170,7 @@ test("rolls back a failed D1 migration and its version record", async () => {
       `,
     }])
 
-    await assert.rejects(async () => provider.applyMigrations(), /missing_table/)
+    await assert.rejects(async () => provider.applySchemaMigrations(), /missing_table/)
 
     const tables = await d1All<{ name: string }>(database.prepare(`
       SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'partial_migration'
@@ -192,14 +192,14 @@ test("rejects drift in an applied D1 migration", async () => {
       id: "001_checksum.sql",
       sql: "CREATE TABLE checksum_test (id TEXT PRIMARY KEY);",
     }
-    await createD1MigrationProvider(database, [original]).applyMigrations()
+    await createD1SchemaMigrationProvider(database, [original]).applySchemaMigrations()
 
-    const changedProvider = createD1MigrationProvider(database, [{
+    const changedProvider = createD1SchemaMigrationProvider(database, [{
       ...original,
       sql: "CREATE TABLE checksum_test (id TEXT PRIMARY KEY, value TEXT);",
     }])
     await assert.rejects(
-      async () => changedProvider.migrationStatus(),
+      async () => changedProvider.schemaMigrationStatus(),
       /D1 migration checksum mismatch/,
     )
   } finally {
@@ -211,16 +211,16 @@ test("rejects an applied D1 migration from a newer schema", async () => {
   const database = new SQLiteD1Database()
   try {
     const migrations = await loadMigrations()
-    const provider = createD1MigrationProvider(database, migrations)
-    await provider.applyMigrations()
+    const provider = createD1SchemaMigrationProvider(database, migrations)
+    await provider.applySchemaMigrations()
     await d1Run(database.prepare(`
       INSERT INTO analytics_schema_migration (id, checksum)
       VALUES ('999_future.sql', 'future')
     `))
 
     await assert.rejects(
-      async () => provider.migrationStatus(),
-      /unknown applied migration: 999_future.sql/,
+      async () => provider.schemaMigrationStatus(),
+      /unknown applied schema migration: 999_future.sql/,
     )
   } finally {
     database.close()
@@ -230,7 +230,7 @@ test("rejects an applied D1 migration from a newer schema", async () => {
 test("rejects a non-contiguous D1 migration history", async () => {
   const database = new SQLiteD1Database()
   try {
-    const migrations: D1Migration[] = [
+    const migrations: D1SchemaMigration[] = [
       {
         id: "001_first.sql",
         sql: "CREATE TABLE migration_first (id TEXT PRIMARY KEY);",
@@ -240,14 +240,14 @@ test("rejects a non-contiguous D1 migration history", async () => {
         sql: "CREATE TABLE migration_second (id TEXT PRIMARY KEY);",
       },
     ]
-    const provider = createD1MigrationProvider(database, migrations)
-    await provider.applyMigrations()
+    const provider = createD1SchemaMigrationProvider(database, migrations)
+    await provider.applySchemaMigrations()
     await d1Run(database.prepare(`
       DELETE FROM analytics_schema_migration WHERE id = '001_first.sql'
     `))
 
     await assert.rejects(
-      async () => provider.migrationPlan(),
+      async () => provider.schemaMigrationPlan(),
       /not a continuous prefix: 002_second.sql/,
     )
   } finally {
@@ -258,7 +258,7 @@ test("rejects a non-contiguous D1 migration history", async () => {
 test("rolls back all D1 ingest writes when the event insert fails", async () => {
   const database = new SQLiteD1Database()
   try {
-    await createD1MigrationProvider(database, await loadMigrations()).applyMigrations()
+    await createD1SchemaMigrationProvider(database, await loadMigrations()).applySchemaMigrations()
     const store = createD1AnalyticsStore(defaultD1AnalyticsStoreConfig, {
       database,
       clock: () => new Date(now),
@@ -296,12 +296,12 @@ test("rolls back all D1 ingest writes when the event insert fails", async () => 
 test("passes the shared analytics store behavior contract", async () => {
   const database = new SQLiteD1Database()
   try {
-    const migrations = createD1MigrationProvider(database, await loadMigrations())
-    await migrations.applyMigrations()
+    const migrations = createD1SchemaMigrationProvider(database, await loadMigrations())
+    await migrations.applySchemaMigrations()
     let currentTime = new Date(now)
     const store = createD1AnalyticsStore(defaultD1AnalyticsStoreConfig, {
       database,
-      migrations,
+      schemaMigrations: migrations,
       clock: () => new Date(currentTime),
     })
     await assertAnalyticsStoreBehaviorContract<D1AnalyticsStoreTypes>({
@@ -378,7 +378,7 @@ test("passes the shared analytics store behavior contract", async () => {
 test("groups daily series by the requested device time zone", async () => {
   const database = new SQLiteD1Database()
   try {
-    await createD1MigrationProvider(database, await loadMigrations()).applyMigrations()
+    await createD1SchemaMigrationProvider(database, await loadMigrations()).applySchemaMigrations()
     const store = createD1AnalyticsStore(defaultD1AnalyticsStoreConfig, {
       database,
       clock: () => new Date(now),
@@ -415,7 +415,7 @@ test("groups daily series by the requested device time zone", async () => {
 test("matches PostgreSQL dimension limits and required fallback values", async () => {
   const database = new SQLiteD1Database()
   try {
-    await createD1MigrationProvider(database, await loadMigrations()).applyMigrations()
+    await createD1SchemaMigrationProvider(database, await loadMigrations()).applySchemaMigrations()
     const store = createD1AnalyticsStore(defaultD1AnalyticsStoreConfig, {
       database,
       clock: () => new Date(now),
@@ -466,7 +466,7 @@ test("matches PostgreSQL dimension limits and required fallback values", async (
 test("rebuilds aggregates and retains them after raw-event pruning", async () => {
   const database = new SQLiteD1Database()
   try {
-    await createD1MigrationProvider(database, await loadMigrations()).applyMigrations()
+    await createD1SchemaMigrationProvider(database, await loadMigrations()).applySchemaMigrations()
     const store = createD1AnalyticsStore(defaultD1AnalyticsStoreConfig, {
       database,
       clock: () => new Date(now),
@@ -510,7 +510,7 @@ test("rebuilds aggregates and retains them after raw-event pruning", async () =>
   }
 })
 
-async function loadMigrations(): Promise<D1Migration[]> {
+async function loadMigrations(): Promise<D1SchemaMigration[]> {
   const url = new URL("../migrations/001_analytics_store.sql", import.meta.url)
   return [{
     id: "001_analytics_store.sql",

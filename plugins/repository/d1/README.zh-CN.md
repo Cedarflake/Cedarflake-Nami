@@ -16,9 +16,9 @@ WebUI 宿主必须在首次使用 Repository 前，通过
 传入原生 binding；其他服务端宿主可以使用 `@i0c/database-d1/rest`，并配置账户 ID、
 数据库 ID 与仅服务端可见的 API Token。
 
-选择插件前需要明确应用 [migrations](migrations) 中的两份 SQL；构建和应用启动不会自动
-修改数据库。WebUI 提供的迁移命令是 `pnpm data:migrate:d1`。Runtime 仍通过 HTTP 数据源
-读取已发布的快照。
+首次使用新数据库时运行 `pnpm database:init` 完成初始化；后续 Repository Schema 变更
+使用 `pnpm database:update d1 repository` 更新。两项操作都需要明确执行，构建和应用启动
+不会自动修改数据库。Runtime 仍通过 HTTP 数据源读取已发布的快照。
 
 插件负责文档表结构与领域查询；共用的 D1 传输、迁移和测试基础设施位于
 `@i0c/database-d1`。

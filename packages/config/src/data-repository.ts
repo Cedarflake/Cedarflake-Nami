@@ -59,7 +59,7 @@ export interface DataDocumentRevision extends DataDocumentRevisionSummary {
 
 export type DataRepositorySetupState =
   | {
-      state: "migration-required"
+      state: "schema-update-required"
     }
   | {
       existingKinds: readonly DataDocumentKind[]

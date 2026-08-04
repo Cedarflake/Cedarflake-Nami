@@ -5,7 +5,7 @@ import type {
 } from "@i0c/analytics-domain/types"
 import type {
   AnalyticsStore,
-  PluginMigrationProvider,
+  PluginSchemaMigrationProvider,
 } from "@i0c/plugin-api"
 
 import type { PostgresAnalyticsStoreConfig } from "./config"
@@ -46,7 +46,7 @@ import type {
 export interface PostgresAnalyticsStoreServices {
   connectionString: string | null
   development: boolean
-  migrations?: PluginMigrationProvider
+  schemaMigrations?: PluginSchemaMigrationProvider
 }
 
 export type PostgresAnalyticsStore = AnalyticsStore<PostgresAnalyticsStoreTypes> & {
@@ -66,7 +66,9 @@ export function createPostgresAnalyticsStore(
 
   return {
     configured: connectionString !== null,
-    ...(services.migrations ? { migrations: services.migrations } : {}),
+    ...(services.schemaMigrations
+      ? { schemaMigrations: services.schemaMigrations }
+      : {}),
     ingest: ingestAnalyticsEvent,
     async getOverview(input) {
       return queryOverview(input)

@@ -19,7 +19,7 @@ import {
   type AtomicVersionedDataRepository,
   type PluginHealthCheck,
   type PluginManifest,
-  type PluginMigrationProvider,
+  type PluginSchemaMigrationProvider,
   type RuntimeDataSource,
   RuntimeFeaturePipeline,
   type RuntimeFeatureRegistration,
@@ -48,13 +48,13 @@ export async function assertHealthCheck(
   assert.equal(report.status, expectedStatus)
 }
 
-export async function assertMigrationState(
-  plugin: PluginMigrationProvider,
+export async function assertSchemaMigrationState(
+  plugin: PluginSchemaMigrationProvider,
   expectedTargetVersion: string,
 ): Promise<void> {
   const [status, plan] = await Promise.all([
-    plugin.migrationStatus(),
-    plugin.migrationPlan(),
+    plugin.schemaMigrationStatus(),
+    plugin.schemaMigrationPlan(),
   ])
 
   assert.equal(status.targetVersion, expectedTargetVersion)

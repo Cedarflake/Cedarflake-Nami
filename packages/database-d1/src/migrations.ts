@@ -1,10 +1,10 @@
 import {
-  assertContinuousMigrationHistory,
-  type PluginMigrationApplyInput,
-  type PluginMigrationApplyResult,
-  type PluginMigrationPlan,
-  type PluginMigrationProvider,
-  type PluginMigrationStatus,
+  assertContinuousSchemaMigrationHistory,
+  type PluginSchemaMigrationApplyInput,
+  type PluginSchemaMigrationApplyResult,
+  type PluginSchemaMigrationPlan,
+  type PluginSchemaMigrationProvider,
+  type PluginSchemaMigrationStatus,
 } from "@i0c/plugin-api"
 
 import { d1All, d1Batch } from "./operations"
@@ -13,49 +13,49 @@ import type { D1Database } from "./types"
 const D1_STATEMENT_BREAKPOINT = /^\s*--\s*d1-statement-breakpoint\s*$/mu
 const SAFE_SQL_IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/u
 
-export interface D1Migration {
+export interface D1SchemaMigration {
   id: string
   sql: string
 }
 
-export interface D1MigrationProviderOptions {
+export interface D1SchemaMigrationProviderOptions {
   migrationTable: string
-  emptyMigrationsMessage: string
-  emptyStatementsMessage: string
+  emptySchemaMigrationsMessage: string
+  emptySchemaStatementsMessage: string
 }
 
-interface AppliedMigrationRow {
+interface AppliedSchemaMigrationRow {
   checksum: string
   id: string
 }
 
-export function createD1MigrationProvider(
+export function createD1SchemaMigrationProvider(
   database: D1Database,
-  migrations: readonly D1Migration[],
-  options: D1MigrationProviderOptions,
-): PluginMigrationProvider {
+  migrations: readonly D1SchemaMigration[],
+  options: D1SchemaMigrationProviderOptions,
+): PluginSchemaMigrationProvider {
   assertSafeSqlIdentifier(options.migrationTable)
   const ordered = [...migrations].sort((left, right) =>
     left.id.localeCompare(right.id),
   )
 
   return {
-    async migrationStatus(): Promise<PluginMigrationStatus> {
-      const applied = await readAppliedMigrations(database, options.migrationTable)
-      await validateAppliedMigrations(ordered, applied)
+    async schemaMigrationStatus(): Promise<PluginSchemaMigrationStatus> {
+      const applied = await readAppliedSchemaMigrations(database, options.migrationTable)
+      await validateAppliedSchemaMigrations(ordered, applied)
       const pending = ordered.filter((migration) => !applied.has(migration.id))
       return {
         currentVersion: resolveCurrentVersion(ordered, applied),
-        targetVersion: resolveTargetVersion(ordered, options.emptyMigrationsMessage),
+        targetVersion: resolveTargetVersion(ordered, options.emptySchemaMigrationsMessage),
         pending: pending.length,
       }
     },
-    async migrationPlan(): Promise<PluginMigrationPlan> {
-      const applied = await readAppliedMigrations(database, options.migrationTable)
-      await validateAppliedMigrations(ordered, applied)
+    async schemaMigrationPlan(): Promise<PluginSchemaMigrationPlan> {
+      const applied = await readAppliedSchemaMigrations(database, options.migrationTable)
+      await validateAppliedSchemaMigrations(ordered, applied)
       return {
         currentVersion: resolveCurrentVersion(ordered, applied),
-        targetVersion: resolveTargetVersion(ordered, options.emptyMigrationsMessage),
+        targetVersion: resolveTargetVersion(ordered, options.emptySchemaMigrationsMessage),
         actions: ordered
           .filter((migration) => !applied.has(migration.id))
           .map((migration) => ({
@@ -65,19 +65,19 @@ export function createD1MigrationProvider(
           })),
       }
     },
-    async applyMigrations(
-      input: PluginMigrationApplyInput = {},
-    ): Promise<PluginMigrationApplyResult> {
-      await ensureMigrationTable(database, options.migrationTable)
-      const applied = await readAppliedMigrations(database, options.migrationTable)
-      await validateAppliedMigrations(ordered, applied)
+    async applySchemaMigrations(
+      input: PluginSchemaMigrationApplyInput = {},
+    ): Promise<PluginSchemaMigrationApplyResult> {
+      await ensureSchemaMigrationTable(database, options.migrationTable)
+      const applied = await readAppliedSchemaMigrations(database, options.migrationTable)
+      await validateAppliedSchemaMigrations(ordered, applied)
       const previousVersion = resolveCurrentVersion(ordered, applied)
       if (
         input.expectedCurrentVersion !== undefined
         && input.expectedCurrentVersion !== previousVersion
       ) {
         throw new Error(
-          `Expected migration version ${input.expectedCurrentVersion ?? "none"}, found ${previousVersion ?? "none"}`,
+          `Expected schema migration version ${input.expectedCurrentVersion ?? "none"}, found ${previousVersion ?? "none"}`,
         )
       }
 
@@ -87,10 +87,10 @@ export function createD1MigrationProvider(
           continue
         }
 
-        const checksum = await createD1MigrationChecksum(migration.sql)
-        const statements = splitD1MigrationStatements(
+        const checksum = await createD1SchemaMigrationChecksum(migration.sql)
+        const statements = splitD1SchemaMigrationStatements(
           migration.sql,
-          options.emptyStatementsMessage,
+          options.emptySchemaStatementsMessage,
         ).map((statement) => database.prepare(statement))
         try {
           await d1Batch(database, [
@@ -103,7 +103,7 @@ export function createD1MigrationProvider(
         } catch (error) {
           if (
             input.expectedCurrentVersion !== undefined
-            || !await refreshAppliedMigrationsAfterRace(
+            || !await refreshAppliedSchemaMigrationsAfterRace(
               database,
               ordered,
               applied,
@@ -122,28 +122,28 @@ export function createD1MigrationProvider(
 
       return {
         previousVersion,
-        currentVersion: resolveTargetVersion(ordered, options.emptyMigrationsMessage),
+        currentVersion: resolveTargetVersion(ordered, options.emptySchemaMigrationsMessage),
         applied: appliedNow,
       }
     },
   }
 }
 
-export function splitD1MigrationStatements(
+export function splitD1SchemaMigrationStatements(
   sql: string,
-  emptyMigrationsMessage = "D1 migration contains no SQL statements",
+  emptySchemaMigrationsMessage = "D1 migration contains no SQL statements",
 ): readonly string[] {
   const statements = sql
     .split(D1_STATEMENT_BREAKPOINT)
     .map((statement) => statement.trim())
     .filter(Boolean)
   if (statements.length === 0) {
-    throw new Error(emptyMigrationsMessage)
+    throw new Error(emptySchemaMigrationsMessage)
   }
   return statements
 }
 
-export async function createD1MigrationChecksum(sql: string): Promise<string> {
+export async function createD1SchemaMigrationChecksum(sql: string): Promise<string> {
   const digest = await crypto.subtle.digest(
     "SHA-256",
     new TextEncoder().encode(sql),
@@ -153,16 +153,16 @@ export async function createD1MigrationChecksum(sql: string): Promise<string> {
     .join("")
 }
 
-async function refreshAppliedMigrationsAfterRace(
+async function refreshAppliedSchemaMigrationsAfterRace(
   database: D1Database,
-  migrations: readonly D1Migration[],
+  migrations: readonly D1SchemaMigration[],
   applied: Map<string, string>,
   migrationId: string,
   checksum: string,
   migrationTable: string,
 ): Promise<boolean> {
-  const refreshed = await readAppliedMigrations(database, migrationTable)
-  await validateAppliedMigrations(migrations, refreshed)
+  const refreshed = await readAppliedSchemaMigrations(database, migrationTable)
+  await validateAppliedSchemaMigrations(migrations, refreshed)
   if (refreshed.get(migrationId) !== checksum) {
     return false
   }
@@ -174,7 +174,7 @@ async function refreshAppliedMigrationsAfterRace(
   return true
 }
 
-async function readAppliedMigrations(
+async function readAppliedSchemaMigrations(
   database: D1Database,
   migrationTable: string,
 ): Promise<Map<string, string>> {
@@ -187,7 +187,7 @@ async function readAppliedMigrations(
     return new Map()
   }
 
-  const rows = await d1All<AppliedMigrationRow>(database.prepare(`
+  const rows = await d1All<AppliedSchemaMigrationRow>(database.prepare(`
     SELECT id, checksum
     FROM ${migrationTable}
     ORDER BY id ASC
@@ -195,7 +195,7 @@ async function readAppliedMigrations(
   return new Map(rows.map((row) => [row.id, row.checksum]))
 }
 
-async function ensureMigrationTable(
+async function ensureSchemaMigrationTable(
   database: D1Database,
   migrationTable: string,
 ): Promise<void> {
@@ -208,11 +208,11 @@ async function ensureMigrationTable(
   `)
 }
 
-async function validateAppliedMigrations(
-  migrations: readonly D1Migration[],
+async function validateAppliedSchemaMigrations(
+  migrations: readonly D1SchemaMigration[],
   applied: ReadonlyMap<string, string>,
 ): Promise<void> {
-  assertContinuousMigrationHistory(
+  assertContinuousSchemaMigrationHistory(
     migrations.map((migration) => migration.id),
     new Set(applied.keys()),
   )
@@ -221,7 +221,7 @@ async function validateAppliedMigrations(
     if (!appliedChecksum) {
       continue
     }
-    const expectedChecksum = await createD1MigrationChecksum(migration.sql)
+    const expectedChecksum = await createD1SchemaMigrationChecksum(migration.sql)
     if (appliedChecksum !== expectedChecksum) {
       throw new Error(`D1 migration checksum mismatch: ${migration.id}`)
     }
@@ -229,7 +229,7 @@ async function validateAppliedMigrations(
 }
 
 function resolveCurrentVersion(
-  migrations: readonly D1Migration[],
+  migrations: readonly D1SchemaMigration[],
   applied: ReadonlyMap<string, string>,
 ): string | null {
   return [...migrations]
@@ -239,12 +239,12 @@ function resolveCurrentVersion(
 }
 
 function resolveTargetVersion(
-  migrations: readonly D1Migration[],
-  emptyMigrationsMessage: string,
+  migrations: readonly D1SchemaMigration[],
+  emptySchemaMigrationsMessage: string,
 ): string {
   const target = migrations.at(-1)?.id
   if (!target) {
-    throw new Error(emptyMigrationsMessage)
+    throw new Error(emptySchemaMigrationsMessage)
   }
   return target
 }

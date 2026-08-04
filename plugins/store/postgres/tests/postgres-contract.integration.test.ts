@@ -7,7 +7,7 @@ import { assertAnalyticsStoreBehaviorContract } from "@i0c/plugin-testkit"
 
 import { defaultPostgresAnalyticsStoreConfig } from "../src/config"
 import { getDatabase } from "../src/database"
-import { createPostgresMigrationProvider } from "../src/migrations"
+import { createPostgresSchemaMigrationProvider } from "../src/migrations"
 import { createPostgresAnalyticsStore } from "../src/store"
 import type { PostgresAnalyticsStoreTypes } from "../src/types"
 
@@ -20,22 +20,22 @@ test("passes the shared analytics store behavior contract", {
     return
   }
 
-  const migrations = createPostgresMigrationProvider({ connectionString })
-  const concurrentMigrationResults = await Promise.all([
-    migrations.applyMigrations(),
-    migrations.applyMigrations(),
+  const migrations = createPostgresSchemaMigrationProvider({ connectionString })
+  const concurrentSchemaMigrationResults = await Promise.all([
+    migrations.applySchemaMigrations(),
+    migrations.applySchemaMigrations(),
   ])
-  const migrationStatus = await migrations.migrationStatus()
-  assert.equal(migrationStatus.pending, 0)
-  assert.ok(concurrentMigrationResults.every(
-    (result) => result.currentVersion === migrationStatus.targetVersion,
+  const schemaMigrationStatus = await migrations.schemaMigrationStatus()
+  assert.equal(schemaMigrationStatus.pending, 0)
+  assert.ok(concurrentSchemaMigrationResults.every(
+    (result) => result.currentVersion === schemaMigrationStatus.targetVersion,
   ))
   const store = createPostgresAnalyticsStore(
     defaultPostgresAnalyticsStoreConfig,
     {
       connectionString,
       development: false,
-      migrations,
+      schemaMigrations: migrations,
     },
   )
   const occurredAt = new Date()

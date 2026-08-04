@@ -10,7 +10,7 @@
   "homepage": "https://github.com/Revaea/i0c.cc",
   "packageManager": "pnpm@11.17.0+sha512.cca3cea332ad254bb84145f966d19f4879615210346fc92c79a047f23a0d7b3cca3c3792f0076ba1f1831d277efbcf0a9119b31a9a60eca7fb3d6231f331ef72",
   "scripts": {
-    "check": "pnpm config:check && pnpm plugins:check && pnpm runtime:check && pnpm runtime:test && pnpm runtime:build && pnpm webui:test && pnpm webui:lint && pnpm webui:build",
+    "check": "pnpm config:check && pnpm scripts:check && pnpm database:init:test && pnpm plugins:check && pnpm runtime:check && pnpm runtime:test && pnpm runtime:build && pnpm webui:test && pnpm webui:lint && pnpm webui:build",
     "config:check": "pnpm --filter @i0c/config check",
     "plugin:create": "node packages/plugin-sdk/scripts/create-plugin.mjs",
     "plugins:check": "pnpm --filter @i0c/analytics-domain check && pnpm --filter @i0c/database-d1 check && pnpm --filter @i0c/database-d1 test && pnpm --filter @i0c/database-postgres check && pnpm --filter @i0c/database-postgres test && pnpm --filter @i0c/plugin-api check && pnpm --filter @i0c/plugin-sdk check && pnpm --filter @i0c/plugin-sdk test && pnpm --filter @i0c/plugin-testkit check && pnpm --filter @i0c/plugin-testkit test && pnpm --filter @i0c/plugin-catalog check && pnpm --filter @i0c/plugin-catalog test && pnpm --filter @i0c/runtime-build check && pnpm --filter @i0c/runtime-build test && pnpm --filter @i0c/runtime-host check && pnpm --filter @i0c/runtime-host test && pnpm --filter @i0c/runtime-fixture-external check && pnpm --filter @i0c/runtime-fixture-external test && pnpm --workspace-concurrency=1 --filter \"./plugins/**\" check && pnpm --workspace-concurrency=1 --filter \"./plugins/**\" test && pnpm plugins:boundaries",
@@ -32,10 +32,13 @@
     "webui:test": "pnpm --filter i0c.cc-webui test",
     "webui:start": "pnpm --filter i0c.cc-webui start",
     "webui:lint": "pnpm --filter i0c.cc-webui lint",
-    "analytics:migrate": "pnpm --filter i0c.cc-webui analytics:migrate",
-    "analytics:migrate:d1": "pnpm --filter i0c.cc-webui analytics:migrate:d1",
-    "data:migrate:d1": "pnpm --filter i0c.cc-webui data:migrate:d1",
-    "data:validate": "pnpm --filter i0c.cc-webui validate:data-config && pnpm --filter i0c.cc-webui validate:redirects"
+    "database:init": "tsx scripts/database/initialize.ts",
+    "database:init:test": "tsx --test scripts/database/initialization.test.ts",
+    "database:update": "tsx scripts/database/update.ts",
+    "data:validate": "pnpm data:validate:config && pnpm data:validate:redirects",
+    "data:validate:config": "tsx scripts/validation/validate-data-config.ts",
+    "data:validate:redirects": "tsx scripts/validation/validate-redirects.ts",
+    "scripts:check": "tsc -p scripts/tsconfig.json"
   },
   "devDependencies": {
     "@i0c/analytics-domain": "workspace:*",
@@ -45,18 +48,24 @@
     "@i0c/plugin-analytics-sink-http": "workspace:*",
     "@i0c/plugin-analytics-store-d1": "workspace:*",
     "@i0c/plugin-analytics-store-postgres": "workspace:*",
+    "@i0c/plugin-api": "workspace:*",
+    "@i0c/plugin-catalog": "workspace:*",
     "@i0c/plugin-data-repository-d1": "workspace:*",
     "@i0c/plugin-data-repository-postgres": "workspace:*",
-    "@i0c/plugin-api": "workspace:*",
-    "@i0c/plugin-sdk": "workspace:*",
     "@i0c/plugin-feature-bot-classifier": "workspace:*",
     "@i0c/plugin-github-data": "workspace:*",
     "@i0c/plugin-http-snapshot-source": "workspace:*",
     "@i0c/plugin-runtime-cloudflare": "workspace:*",
     "@i0c/plugin-runtime-netlify": "workspace:*",
     "@i0c/plugin-runtime-vercel": "workspace:*",
+    "@i0c/plugin-sdk": "workspace:*",
     "@i0c/runtime-build": "workspace:*",
     "@i0c/runtime-fixture-external": "workspace:*",
-    "@i0c/runtime-host": "workspace:*"
+    "@i0c/runtime-host": "workspace:*",
+    "@types/node": "^25.5.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "tsx": "^4.23.1",
+    "typescript": "^6.0.2"
   }
 }

@@ -6,15 +6,15 @@ import test from "node:test"
 import { SQLiteD1Database } from "@i0c/database-d1/testkit"
 import {
   assertManagedDataRepositoryBehaviorContract,
-  assertMigrationState,
+  assertSchemaMigrationState,
   assertPluginManifest,
 } from "@i0c/plugin-testkit"
 
 import { d1All } from "../src/d1"
 import { d1DataRepositoryManifest } from "../src/manifest"
 import {
-  createD1DataRepositoryMigrationProvider,
-  type D1DataRepositoryMigration,
+  createD1DataRepositorySchemaMigrationProvider,
+  type D1DataRepositorySchemaMigration,
 } from "../src/migrations"
 import { createD1DataRepository } from "../src/repository"
 
@@ -25,19 +25,19 @@ test("declares a valid D1 data repository manifest", () => {
 test("owns and applies independent D1 data repository migrations", async () => {
   const database = new SQLiteD1Database()
   try {
-    const provider = createD1DataRepositoryMigrationProvider(
+    const provider = createD1DataRepositorySchemaMigrationProvider(
       database,
       await loadMigrations(),
     )
-    await assertMigrationState(provider, "002_data_document_history.sql")
-    const result = await provider.applyMigrations({
+    await assertSchemaMigrationState(provider, "002_data_document_history.sql")
+    const result = await provider.applySchemaMigrations({
       expectedCurrentVersion: null,
     })
     assert.deepEqual(result.applied, [
       "001_data_documents.sql",
       "002_data_document_history.sql",
     ])
-    await assertMigrationState(provider, "002_data_document_history.sql")
+    await assertSchemaMigrationState(provider, "002_data_document_history.sql")
   } finally {
     database.close()
   }
@@ -46,10 +46,10 @@ test("owns and applies independent D1 data repository migrations", async () => {
 test("satisfies the managed data repository behavior contract", async () => {
   const database = new SQLiteD1Database()
   try {
-    await createD1DataRepositoryMigrationProvider(
+    await createD1DataRepositorySchemaMigrationProvider(
       database,
       await loadMigrations(),
-    ).applyMigrations()
+    ).applySchemaMigrations()
     await assertManagedDataRepositoryBehaviorContract(
       createD1DataRepository(database),
     )
@@ -61,10 +61,10 @@ test("satisfies the managed data repository behavior contract", async () => {
 test("rolls back a document write when its history insert fails", async () => {
   const database = new SQLiteD1Database()
   try {
-    await createD1DataRepositoryMigrationProvider(
+    await createD1DataRepositorySchemaMigrationProvider(
       database,
       await loadMigrations(),
-    ).applyMigrations()
+    ).applySchemaMigrations()
     const repository = createD1DataRepository(database)
     await repository.management.initialize({
       actorGitHubUserId: "123",
@@ -99,10 +99,10 @@ test("rolls back a document write when its history insert fails", async () => {
 test("rolls back both imported documents when history insertion fails", async () => {
   const database = new SQLiteD1Database()
   try {
-    await createD1DataRepositoryMigrationProvider(
+    await createD1DataRepositorySchemaMigrationProvider(
       database,
       await loadMigrations(),
-    ).applyMigrations()
+    ).applySchemaMigrations()
     const repository = createD1DataRepository(database)
     await repository.management.initialize({
       actorGitHubUserId: "123",
@@ -132,7 +132,7 @@ test("rolls back both imported documents when history insertion fails", async ()
 test("rolls back a failed D1 data repository migration and version record", async () => {
   const database = new SQLiteD1Database()
   try {
-    const provider = createD1DataRepositoryMigrationProvider(database, [{
+    const provider = createD1DataRepositorySchemaMigrationProvider(database, [{
       id: "001_failure.sql",
       sql: `
         CREATE TABLE partial_data_repository_migration (id TEXT PRIMARY KEY);
@@ -142,7 +142,7 @@ test("rolls back a failed D1 data repository migration and version record", asyn
     }])
 
     await assert.rejects(
-      async () => provider.applyMigrations(),
+      async () => provider.applySchemaMigrations(),
       /missing_table/,
     )
 
@@ -170,23 +170,23 @@ test("rejects drift, gaps, and future D1 data repository migrations", async () =
   const database = new SQLiteD1Database()
   try {
     const migrations = await loadMigrations()
-    const provider = createD1DataRepositoryMigrationProvider(
+    const provider = createD1DataRepositorySchemaMigrationProvider(
       database,
       migrations,
     )
-    await provider.applyMigrations()
+    await provider.applySchemaMigrations()
 
-    const drifted = createD1DataRepositoryMigrationProvider(database, [
+    const drifted = createD1DataRepositorySchemaMigrationProvider(database, [
       migrations[0],
       {
         ...migrations[1],
         sql: `${migrations[1]?.sql ?? ""}\n-- drift`,
       },
-    ].filter((migration): migration is D1DataRepositoryMigration =>
+    ].filter((migration): migration is D1DataRepositorySchemaMigration =>
       migration !== undefined
     ))
     await assert.rejects(
-      async () => drifted.migrationStatus(),
+      async () => drifted.schemaMigrationStatus(),
       /migration checksum mismatch/,
     )
 
@@ -200,7 +200,7 @@ test("rejects drift, gaps, and future D1 data repository migrations", async () =
       WHERE id = '001_data_documents.sql'
     `).run()
     await assert.rejects(
-      async () => provider.migrationPlan(),
+      async () => provider.schemaMigrationPlan(),
       /not a continuous prefix/,
     )
 
@@ -212,15 +212,15 @@ test("rejects drift, gaps, and future D1 data repository migrations", async () =
       VALUES ('999_future.sql', 'future')
     `).run()
     await assert.rejects(
-      async () => provider.migrationStatus(),
-      /unknown applied migration/,
+      async () => provider.schemaMigrationStatus(),
+      /unknown applied schema migration/,
     )
   } finally {
     database.close()
   }
 })
 
-async function loadMigrations(): Promise<D1DataRepositoryMigration[]> {
+async function loadMigrations(): Promise<D1DataRepositorySchemaMigration[]> {
   return Promise.all([
     "001_data_documents.sql",
     "002_data_document_history.sql",

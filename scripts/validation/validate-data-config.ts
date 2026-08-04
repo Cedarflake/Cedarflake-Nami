@@ -14,11 +14,11 @@ import {
   runtimePlatformManifests,
   runtimePluginManifests,
   runtimePluginDescriptors,
-} from "../../../i0c.runtime.manifests"
+} from "../../i0c.runtime.manifests"
 import {
   webUiPluginDescriptors,
   webUiPluginManifests,
-} from "../../../i0c.webui.manifests"
+} from "../../i0c.webui.manifests"
 
 const installedHostPluginManifests = [
   ...runtimePluginManifests,
@@ -27,7 +27,7 @@ const installedHostPluginManifests = [
 ]
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
-const repoRoot = path.resolve(scriptDir, "../../..")
+const repoRoot = path.resolve(scriptDir, "../..")
 const defaultSource = "origin/data:config.json"
 const userArgs = process.argv.slice(2).filter((arg) => arg !== "--")
 

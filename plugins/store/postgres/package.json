@@ -16,7 +16,7 @@
     "build": "tsc --noEmit",
     "check": "tsc --noEmit",
     "test": "tsx --test tests/**/*.test.ts",
-    "migrate": "tsx scripts/migrate.ts"
+    "schema:update": "tsx scripts/update-schema.ts"
   },
   "dependencies": {
     "@i0c/analytics-domain": "workspace:*",
