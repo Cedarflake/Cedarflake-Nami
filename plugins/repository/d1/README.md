@@ -18,10 +18,11 @@ native Cloudflare binding can be passed directly. Other server hosts can use
 the `@i0c/database-d1/rest` transport with the account ID, database ID, and a
 server-only API token.
 
-Apply both SQL files in [migrations](migrations) deliberately before selecting
-the plugin. Builds and application startup never mutate the database. The
-managed WebUI migration command is `pnpm data:migrate:d1`. The Runtime still
-reads the published snapshot through the HTTP data source.
+Initialize a newly selected database with `pnpm database:init`. Apply later
+Repository schema revisions with `pnpm database:update d1 repository`. Both
+operations are deliberate; builds and application startup never mutate the
+database. The Runtime still reads the published snapshot through the HTTP data
+source.
 
 The plugin owns its document schema and queries. Shared D1 transport,
 migration, and test infrastructure lives in `@i0c/database-d1`.

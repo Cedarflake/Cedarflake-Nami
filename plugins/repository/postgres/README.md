@@ -11,10 +11,10 @@ PostgreSQL client construction and migration-history enforcement lives in
 ## Requirements
 
 - PostgreSQL compatible with the `postgres` client.
-- `DATABASE_URL` for deliberate migration and seed commands.
+- `DATABASE_URL` for the bundled database commands and optional seed command.
 - The configured WebUI bootstrap database binding, `DATABASE_URL` by default;
   both variables may point to the same database.
-- Applied migrations from this package before selecting the plugin.
+- The selected Repository Schema initialized before opening the WebUI setup flow.
 - Both documents initialized through the WebUI setup flow or the optional
   non-interactive seed command before the Runtime snapshot endpoint reads them.
 
@@ -23,15 +23,16 @@ PostgreSQL client construction and migration-history enforcement lives in
 ```bash
 pnpm --filter @i0c/plugin-data-repository-postgres check
 pnpm --filter @i0c/plugin-data-repository-postgres test
-pnpm --filter @i0c/plugin-data-repository-postgres migrate
+pnpm database:init
+pnpm database:update postgres repository
 pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
 ```
 
-The migration and seed commands mutate the configured database. Do not use
-them as validation commands. The normal first-run flow applies migrations,
-then lets the WebUI create both documents atomically after GitHub
+The initialization, Schema-update, and seed commands mutate the configured
+database. Do not use them as validation commands. The normal first-run flow
+initializes the Schema, then lets the WebUI create both documents atomically after GitHub
 authentication and shared instance-secret verification. Seeding remains
-available for controlled non-interactive migrations; it validates both files,
+available for controlled non-interactive imports; it validates both files,
 creates only missing documents in one transaction, and never overwrites
 existing content.
 The seed `config.json` must enable the PostgreSQL Repository and HTTP Snapshot
@@ -43,7 +44,7 @@ Source declarations selected by the build.
 - Later writes must provide the current numeric revision.
 - A stale revision is rejected instead of overwriting newer content.
 - Snapshot reads return both documents from one repeatable-read transaction.
-- Every initialization, save, import, migration, and restore writes immutable
+- Every initialization, save, import, and restore writes immutable
   history. Restoring old content creates a new head revision.
-- This package has its own migration table and does not share analytics
-  migrations.
+- This package has its own Schema history table and does not share Analytics
+  Schema revisions.

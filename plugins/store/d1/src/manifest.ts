@@ -23,7 +23,7 @@ export const d1AnalyticsStoreManifest = {
     "aggregation:daily",
     "rebuild:raw-events",
     "retention:181-days",
-    "migrations",
+    "schema-migrations",
   ],
   description: {
     summary: {

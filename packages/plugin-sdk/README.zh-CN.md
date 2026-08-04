@@ -37,6 +37,22 @@ feature
 
 命令会在对应的 `plugins/<category>/` 目录创建插件包，但不会自动启用插件。仍需将生成的插件加入 `i0c.runtime.config.ts`、`i0c.webui.config.ts` 或对应的 WebUI 扩展注册表，让部署选择保持显式且便于审查。
 
+## 编写适配器
+
+自行编写的适配器遵循以下编译期流程：
+
+1. 生成 `runtime-platform`、`data-repository` 或 `analytics-store` 插件包；
+2. 使用 pnpm 将其加入根 Workspace 依赖；
+3. 实现 SDK 契约和测试；
+4. 在 `i0c.runtime.manifests.ts` 或 `i0c.webui.manifests.ts` 注册 Manifest；
+5. 在 `i0c.runtime.config.ts` 或 `i0c.webui.config.ts` 注册平台 Descriptor 或工厂；
+6. 只有新增 Provider 标识时才扩展 Bootstrap 选择模型；
+7. 初始化自有表，重新构建 Host，再单独部署。
+
+Runtime Platform 负责把平台入口适配到 `RuntimeRequestHandler`；Data Repository 通过 `I0cDataRepository` 管理带版本的配置和规则文档；Analytics Store 通过 `I0cAnalyticsStore` 负责事件写入、查询、聚合重建和保留。数据库适配器可以通过 `PluginSchemaMigrationProvider` 提供首次初始化和后续 Schema 更新。
+
+具体注册点、命令和现有参考实现见双语文档页[编写适配器](https://d.i0c.cc/zh-CN/plugins/adapters)。
+
 ## 定义 Manifest
 
 ```ts

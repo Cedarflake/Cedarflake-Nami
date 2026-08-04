@@ -3,8 +3,6 @@ import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { bootstrapConfig } from "@i0c/config";
-
 import { authOptions } from "@/auth/config";
 import { SetupForm } from "@/components/setup/setup-form";
 import { LanguageSwitcher } from "@/components/ui/controls/language-switcher";
@@ -27,16 +25,12 @@ export default async function SetupPage({ params }: SetupPageProps) {
   }
 
   const t = await getTranslations({ locale, namespace: "setup" });
-  if (setupState.state === "migration-required") {
+  if (setupState.state === "schema-update-required") {
     return (
       <SetupStatePanel
-        title={t("migrationRequired")}
-        description={t("migrationRequiredHelp")}
-        detail={
-          bootstrapConfig.data.repository.provider === "d1"
-            ? t("migrationRequiredD1Detail")
-            : "pnpm --filter @i0c/plugin-data-repository-postgres migrate"
-        }
+        title={t("schemaUpdateRequired")}
+        description={t("schemaUpdateRequiredHelp")}
+        detail="pnpm database:init"
       />
     );
   }

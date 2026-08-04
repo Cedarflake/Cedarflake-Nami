@@ -17,7 +17,7 @@ import {
 } from "../src/config"
 import { postgresDataRepositoryManifest } from "../src/manifest"
 import {
-  createPostgresDataRepositoryMigrationProvider,
+  createPostgresDataRepositorySchemaMigrationProvider,
 } from "../src/migrations"
 import { createPostgresDataRepository } from "../src/repository"
 
@@ -192,10 +192,10 @@ test(
   async () => {
     const connectionString = integrationConnectionString
     assert.ok(connectionString)
-    const migrations = createPostgresDataRepositoryMigrationProvider({
+    const migrations = createPostgresDataRepositorySchemaMigrationProvider({
       connectionString,
     })
-    await migrations.applyMigrations()
+    await migrations.applySchemaMigrations()
     const sql = createPostgresClient(connectionString, {
       maxConnections: 1,
       idleTimeoutSeconds: 1,

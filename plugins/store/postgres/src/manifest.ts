@@ -23,7 +23,7 @@ export const postgresAnalyticsStoreManifest = {
     "aggregation:daily",
     "rebuild:raw-events",
     "retention:181-days",
-    "migrations",
+    "schema-migrations",
   ],
   description: {
     summary: {

@@ -1,7 +1,7 @@
 import type { PluginInitializationContext } from "./context"
 import type { PluginHealthCheck } from "./health"
 import type { PluginManifest, RuntimePlatformManifest } from "./manifest"
-import type { PluginMigrationProvider } from "./migrations"
+import type { PluginSchemaMigrationProvider } from "./migrations"
 import type { Awaitable, JsonObject } from "./types"
 
 export interface RuntimeDataSource<TConfig, TRules> {
@@ -86,7 +86,7 @@ export interface AnalyticsStoreTypes {
 
 export interface AnalyticsStore<TTypes extends AnalyticsStoreTypes>
   extends PluginHealthCheck {
-  migrations?: PluginMigrationProvider
+  schemaMigrations?: PluginSchemaMigrationProvider
   ingest(event: TTypes["event"]): Promise<TTypes["ingestResult"]>
   getOverview(scope: TTypes["scope"]): Promise<TTypes["overview"]>
   getAutomation(scope: TTypes["scope"]): Promise<TTypes["automation"]>

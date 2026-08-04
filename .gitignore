@@ -4,6 +4,7 @@ dist/
 .vercel/
 /netlify/
 .wrangler/
+apps/docs/.vitepress/cache/
 
 # Local environment files
 .env

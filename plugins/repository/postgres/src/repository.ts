@@ -141,7 +141,7 @@ export function createPostgresDataRepository(
           !table?.document_table_exists
           || !table.revision_table_exists
         ) {
-          return { state: "migration-required" }
+          return { state: "schema-update-required" }
         }
         const rows = await sql<DataDocumentKindRow[]>`
           SELECT kind

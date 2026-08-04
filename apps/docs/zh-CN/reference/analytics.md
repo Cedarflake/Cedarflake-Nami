@@ -1,6 +1,6 @@
 # 统计架构与口径
 
-本文定义边缘 Runtime、WebUI Collector 与 PostgreSQL 共同使用的 Analytics V2 契约。实现只依赖标准 PostgreSQL；Neon 可以直接使用，但不需要接入 Neon 专用 API。
+本文定义边缘 Runtime、WebUI Collector 与所选 Analytics Store 共同使用的 Analytics V2 契约。PostgreSQL 和 Cloudflare D1 实现相同的 Store 契约；Neon 通过标准 PostgreSQL 连接字符串即可使用，不需要接入专用 API。
 
 ## 系统边界
 
@@ -8,10 +8,10 @@ Runtime 与 WebUI 仍然是相互独立的部署：
 
 1. Runtime 处理重定向、代理或未匹配请求。
 2. Runtime 构建隐私受限的事件，对完整 JSON 正文签名，再发送到 `https://u.i0c.cc/api/analytics/events`。
-3. WebUI Collector 验证签名、时间戳和事件结构，然后写入 PostgreSQL。
+3. WebUI Collector 验证签名、时间戳和事件结构，然后通过所选 Analytics Store 写入。
 4. 已登录的 WebUI 页面查询聚合表并展示数据。
 
-Runtime 不直接连接 PostgreSQL。事件通过各平台的后台执行能力尽力投递；Collector 或数据库故障只会记录日志，不会改变跳转响应。目前没有重试队列，所以 Collector 或网络不可用时可能丢失事件。
+Runtime 不直接连接 PostgreSQL 或 D1。事件通过各平台的后台执行能力尽力投递；Collector 或数据库故障只会记录日志，不会改变跳转响应。目前没有重试队列，所以 Collector 或网络不可用时可能丢失事件。
 
 ## 配置
 
@@ -32,7 +32,7 @@ Runtime 不直接连接 PostgreSQL。事件通过各平台的后台执行能力�
 I0C_SECRET="replace-with-a-32-byte-random-secret"
 ```
 
-WebUI 部署配置：
+WebUI 需要配置相同密钥。默认 PostgreSQL Store 还需要 `DATABASE_URL`；D1 则使用仅服务端可见的 API Token 与 Bootstrap 标识符。
 
 ```dotenv
 DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
@@ -120,7 +120,7 @@ Content-Type: application/json
 
 ### 受控短链接链
 
-当短链接 A 通过 HTTPS 跳到同一 source 命名空间内的另一个域名或路径时，A 会附加有效期两分钟的签名上游 token。B 在路由前验证并删除它。PostgreSQL 对每个上游事件只认领一次，因此重复使用同一 token 不会反复减少入口数。
+当短链接 A 通过 HTTPS 跳到同一 Source 命名空间内的另一个域名或路径时，A 会附加有效期两分钟的签名上游 Token。B 在路由前验证并删除它。所选 Analytics Store 对每个上游事件只认领一次，因此重复使用同一 Token 不会反复减少入口数。
 
 对于 A → B → C：
 
@@ -157,34 +157,42 @@ Content-Type: application/json
 
 匹配事件只包含配置中的规则路径与稳定统计 ID。域名、标识符、枚举、请求正文、时间戳和 token 有效期都会在入库前进行长度和格式限制。Collector 只接受配置的 source ID，签名请求的时间窗口为五分钟。
 
-## 数据库迁移
+## 统计 Schema 更新
 
-部署统计 Collector 前，在仓库根目录执行：
+部署统计 Collector 前，在仓库根目录更新所选 Analytics Store 的 Schema：
 
 ```bash
-pnpm analytics:migrate
+# PostgreSQL
+pnpm database:update postgres analytics
+
+# Cloudflare D1
+pnpm database:update d1 analytics
 ```
 
-迁移工具按文件名顺序在事务中执行，并记录 SHA-256 校验值。迁移一旦执行，不要再修改原文件；后续变更应新增编号更大的迁移。
+每个 Provider 都维护有序且带校验值的 Schema migration 历史。Schema migration 一旦执行，不要再修改原文件；后续变更应新增编号更大的文件。
+
+PostgreSQL 按能力拆分 Schema migration：
 
 - `001_short_link_analytics.sql`：原始短链接事件与聚合。
 - `002_domain_attribution.sql`：入口域名、渠道、内部来源、分类字段和 UTC 聚合维度。
 - `003_runtime_traffic_analysis.sql`：抽样 Runtime 事件、跨事件类型幂等收据和机器人流量分析聚合。
 - `004_raw_event_retention.sql`：清理索引和固定 181 天的原始事件保留函数。
+- `005_aggregate_rebuild.sql`：使用保留的原始事件重建聚合。
+- `006_open_runtime_providers.sql`：允许的 Runtime Provider 标识符。
+
+D1 Store 拥有独立、兼容 SQLite 的 `001_analytics_store.sql` Schema migration，并实现相同的 Store 契约。
 
 推荐发布顺序：
 
-1. 执行全部数据库迁移。
+1. 完成全部必需的 Schema 更新。
 2. 部署同时接受 V1/V2 事件的 WebUI Collector。
-3. 配置并部署 Cloudflare Runtime。
-4. 配置并部署 Vercel Runtime。
-5. 配置并部署 Netlify Runtime。
-6. 检查 Collector 错误、`unknown` 入口域名、观测/估算比例及全部域名求和结果。
+3. 配置并部署你所选择的一个或多个 Runtime Provider。
+4. 检查 Collector 错误、`unknown` 入口域名、观测/估算比例及全部域名求和结果。
 
 统计事件成功写入后，WebUI 会在后台安排数据保留，每个运行实例每天最多执行一次。它会
 删除数据库接收时间超过 181 天的短链接事件、Runtime 事件、幂等收据和过期上游声明。
 小时与天级聚合表长期保留，因此历史趋势和上一周期对比不依赖无限期保存原始请求。
-WebUI 构建过程不会执行保留清理或数据库迁移。
+WebUI 构建过程不会执行保留清理或 Schema 更新。
 
 WebUI 提供 1、7、30 和 90 天范围。1 天趋势是滚动 24 小时窗口，底层继续使用 UTC 小时桶，并按设备时区显示；更长范围的查询边界和趋势日桶按当前设备的 IANA 时区对齐。小时与天级聚合表仍以 UTC 存储；对于非 UTC 时区下会受到日期边界影响的细分数据，查询会使用保留的原始事件，确保卡片、趋势与细分覆盖同一时间区间。181 天的原始事件窗口可覆盖两个完整 90 天周期，并额外留出一天处理日期边界和清理间隔。该窗口为未来重建聚合提供原始数据基础，但不会自动执行重建。
 

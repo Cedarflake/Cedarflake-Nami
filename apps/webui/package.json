@@ -14,11 +14,6 @@
     "start": "next start",
     "test": "tsx --test tests/**/*.test.ts",
     "lint": "eslint && node scripts/validate-messages.mjs",
-    "analytics:migrate": "pnpm --filter @i0c/plugin-analytics-store-postgres migrate",
-    "analytics:migrate:d1": "tsx scripts/migrate-d1.ts analytics",
-    "data:migrate:d1": "tsx scripts/migrate-d1.ts repository",
-    "validate:data-config": "tsx scripts/validate-data-config.ts",
-    "validate:redirects": "tsx scripts/validate-redirects.ts",
     "validate:messages": "node scripts/validate-messages.mjs"
   },
   "dependencies": {

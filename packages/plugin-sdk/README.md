@@ -37,6 +37,22 @@ feature
 
 The command creates a package under the matching `plugins/<category>/` directory. It does not activate the plugin automatically. Add the generated plugin to `i0c.runtime.config.ts`, `i0c.webui.config.ts`, or the relevant WebUI extension registry so deployment choices remain explicit and reviewable.
 
+## Write an adapter
+
+Self-authored adapters follow this compile-time flow:
+
+1. scaffold a `runtime-platform`, `data-repository`, or `analytics-store` package;
+2. add it to the root workspace dependencies with pnpm;
+3. implement the SDK contract and tests;
+4. register its manifest in `i0c.runtime.manifests.ts` or `i0c.webui.manifests.ts`;
+5. register its platform descriptor or factory in `i0c.runtime.config.ts` or `i0c.webui.config.ts`;
+6. extend bootstrap selection only when introducing a new provider identifier;
+7. initialize owned tables, rebuild the host, and deploy it separately.
+
+Runtime platforms adapt provider entrypoints to `RuntimeRequestHandler`. Data repositories implement `I0cDataRepository` for versioned configuration and redirect documents. Analytics stores implement `I0cAnalyticsStore` for ingestion, queries, aggregate rebuilds, and retention. Database-backed adapters can expose `PluginSchemaMigrationProvider` for initialization and later schema updates.
+
+See the bilingual documentation page [Write an adapter](https://d.i0c.cc/plugins/adapters) for the exact registration points, commands, and current reference implementations.
+
 ## Define a manifest
 
 ```ts

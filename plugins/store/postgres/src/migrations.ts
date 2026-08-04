@@ -1,22 +1,22 @@
 import { fileURLToPath } from "node:url"
 
 import {
-  createPostgresMigrationProvider as createSharedPostgresMigrationProvider,
+  createPostgresSchemaMigrationProvider as createSharedPostgresSchemaMigrationProvider,
 } from "@i0c/database-postgres/migrations"
-import type { PluginMigrationProvider } from "@i0c/plugin-api"
+import type { PluginSchemaMigrationProvider } from "@i0c/plugin-api"
 
-export interface PostgresMigrationProviderOptions {
+export interface PostgresSchemaMigrationProviderOptions {
   connectionString: string
   migrationsDirectory?: string
 }
 
-export function createPostgresMigrationProvider(
-  options: PostgresMigrationProviderOptions,
-): PluginMigrationProvider {
-  return createSharedPostgresMigrationProvider({
+export function createPostgresSchemaMigrationProvider(
+  options: PostgresSchemaMigrationProviderOptions,
+): PluginSchemaMigrationProvider {
+  return createSharedPostgresSchemaMigrationProvider({
     advisoryLockName: "i0c.analytics.migrations",
     connectionString: options.connectionString,
-    emptyMigrationsMessage: "No PostgreSQL analytics migrations were found",
+    emptySchemaMigrationsMessage: "No PostgreSQL analytics migrations were found",
     migrationTable: "analytics_schema_migration",
     migrationsDirectory: options.migrationsDirectory
       ?? fileURLToPath(new URL("../migrations/", import.meta.url)),

@@ -392,7 +392,7 @@ async function restoreRevision(
 async function inspectSetupState(
   database: D1Database,
 ): Promise<
-  | { state: "migration-required" }
+  | { state: "schema-update-required" }
   | { existingKinds: readonly DataDocumentKind[]; state: "empty" | "partial" }
   | { state: "initialized" }
 > {
@@ -405,7 +405,7 @@ async function inspectSetupState(
     ORDER BY name ASC
   `))
   if (tables.length !== 2) {
-    return { state: "migration-required" }
+    return { state: "schema-update-required" }
   }
 
   const rows = await d1All<DataDocumentKindRow>(database.prepare(`

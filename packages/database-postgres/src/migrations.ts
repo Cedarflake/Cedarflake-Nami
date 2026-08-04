@@ -3,13 +3,13 @@ import { readdir, readFile } from "node:fs/promises"
 import { join } from "node:path"
 
 import {
-  assertContinuousMigrationHistory,
-  type PluginMigrationAction,
-  type PluginMigrationApplyInput,
-  type PluginMigrationApplyResult,
-  type PluginMigrationPlan,
-  type PluginMigrationProvider,
-  type PluginMigrationStatus,
+  assertContinuousSchemaMigrationHistory,
+  type PluginSchemaMigrationAction,
+  type PluginSchemaMigrationApplyInput,
+  type PluginSchemaMigrationApplyResult,
+  type PluginSchemaMigrationPlan,
+  type PluginSchemaMigrationProvider,
+  type PluginSchemaMigrationStatus,
 } from "@i0c/plugin-api"
 
 import {
@@ -19,28 +19,28 @@ import {
 
 const SAFE_SQL_IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/u
 
-interface MigrationFile {
+interface SchemaMigrationFile {
   checksum: string
   filename: string
   sql: string
 }
 
-interface AppliedMigrationRow {
+interface AppliedSchemaMigrationRow {
   checksum: string
   filename: string
 }
 
-export interface PostgresMigrationProviderOptions {
+export interface PostgresSchemaMigrationProviderOptions {
   advisoryLockName: string
   connectionString: string
-  emptyMigrationsMessage: string
+  emptySchemaMigrationsMessage: string
   migrationTable: string
   migrationsDirectory: string
 }
 
-export function createPostgresMigrationProvider(
-  options: PostgresMigrationProviderOptions,
-): PluginMigrationProvider {
+export function createPostgresSchemaMigrationProvider(
+  options: PostgresSchemaMigrationProviderOptions,
+): PluginSchemaMigrationProvider {
   assertSafeSqlIdentifier(options.migrationTable)
   const advisoryLockName = requireValue(
     options.advisoryLockName,
@@ -48,48 +48,48 @@ export function createPostgresMigrationProvider(
   )
 
   return {
-    async migrationStatus(): Promise<PluginMigrationStatus> {
-      return withMigrationClient(options.connectionString, async (sql) => {
-        const files = await readPostgresMigrationFiles(options.migrationsDirectory)
-        const applied = await readAppliedMigrations(sql, options.migrationTable)
-        validateAppliedMigrations(files, applied)
+    async schemaMigrationStatus(): Promise<PluginSchemaMigrationStatus> {
+      return withSchemaMigrationClient(options.connectionString, async (sql) => {
+        const files = await readPostgresSchemaMigrationFiles(options.migrationsDirectory)
+        const applied = await readAppliedSchemaMigrations(sql, options.migrationTable)
+        validateAppliedSchemaMigrations(files, applied)
         return {
           currentVersion: resolveCurrentVersion(files, applied),
-          targetVersion: resolveTargetVersion(files, options.emptyMigrationsMessage),
+          targetVersion: resolveTargetVersion(files, options.emptySchemaMigrationsMessage),
           pending: files.filter((file) => !applied.has(file.filename)).length,
         }
       })
     },
-    async migrationPlan(): Promise<PluginMigrationPlan> {
-      return withMigrationClient(options.connectionString, async (sql) => {
-        const files = await readPostgresMigrationFiles(options.migrationsDirectory)
-        const applied = await readAppliedMigrations(sql, options.migrationTable)
-        validateAppliedMigrations(files, applied)
+    async schemaMigrationPlan(): Promise<PluginSchemaMigrationPlan> {
+      return withSchemaMigrationClient(options.connectionString, async (sql) => {
+        const files = await readPostgresSchemaMigrationFiles(options.migrationsDirectory)
+        const applied = await readAppliedSchemaMigrations(sql, options.migrationTable)
+        validateAppliedSchemaMigrations(files, applied)
         return {
           currentVersion: resolveCurrentVersion(files, applied),
-          targetVersion: resolveTargetVersion(files, options.emptyMigrationsMessage),
+          targetVersion: resolveTargetVersion(files, options.emptySchemaMigrationsMessage),
           actions: files
             .filter((file) => !applied.has(file.filename))
-            .map(toMigrationAction),
+            .map(toSchemaMigrationAction),
         }
       })
     },
-    async applyMigrations(
-      input: PluginMigrationApplyInput = {},
-    ): Promise<PluginMigrationApplyResult> {
-      return withMigrationClient(options.connectionString, async (sql) => {
-        const files = await readPostgresMigrationFiles(options.migrationsDirectory)
-        return withMigrationLock(sql, advisoryLockName, async () => {
-          await ensureMigrationTable(sql, options.migrationTable)
-          const applied = await readAppliedMigrations(sql, options.migrationTable)
-          validateAppliedMigrations(files, applied)
+    async applySchemaMigrations(
+      input: PluginSchemaMigrationApplyInput = {},
+    ): Promise<PluginSchemaMigrationApplyResult> {
+      return withSchemaMigrationClient(options.connectionString, async (sql) => {
+        const files = await readPostgresSchemaMigrationFiles(options.migrationsDirectory)
+        return withSchemaMigrationLock(sql, advisoryLockName, async () => {
+          await ensureSchemaMigrationTable(sql, options.migrationTable)
+          const applied = await readAppliedSchemaMigrations(sql, options.migrationTable)
+          validateAppliedSchemaMigrations(files, applied)
           const previousVersion = resolveCurrentVersion(files, applied)
           if (
             input.expectedCurrentVersion !== undefined
             && input.expectedCurrentVersion !== previousVersion
           ) {
             throw new Error(
-              `Expected migration version ${input.expectedCurrentVersion ?? "none"}, found ${previousVersion ?? "none"}`,
+              `Expected schema migration version ${input.expectedCurrentVersion ?? "none"}, found ${previousVersion ?? "none"}`,
             )
           }
 
@@ -109,7 +109,7 @@ export function createPostgresMigrationProvider(
           }
           return {
             previousVersion,
-            currentVersion: resolveTargetVersion(files, options.emptyMigrationsMessage),
+            currentVersion: resolveTargetVersion(files, options.emptySchemaMigrationsMessage),
             applied: appliedNow,
           }
         })
@@ -118,13 +118,13 @@ export function createPostgresMigrationProvider(
   }
 }
 
-export async function readPostgresMigrationFiles(
+export async function readPostgresSchemaMigrationFiles(
   directory: string,
-): Promise<readonly MigrationFile[]> {
+): Promise<readonly SchemaMigrationFile[]> {
   const filenames = (await readdir(directory))
     .filter((filename) => /^\d+.*\.sql$/u.test(filename))
     .sort((left, right) => left.localeCompare(right))
-  const files: MigrationFile[] = []
+  const files: SchemaMigrationFile[] = []
   for (const filename of filenames) {
     const sql = await readFile(join(directory, filename), "utf8")
     files.push({
@@ -136,7 +136,7 @@ export async function readPostgresMigrationFiles(
   return files
 }
 
-async function withMigrationClient<T>(
+async function withSchemaMigrationClient<T>(
   connectionString: string,
   operation: (sql: PostgresSql) => Promise<T>,
 ): Promise<T> {
@@ -152,7 +152,7 @@ async function withMigrationClient<T>(
   }
 }
 
-async function withMigrationLock<T>(
+async function withSchemaMigrationLock<T>(
   sql: PostgresSql,
   advisoryLockName: string,
   operation: () => Promise<T>,
@@ -165,7 +165,7 @@ async function withMigrationLock<T>(
   }
 }
 
-async function readAppliedMigrations(
+async function readAppliedSchemaMigrations(
   sql: PostgresSql,
   migrationTable: string,
 ): Promise<Map<string, string>> {
@@ -175,7 +175,7 @@ async function readAppliedMigrations(
   if (!table?.exists) {
     return new Map()
   }
-  const rows = await sql.unsafe<AppliedMigrationRow[]>(`
+  const rows = await sql.unsafe<AppliedSchemaMigrationRow[]>(`
     SELECT filename, checksum
     FROM ${migrationTable}
     ORDER BY filename ASC
@@ -183,7 +183,7 @@ async function readAppliedMigrations(
   return new Map(rows.map((row) => [row.filename, row.checksum]))
 }
 
-async function ensureMigrationTable(
+async function ensureSchemaMigrationTable(
   sql: PostgresSql,
   migrationTable: string,
 ): Promise<void> {
@@ -196,11 +196,11 @@ async function ensureMigrationTable(
   `)
 }
 
-function validateAppliedMigrations(
-  files: readonly MigrationFile[],
+function validateAppliedSchemaMigrations(
+  files: readonly SchemaMigrationFile[],
   applied: ReadonlyMap<string, string>,
 ): void {
-  assertContinuousMigrationHistory(
+  assertContinuousSchemaMigrationHistory(
     files.map((file) => file.filename),
     new Set(applied.keys()),
   )
@@ -213,7 +213,7 @@ function validateAppliedMigrations(
 }
 
 function resolveCurrentVersion(
-  files: readonly MigrationFile[],
+  files: readonly SchemaMigrationFile[],
   applied: ReadonlyMap<string, string>,
 ): string | null {
   return [...files]
@@ -223,17 +223,17 @@ function resolveCurrentVersion(
 }
 
 function resolveTargetVersion(
-  files: readonly MigrationFile[],
-  emptyMigrationsMessage: string,
+  files: readonly SchemaMigrationFile[],
+  emptySchemaMigrationsMessage: string,
 ): string {
   const target = files.at(-1)?.filename
   if (!target) {
-    throw new Error(emptyMigrationsMessage)
+    throw new Error(emptySchemaMigrationsMessage)
   }
   return target
 }
 
-function toMigrationAction(file: MigrationFile): PluginMigrationAction {
+function toSchemaMigrationAction(file: SchemaMigrationFile): PluginSchemaMigrationAction {
   return {
     id: file.filename,
     description: `Apply ${file.filename}`,

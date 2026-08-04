@@ -9,4 +9,4 @@ pnpm --filter @i0c/plugin-catalog check
 pnpm --filter @i0c/plugin-catalog test
 ```
 
-See [../../docs/plugins.md](../../docs/plugins.md) for the complete architecture.
+See [../../apps/docs/plugins/architecture.md](../../apps/docs/plugins/architecture.md) for the complete architecture.

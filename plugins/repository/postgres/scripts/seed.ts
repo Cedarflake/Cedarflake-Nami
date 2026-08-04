@@ -50,9 +50,9 @@ try {
       redirectsContent,
     })
     console.info("Seeded config, redirects")
-  } else if (setupState.state === "migration-required") {
+  } else if (setupState.state === "schema-update-required") {
     throw new Error(
-      "PostgreSQL data repository migrations must be applied before seeding",
+      "The PostgreSQL data repository schema must be updated before seeding",
     )
   } else {
     throw new Error(

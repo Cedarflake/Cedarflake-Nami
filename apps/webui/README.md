@@ -28,25 +28,20 @@ This project provides two rule-editing modes and a separate settings surface:
      Copy-Item .env.example .env.local
      ```
 
-2. Create a PostgreSQL database and configure `DATABASE_URL` for the WebUI. The deliberate Data Repository migration command uses the same connection. Apply the migrations from the repository root:
+2. Create a PostgreSQL database and configure `DATABASE_URL` for the WebUI. From the repository root, initialize both selected database-backed plugin slots:
 
    ```bash
-   pnpm --filter @i0c/plugin-data-repository-postgres migrate
+   pnpm database:init
    ```
 
-   Migrations are deliberate external writes. They are never run by the build, startup, health checks, or ordinary requests.
+   The command reads the checked-in Bootstrap provider choices, initializes the Data Repository first, then the Analytics Store. It is idempotent when both schemas are current. Initialization is a deliberate external write and is never run by the build, startup, health checks, or ordinary requests.
 
-   To use D1 instead, select `provider: "d1"` for the Repository and Analytics Store in [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts). On a host without native D1 bindings, fill the non-sensitive Cloudflare Account and Database IDs in `bootstrapConfig.webui.d1`, then configure `CLOUDFLARE_D1_API_TOKEN` with D1 read/write permission. The bundled migration commands also use these REST credentials:
+   To use D1 instead, select `provider: "d1"` for the Repository and Analytics Store in [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts). On a host without native D1 bindings, fill the non-sensitive Cloudflare Account and Database IDs in `bootstrapConfig.webui.d1`, then configure `CLOUDFLARE_D1_API_TOKEN` with D1 read/write permission before running the same initialization command.
 
-   ```bash
-   pnpm data:migrate:d1
-   pnpm analytics:migrate:d1
-   ```
-
-   These commands only create or upgrade the selected D1 schemas. They do not
+   The initialization command only creates or upgrades the selected schemas. It does not
    copy PostgreSQL documents, revision history, or analytics records into D1.
 
-   A host supplying native bindings may leave the REST identifiers empty, but it must apply the same plugin migration files through its own D1 tooling. Builds and startup never apply them automatically.
+   A host supplying native bindings may leave the REST identifiers empty, but it must apply the same plugin schema migrations through its own D1 tooling. Builds and startup never apply them automatically.
 
 3. Create a GitHub OAuth App with callback URL `http(s)://<localhost:3000 or your domain>/api/auth/callback/github`. Configure `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`. The default OAuth scope is `read:user user:email`; Repository permissions are not required by the PostgreSQL control plane.
 
@@ -78,9 +73,9 @@ The checked-in deployment selects PostgreSQL through [../../packages/config/src/
 
 PostgreSQL and D1 are held to the same shared behavior contract. First-run setup creates both documents atomically and refuses partially initialized databases. Confirming a visual rule dialog saves that mutation immediately and creates an immutable revision. GitHub Contents instead advertises manual-save capability, so its editor retains the page-level Save action and local undo/redo. Import validates both JSON files and replaces them atomically, while restore copies an old document into a new head revision instead of rewriting history. Managers can export, import, inspect, and restore revisions from **Settings → Data and history**.
 
-D1 owns independent migrations in [../../plugins/repository/d1/migrations](../../plugins/repository/d1/migrations). Run `pnpm data:migrate:d1` deliberately before opening setup. Vercel does not provide a native D1 binding, so the WebUI uses the same Binding-compatible contract through the server-only REST adapter.
+D1 owns independent schema migrations in [../../plugins/repository/d1/migrations](../../plugins/repository/d1/migrations). Use `pnpm database:init` for a new selected database and `pnpm database:update d1 repository` for later Repository Schema revisions. Vercel does not provide a native D1 binding, so the WebUI uses the same Binding-compatible contract through the server-only REST adapter.
 
-The `seed` command remains available for controlled non-interactive migrations, but it is not part of the normal deployment flow:
+The `seed` command remains available for controlled non-interactive initialization or import, but it is not part of the normal deployment flow:
 
 ```bash
 pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
@@ -92,9 +87,9 @@ GitHub Contents and GitHub Raw remain in the workspace as archived build-time al
 
 ## Short-link analytics
 
-The deployed analytics feature selects the PostgreSQL Store plugin and does not depend on a vendor-specific database API. A free hosted PostgreSQL database such as [Neon](https://neon.com/pricing) is suitable for a small deployment; [Supabase](https://supabase.com/pricing) can use the same plugin and migrations. Prefer the provider's pooled connection URL when one is available.
+The deployed analytics feature selects the PostgreSQL Store plugin and does not depend on a vendor-specific database API. A free hosted PostgreSQL database such as [Neon](https://neon.com/pricing) is suitable for a small deployment; [Supabase](https://supabase.com/pricing) can use the same plugin and schema migrations. Prefer the provider's pooled connection URL when one is available.
 
-The repository also contains a complete D1 Store that passes the same analytics behavior contract with independent migrations. It can use either an injected native binding or the bundled server-side REST adapter. Select exactly one Store through `data/config.json`; the bootstrap Analytics Store choice controls the initial document created by setup. Disabling every Store keeps rule editing available while analytics routes report the missing capability.
+The repository also contains a complete D1 Store that passes the same analytics behavior contract with independent schema migrations. It can use either an injected native binding or the bundled server-side REST adapter. Select exactly one Store through `data/config.json`; the bootstrap Analytics Store choice controls the initial document created by setup. Disabling every Store keeps rule editing available while analytics routes report the missing capability.
 
 1. Create a PostgreSQL database and add these values to the WebUI environment:
 
@@ -103,13 +98,13 @@ The repository also contains a complete D1 Store that passes the same analytics 
    I0C_SECRET="replace-with-the-shared-instance-secret"
    ```
 
-2. Apply the PostgreSQL plugin migrations from the repository root:
+2. Update the PostgreSQL analytics schema from the repository root:
 
    ```bash
-   pnpm analytics:migrate
+   pnpm database:update postgres analytics
    ```
 
-   When D1 uses the REST adapter, configure `CLOUDFLARE_D1_API_TOKEN` and run `pnpm analytics:migrate:d1`. A native-binding host may use its own D1 migration tooling instead. These commands never run during build or startup.
+   When D1 uses the REST adapter, configure `CLOUDFLARE_D1_API_TOKEN` and run `pnpm database:update d1 analytics`. A native-binding host may apply the same schema migrations with its own D1 tooling. These commands never run during build or startup.
 
 3. Configure every runtime deployment to send signed events to the WebUI:
 
@@ -135,7 +130,7 @@ another deployment secret. Raw events, idempotency receipts, and upstream claims
 181 days, while hourly and daily aggregates remain available. Free-plan quotas and inactivity
 policies can change, so check the provider's current limits before production use.
 
-See [../../docs/analytics.md](../../docs/analytics.md) for the complete event contract, attribution behavior, database migration order, privacy limits, delivery guarantees, and acceptance scenarios. Each Store plugin owns migration `status`, `plan`, and `apply`; migrations are deliberate external writes and are never run automatically by the WebUI build, startup, or health check.
+See [../docs/reference/analytics.md](../docs/reference/analytics.md) for the complete event contract, attribution behavior, schema-update order, privacy limits, delivery guarantees, and acceptance scenarios. Each Store plugin owns `schemaMigrationStatus`, `schemaMigrationPlan`, and `applySchemaMigrations`; schema updates are deliberate external writes and never run automatically during the WebUI build, startup, or health check.
 
 ## Deploy
 

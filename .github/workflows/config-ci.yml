@@ -15,6 +15,9 @@ on:
       - plugins/**/src/config.ts
       - plugins/**/src/manifest.ts
       - plugins/runtime/**/src/installation.ts
+      - scripts/database/**
+      - scripts/validation/**
+      - scripts/tsconfig.json
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
@@ -32,6 +35,9 @@ on:
       - plugins/**/src/config.ts
       - plugins/**/src/manifest.ts
       - plugins/runtime/**/src/installation.ts
+      - scripts/database/**
+      - scripts/validation/**
+      - scripts/tsconfig.json
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
@@ -68,6 +74,12 @@ jobs:
 
       - name: Check shared configuration
         run: pnpm config:check
+
+      - name: Check repository scripts
+        run: pnpm scripts:check
+
+      - name: Test database initialization
+        run: pnpm database:init:test
 
       - name: Test installed plugin configuration
         run: pnpm --filter @i0c/plugin-catalog test

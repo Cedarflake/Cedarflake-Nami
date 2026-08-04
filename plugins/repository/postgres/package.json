@@ -30,7 +30,7 @@
   "scripts": {
     "build": "tsc --noEmit",
     "check": "tsc --noEmit",
-    "migrate": "tsx scripts/migrate.ts",
+    "schema:update": "tsx scripts/update-schema.ts",
     "seed": "tsx scripts/seed.ts",
     "test": "tsx --test tests/**/*.test.ts"
   },

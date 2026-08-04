@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 
 import { createPostgresClient } from "../src/client"
-import { createPostgresMigrationProvider } from "../src/migrations"
+import { createPostgresSchemaMigrationProvider } from "../src/migrations"
 
 test("rejects invalid PostgreSQL client limits before connecting", () => {
   assert.throws(
@@ -17,10 +17,10 @@ test("rejects invalid PostgreSQL client limits before connecting", () => {
 
 test("rejects unsafe migration table identifiers before connecting", () => {
   assert.throws(
-    () => createPostgresMigrationProvider({
+    () => createPostgresSchemaMigrationProvider({
       advisoryLockName: "i0c.test.migrations",
       connectionString: "postgres://example",
-      emptyMigrationsMessage: "No migrations",
+      emptySchemaMigrationsMessage: "No migrations",
       migrationTable: "migration; DROP TABLE users",
       migrationsDirectory: ".",
     }),
