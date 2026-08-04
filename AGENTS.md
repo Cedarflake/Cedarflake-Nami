@@ -30,6 +30,7 @@ An explicit task may authorize changing configuration, but the resulting change 
 - The repository root owns pnpm workspace metadata, the shared lockfile, unified commands, repository-wide documentation, and cross-project contracts.
 - `apps/runtime` owns the edge redirect runtime and its Cloudflare Workers, Vercel Edge Functions, and Netlify Edge Functions adapters.
 - `apps/webui` owns the Next.js management panel, GitHub-backed redirect editing, authentication, validation UI, and WebUI deployment.
+- `apps/docs` owns the bilingual VitePress documentation site, its information architecture, navigation, public assets, and documentation deployment metadata.
 - The repository root is not a single deployable frontend application. Deploy each app from its documented project root.
 - Runtime behavior must remain compatible with every supported provider unless the explicit task intentionally changes the support contract.
 - A redirect data-model change is cross-project when it affects the runtime schema, runtime types or matching/loading behavior, WebUI serialization or editors, validation scripts, localized messages, or user documentation.
@@ -39,7 +40,7 @@ An explicit task may authorize changing configuration, but the resulting change 
 
 - Confirm the repository root, current branch, and task-owned paths, then inspect `git status`.
 - Treat an existing dirty worktree as user-owned. Do not overwrite, revert, stage, format, validate as yours, or otherwise absorb unrelated changes.
-- Read the root README, the target project's English and Chinese README files, manifests, formatting and compiler configuration, deployment configuration, and any owning workflow before editing.
+- Read the root README, the target project's English and Chinese README files, affected `apps/docs` pages, manifests, formatting and compiler configuration, deployment configuration, and any owning workflow before editing.
 - Search for affected callers, public URLs, environment variables, schema fields, generated outputs, localized copy, and documentation before changing shared behavior.
 - Identify whether the source of truth is the runtime, WebUI, root workspace, remote data branch, deployment provider, or an external service.
 - Treat checked-in configuration and scripts as authoritative for current versions and commands.
@@ -109,6 +110,9 @@ These rules apply only to TypeScript modules under `apps/runtime/src/lib`.
 
 - The root `README.md` and `README.zh-CN.md` own the workspace overview, stable Live endpoints, deployment roots, common commands, redirect-data entrypoint, and license summary.
 - Each project README pair owns project-specific setup, environment variables, behavior, deployment, validation, limitations, and operational prerequisites.
+- `apps/docs` owns detailed user, deployment, operation, reference, and extension guidance. A public behavior, configuration, command, provider, database, or deployment change must search and update the affected English and Chinese documentation pages in addition to the README surfaces.
+- Keep README files concise and use the documentation site for detailed procedures. Do not leave duplicated instructions with conflicting requirements or defaults.
+- New or moved documentation pages must keep English and Chinese route parity and update the applicable navbar, sidebar, search, and cross-page links.
 - When behavior documented in both languages changes, update the English and Chinese surfaces in the same diff. Preserve intentional language-specific context without leaving contradictory facts.
 - Add or rename an environment variable only with its owning `.env.example` and documentation. Examples must contain placeholders, never usable credentials.
 - Redirect shape changes must keep `packages/config/redirects.schema.json`, runtime parsing and types, WebUI serialization and editing, validation behavior, examples, localized copy, and affected documentation consistent.
@@ -127,6 +131,7 @@ These rules apply only to TypeScript modules under `apps/runtime/src/lib`.
 - Netlify-specific Runtime configuration or output changes also require `pnpm runtime:build:nf`.
 - Cloudflare-specific Runtime changes require the Runtime build plus the applicable non-deploying Wrangler validation documented by the project, when available.
 - WebUI source, configuration, messages, or public behavior changes require `pnpm webui:lint` and `pnpm webui:build`.
+- Documentation source, VitePress configuration, localization, navigation, or public assets require `pnpm docs:check`.
 - Redirect schema or cross-project redirect-contract changes require the Runtime build, WebUI lint and build, and `pnpm data:validate` when its local validation input is available.
 - Root workspace, shared configuration, or changes spanning both projects require `pnpm check`.
 - Dependency and lockfile changes require the owning project checks plus the safe frozen-install check described above.

@@ -1,0 +1,21 @@
+{
+  "name": "i0c.cc-docs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Revaea/i0c.cc.git"
+  },
+  "homepage": "https://d.i0c.cc",
+  "scripts": {
+    "dev": "vitepress dev .",
+    "check": "node scripts/check-locales.mjs && vitepress build .",
+    "build": "vitepress build .",
+    "preview": "vitepress preview ."
+  },
+  "devDependencies": {
+    "vitepress": "1.6.4"
+  }
+}

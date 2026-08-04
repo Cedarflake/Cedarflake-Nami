@@ -26,24 +26,19 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
      Copy-Item .env.example .env.local
      ```
 
-2. 创建 PostgreSQL 数据库，为 WebUI 配置 `DATABASE_URL`。Data Repository 的显式迁移命令使用同一个连接。随后在仓库根目录执行迁移：
+2. 创建 PostgreSQL 数据库，为 WebUI 配置 `DATABASE_URL`。随后在仓库根目录初始化两个选中的数据库插件槽：
 
    ```bash
-   pnpm --filter @i0c/plugin-data-repository-postgres migrate
+   pnpm database:init
    ```
 
-   迁移属于明确的外部写入，不会在构建、启动、健康检查或普通请求中自动执行。
+   该命令读取仓库内的 Bootstrap Provider 选择，先初始化 Data Repository，再初始化 Analytics Store。两组 Schema 已是最新时可以安全重复执行。初始化属于明确的外部写入，不会在构建、启动、健康检查或普通请求中自动执行。
 
-   如果改用 D1，请在 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 中把 Repository 与 Analytics Store 的 `provider` 设为 `"d1"`。没有原生 D1 binding 的宿主还需在 `bootstrapConfig.webui.d1` 填写非敏感的 Cloudflare Account ID 与两个 Database ID，并配置具有 D1 读写权限的 `CLOUDFLARE_D1_API_TOKEN`。内置迁移命令同样使用这些 REST 凭据：
+   如果改用 D1，请在 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 中把 Repository 与 Analytics Store 的 `provider` 设为 `"d1"`。没有原生 D1 binding 的宿主还需在 `bootstrapConfig.webui.d1` 填写非敏感的 Cloudflare Account ID 与两个 Database ID，并配置具有 D1 读写权限的 `CLOUDFLARE_D1_API_TOKEN`，然后运行同一个初始化命令。
 
-   ```bash
-   pnpm data:migrate:d1
-   pnpm analytics:migrate:d1
-   ```
+   初始化命令只会创建或升级所选数据库的表结构，不会把 PostgreSQL 中的文档、修订历史或统计记录复制到 D1。
 
-   这些命令只会创建或升级所选 D1 的表结构，不会把 PostgreSQL 中的文档、修订历史或统计记录复制到 D1。
-
-   注入原生 binding 的宿主可以不填写 REST ID，但必须通过自己的 D1 工具应用同一批插件迁移文件；构建和启动不会自动执行迁移。
+   注入原生 binding 的宿主可以不填写 REST ID，但必须通过自己的 D1 工具应用同一批插件 Schema migration；构建和启动不会自动更新 Schema。
 
 3. 在 GitHub 创建 OAuth App，回调地址填写 `http(s)://<localhost:3000 或你的域名>/api/auth/callback/github`，并配置 `GITHUB_CLIENT_ID`、`GITHUB_CLIENT_SECRET`。默认 scope 为 `read:user user:email`；PostgreSQL 控制面不需要 Repository 权限。
 
@@ -75,9 +70,9 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
 
 PostgreSQL 与 D1 由同一套共享行为契约约束。首次初始化会原子创建两份文档，并拒绝只存在其中一份文档的半初始化数据库。在可视化规则弹窗中确认后，该次修改会立即保存并创建不可变版本。GitHub Contents 会声明手动保存能力，因此仍保留页面级保存和本地撤销/重做。导入会先校验两份 JSON，再原子替换；恢复则把旧内容复制为新的活动版本，不会改写历史。管理者可以在 **设置 → 数据与历史** 中导出、导入、查看和恢复版本。
 
-D1 使用 [../../plugins/repository/d1/migrations](../../plugins/repository/d1/migrations) 中的独立迁移。打开初始化页面前，需要明确执行 `pnpm data:migrate:d1`。Vercel 不提供原生 D1 binding，因此 WebUI 会通过仅服务端 REST 适配器继续使用同一套 Binding 兼容契约。
+D1 使用 [../../plugins/repository/d1/migrations](../../plugins/repository/d1/migrations) 中的独立 Schema migration。首次使用所选数据库时运行 `pnpm database:init`；后续 Repository Schema 变更使用 `pnpm database:update d1 repository`。Vercel 不提供原生 D1 binding，因此 WebUI 会通过仅服务端 REST 适配器继续使用同一套 Binding 兼容契约。
 
-`seed` 命令继续用于受控的非交互迁移，但不再属于正常部署流程：
+`seed` 命令继续用于受控的非交互初始化或导入，但不再属于正常部署流程：
 
 ```bash
 pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
@@ -89,9 +84,9 @@ GitHub Contents 与 GitHub Raw 继续保留在 workspace 中，作为归档的�
 
 ## 短链接统计
 
-当前部署的统计功能选择 PostgreSQL Store 插件，不依赖特定厂商的数据库 API。对于小型部署，可以使用 [Neon](https://neon.com/pricing) 等免费托管 PostgreSQL；[Supabase](https://supabase.com/pricing) 也可以使用同一插件和迁移。如果服务商提供连接池地址，建议优先使用。
+当前部署的统计功能选择 PostgreSQL Store 插件，不依赖特定厂商的数据库 API。对于小型部署，可以使用 [Neon](https://neon.com/pricing) 等免费托管 PostgreSQL；[Supabase](https://supabase.com/pricing) 也可以使用同一插件和 Schema migration。如果服务商提供连接池地址，建议优先使用。
 
-仓库还包含完整的 D1 Store，它通过同一套统计行为契约，并拥有独立迁移。它既可以使用注入的原生 binding，也可以使用内置的服务端 REST 适配器。`data/config.json` 必须至多选择一个 Store；启动配置中的 Analytics Store 选择决定初始化页面生成的首份文档。关闭全部 Store 时，规则编辑仍可使用，统计路由会报告缺失能力。
+仓库还包含完整的 D1 Store，它通过同一套统计行为契约，并拥有独立 Schema migration。它既可以使用注入的原生 binding，也可以使用内置的服务端 REST 适配器。`data/config.json` 必须至多选择一个 Store；启动配置中的 Analytics Store 选择决定初始化页面生成的首份文档。关闭全部 Store 时，规则编辑仍可使用，统计路由会报告缺失能力。
 
 1. 创建 PostgreSQL 数据库，并在 WebUI 环境中配置：
 
@@ -100,13 +95,13 @@ GitHub Contents 与 GitHub Raw 继续保留在 workspace 中，作为归档的�
    I0C_SECRET="replace-with-the-shared-instance-secret"
    ```
 
-2. 在仓库根目录执行 PostgreSQL 插件迁移：
+2. 在仓库根目录更新 PostgreSQL 统计 Schema：
 
    ```bash
-   pnpm analytics:migrate
+   pnpm database:update postgres analytics
    ```
 
-   通过 REST 适配器使用 D1 时，请配置 `CLOUDFLARE_D1_API_TOKEN`，并执行 `pnpm analytics:migrate:d1`。使用原生 binding 的宿主也可以通过自己的 D1 工具迁移。这些命令不会在构建或启动时自动运行。
+   通过 REST 适配器使用 D1 时，请配置 `CLOUDFLARE_D1_API_TOKEN`，并执行 `pnpm database:update d1 analytics`。使用原生 binding 的宿主也可以通过自己的 D1 工具应用相同的 Schema migration。这些命令不会在构建或启动时自动运行。
 
 3. 配置每个 Runtime 部署，将签名后的事件发送到 WebUI：
 
@@ -128,7 +123,7 @@ Runtime 会发送匹配流量对应的配置规则路径、入口域名、平台
 
 数据库地址和实例密钥必须仅保存在服务端。统计事件写入后，WebUI 会在后台低频安排数据保留，不再暴露维护端点，也不需要另一项部署密钥。原始事件、幂等收据和上游声明在 181 天后过期，小时与天级聚合继续保留。免费方案的额度和休眠策略可能变化，生产使用前请检查服务商的最新限制。
 
-完整事件契约、归因行为、数据库迁移顺序、隐私限制、投递保证和验收场景详见 [统计架构文档](../../docs/analytics.zh-CN.md)。每个 Store 插件自己实现迁移 `status`、`plan` 与 `apply`；迁移属于明确的外部写入，WebUI 构建、启动和健康检查都不会自动执行迁移。
+完整事件契约、归因行为、Schema 更新顺序、隐私限制、投递保证和验收场景详见[统计架构文档](../docs/zh-CN/reference/analytics.md)。每个 Store 插件自己实现 `schemaMigrationStatus`、`schemaMigrationPlan` 与 `applySchemaMigrations`；Schema 更新属于明确的外部写入，WebUI 构建、启动和健康检查都不会自动执行。
 
 ## 部署
 

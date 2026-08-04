@@ -11,11 +11,11 @@ i0c.cc 使用轻量的静态注册插件架构，让重定向核心不直接绑�
 | 层级 | 包或目录 | 职责 |
 |------|----------|------|
 | 领域 | `@i0c/analytics-domain` | 平台无关的统计事件、时间范围、分类和 Store 结果类型 |
-| D1 基础设施 | `@i0c/database-d1` | D1 插件共用的 Binding 兼容契约、结果校验、REST 传输、迁移和 SQLite 测试适配器 |
-| PostgreSQL 基础设施 | `@i0c/database-postgres` | PostgreSQL 插件共用的客户端创建与文件迁移机制 |
-| 协议 | `@i0c/plugin-api` | Manifest、宿主与插槽类型、插件契约、健康检查、迁移、Feature Hook 与 WebUI 插槽 |
+| D1 基础设施 | `@i0c/database-d1` | D1 插件共用的 Binding 兼容契约、结果校验、REST 传输、Schema migration 和 SQLite 测试适配器 |
+| PostgreSQL 基础设施 | `@i0c/database-postgres` | PostgreSQL 插件共用的客户端创建与文件式 Schema migration 机制 |
+| 协议 | `@i0c/plugin-api` | Manifest、宿主与插槽类型、插件契约、健康检查、Schema migration、Feature Hook 与 WebUI 插槽 |
 | 开发 SDK | `@i0c/plugin-sdk` | 类型化 Manifest、配置校验、Runtime 与 WebUI 开发辅助函数，以及 workspace 脚手架 |
-| 契约 | `@i0c/plugin-testkit` | Manifest、适配器、仓库、Sink、Store、迁移、Feature 与依赖边界测试 |
+| 契约 | `@i0c/plugin-testkit` | Manifest、适配器、仓库、Sink、Store、Schema migration、Feature 与依赖边界测试 |
 | 目录 | `@i0c/plugin-catalog` | 可选的官方 Manifest 预设和按宿主执行的配置校验 |
 | Runtime 宿主 | `@i0c/runtime-host` | 平台无关的部署装配与宿主上下文补充 |
 | Runtime 构建 | `@i0c/runtime-build` | 构建期安装配置校验与所选平台 Bundle 生成 |
@@ -24,7 +24,7 @@ i0c.cc 使用轻量的静态注册插件架构，让重定向核心不直接绑�
 | 数据 Repository | `@i0c/plugin-data-repository-postgres`、`@i0c/plugin-data-repository-d1` | 在 PostgreSQL 或 Cloudflare D1 中以乐观并发和原子快照持久化配置与规则 |
 | Runtime | `@i0c/plugin-runtime-cloudflare`、`@i0c/plugin-runtime-vercel`、`@i0c/plugin-runtime-netlify` | 平台请求、环境、缓存、国家信息与后台任务适配 |
 | Sink | `@i0c/plugin-analytics-sink-http` | 带签名、尽力而为的 HTTP 统计投递 |
-| Store | `@i0c/plugin-analytics-store-postgres`、`@i0c/plugin-analytics-store-d1` | 统计写入、查询、重算、保留、健康检查和自有迁移 |
+| Store | `@i0c/plugin-analytics-store-postgres`、`@i0c/plugin-analytics-store-d1` | 统计写入、查询、重算、保留、健康检查和自有 Schema migration |
 | Feature | `@i0c/plugin-feature-bot-classifier` | 通过受限 Feature 管线完成 Runtime 统计分类 |
 
 应用是宿主：`apps/runtime` 装配 Runtime 插件，`apps/webui` 装配 Repository 与 Analytics Store 插件。插件可以依赖协议和领域包，但不得导入应用内部模块。
@@ -36,7 +36,7 @@ i0c.cc 使用轻量的静态注册插件架构，让重定向核心不直接绑�
 - `config.json` 存放版本化实例设置和已安装插件声明。
 - `redirects.json` 存放重定向规则。
 
-PostgreSQL 与 D1 Repository 都以乐观版本写入两份文档，并提供原子快照、不可变历史与回滚。仓库当前部署选择 PostgreSQL。GitHub Contents 仍然可用，并保留归档的 `data` 分支工作流；Repository 迁移历史与统计迁移相互独立。
+PostgreSQL 与 D1 Repository 都以乐观版本写入两份文档，并提供原子快照、不可变历史与回滚。仓库当前部署选择 PostgreSQL。GitHub Contents 仍然可用，并保留归档的 `data` 分支工作流；Repository 与 Analytics Store 各自维护独立的 Schema migration 历史。
 
 仓库当前启用的 HTTP Snapshot Source 会从 WebUI 一次读取经过校验的 `{ revision, config, redirects }`，合并并发加载、使用 ETag 重新验证，并在刷新失败时保留最后一次通过宿主校验的快照。GitHub Raw 仍然可用，并会分别读取两份 Git 文档。Runtime 不会直接连接所选数据库 Repository。
 
@@ -44,7 +44,7 @@ PostgreSQL 与 D1 Repository 都以乐观版本写入两份文档，并提供原
 
 ## Manifest 与配置模型
 
-每个已安装插件都有 Manifest，包含唯一 ID、包版本、独立 Plugin API 版本、支持的宿主、类别、插槽、能力、配置版本与 Schema、Secret 声明，以及可选的健康检查或迁移能力。
+每个已安装插件都有 Manifest，包含唯一 ID、包版本、独立 Plugin API 版本、支持的宿主、类别、插槽、能力、配置版本与 Schema、Secret 声明，以及可选的健康检查或 Schema migration 能力。
 
 远程声明格式如下：
 
@@ -75,7 +75,7 @@ PostgreSQL 与 D1 Repository 都以乐观版本写入两份文档，并提供原
 - 所选 Runtime Source、所选 WebUI Repository 与当前 Runtime 平台属于必需的启动能力；显式关闭会让对应宿主拒绝配置。
 - HTTP Sink、机器人分类器和 Analytics Store 是可选能力；关闭后会分别移除投递、Feature 注册或统计存储。
 
-第一阶段迁移中，缺少声明时会使用兼容默认值。发布显式声明后，`enabled`、插件配置和 Secret 映射会真实驱动工厂与 Feature 管线。
+兼容过渡阶段中，缺少声明时会使用默认值。发布显式声明后，`enabled`、插件配置和 Secret 映射会真实驱动工厂与 Feature 管线。
 
 ## 开发 SDK
 
@@ -88,6 +88,8 @@ pnpm plugin:create --kind feature --name request-sampler
 ```
 
 生成器支持 Runtime 平台、数据源、数据 Repository、统计 Sink、统计 Store 与 Runtime Feature。它会在对应的 `plugins/<category>/` 目录生成 Manifest、配置定义、类型化插件骨架、契约测试和双语 README，但不会修改当前启用的安装配置。作者需要审查实现，再将插件显式注册到归属的根配置中。
+
+平台、Repository 与 Analytics Store 的完整接入流程见[编写适配器](/zh-CN/plugins/adapters)。
 
 ## 编译期安装
 
@@ -114,20 +116,20 @@ WebUI 提供四个静态注册扩展插槽：
 
 `GET /api/plugins/status` 展示已安装 Manifest、配置状态、能力、宿主可观测的 Secret 绑定、所选 Store 健康状态和缺失前提。端点要求 WebUI 读取权限、禁止响应缓存、用超时限制健康检查，并且不会暴露原始数据库错误或 Secret 值。
 
-## Data Repository 与迁移
+## Data Repository 与 Schema 更新
 
 `AtomicVersionedDataRepository` 提供文档读取、乐观并发写入和两份文档的原子快照。GitHub 把 commit SHA 作为 Repository revision，并在同一 commit 上读取两份文档；PostgreSQL 与 D1 还实现相同的首次初始化、不可变版本历史、原子导入和非破坏性恢复契约。
 
-PostgreSQL Repository 迁移位于 `plugins/repository/postgres/migrations`，使用独立迁移表和 advisory lock。D1 Repository 迁移位于 `plugins/repository/d1/migrations`，会校验 checksum 与迁移历史连续性，并在一个原子 D1 batch 中执行每次迁移和版本记录。构建、应用启动、Runtime 请求与 WebUI 健康检查都不会自动执行迁移。选择 PostgreSQL 时需要配置 `DATABASE_URL`。选择 D1 时会优先使用注入的原生 binding，否则内置 WebUI 会使用启动配置中的 Account 与 Database ID 加 `CLOUDFLARE_D1_API_TOKEN` 通过仅服务端 REST 适配器连接；初始化前执行 `pnpm data:migrate:d1`。两种数据库 Repository 都必须搭配 HTTP Snapshot Runtime Source，让保存状态能到达边缘部署，同时不向 Runtime 提供数据库凭据；不兼容的启动选择会让构建失败。
+PostgreSQL Repository 的 Schema migration 位于 `plugins/repository/postgres/migrations`，使用独立 Schema 历史表和 advisory lock。D1 Repository 的 Schema migration 位于 `plugins/repository/d1/migrations`，会校验 checksum 与历史连续性，并在一个原子 D1 batch 中执行每次结构变更和版本记录。构建、应用启动、Runtime 请求与 WebUI 健康检查都不会自动更新 Schema。选择 PostgreSQL 时需要配置 `DATABASE_URL`。选择 D1 时会优先使用注入的原生 binding，否则内置 WebUI 会使用启动配置中的 Account 与 Database ID 加 `CLOUDFLARE_D1_API_TOKEN` 通过仅服务端 REST 适配器连接；新数据库使用 `pnpm database:init` 初始化。两种数据库 Repository 都必须搭配 HTTP Snapshot Runtime Source，让保存状态能到达边缘部署，同时不向 Runtime 提供数据库凭据；不兼容的启动选择会让构建失败。
 
-## Analytics Store 与迁移
+## Analytics Store 与 Schema 更新
 
 `AnalyticsStore` 暴露领域操作，不暴露 SQL。PostgreSQL 与 D1 会运行同一套共享行为契约，覆盖幂等写入、流量与自动化查询、小时与天级聚合、入口域名筛选、原始事件重算、181 天原始事件保留、聚合保留、健康检查和能力声明。
 
-- PostgreSQL 是当前部署使用的 Store，默认继续读取 `DATABASE_URL`。迁移位于 `plugins/store/postgres/migrations`。
-- D1 是可选择的第二实现，独立迁移位于 `plugins/store/d1/migrations`。内置 WebUI 可以接收原生 binding，也可以通过仅服务端 REST 适配器继续使用同一套 Binding 兼容契约。REST 方案需要 D1 启动 ID 与 `CLOUDFLARE_D1_API_TOKEN`，内置迁移命令为 `pnpm analytics:migrate:d1`；原生 binding 宿主则通过自己的 D1 工具应用同一批迁移文件。
+- PostgreSQL 是当前部署使用的 Store，默认继续读取 `DATABASE_URL`。Schema migration 位于 `plugins/store/postgres/migrations`。
+- D1 是可选择的第二实现，独立 Schema migration 位于 `plugins/store/d1/migrations`。内置 WebUI 可以接收原生 binding，也可以通过仅服务端 REST 适配器继续使用同一套 Binding 兼容契约。REST 方案需要 D1 启动 ID 与 `CLOUDFLARE_D1_API_TOKEN`，Schema 更新命令为 `pnpm database:update d1 analytics`；原生 binding 宿主则通过自己的 D1 工具应用同一批 Schema migration 文件。
 
-每个 Store 自己实现 `status`、`plan` 与 `apply` 迁移语义，共享 Provider 包则提供连接与迁移机制。构建、应用启动、健康检查和普通请求都不会自动执行迁移。Plugin CI 会使用隔离 PostgreSQL 服务执行真实共享契约；本地没有 `TEST_POSTGRES_URL` 时只跳过该集成测试。D1 通过共享的 Node SQLite 测试适配器运行同一行为契约，REST 传输还会校验请求形状与错误处理。
+每个 Store 自己实现 `schemaMigrationStatus`、`schemaMigrationPlan` 与 `applySchemaMigrations`，共享 Provider 包则提供连接与 Schema migration 机制。构建、应用启动、健康检查和普通请求都不会自动更新 Schema。Plugin CI 会使用隔离 PostgreSQL 服务执行真实共享契约；本地没有 `TEST_POSTGRES_URL` 时只跳过该集成测试。D1 通过共享的 Node SQLite 测试适配器运行同一行为契约，REST 传输还会校验请求形状与错误处理。
 
 ## 检查与 CI
 

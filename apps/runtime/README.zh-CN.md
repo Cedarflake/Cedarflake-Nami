@@ -44,7 +44,7 @@
 
 需要自定义平台或 Runtime Feature？在 workspace 中新增提供 Manifest 与类型化工厂或 `./installation` 入口的包，再把它加入 `i0c.runtime.config.ts` 即可。Runtime 宿主源码和官方 Catalog 不需要增加插件专属改动。外部 fixture 会构建自定义平台与 Feature，并在生成产物中验证 Feature 标记。当前契约证明的是源码 workspace 内的接入能力；共享插件包尚未作为公共 npm SDK 发布。程序化消费者仍可从 [src/lib/handler.ts](src/lib/handler.ts) 引入 `handleRedirectRequest`。稳定的插件 Manifest 与适配器契约位于 [../../packages/plugin-api](../../packages/plugin-api)。
 
-每次构建只注入所选 Runtime 适配器，并通过同一份根安装配置装配 Data Source、Analytics Sink 与 Feature。远程声明会控制可选插件的启停、配置和 Secret 绑定名称。已安装包与所选 Source 的初始连接设置必须在读取 `config.json` 前可用，因此仍属于启动配置。包结构与故障边界详见 [../../docs/plugins.zh-CN.md](../../docs/plugins.zh-CN.md)。
+每次构建只注入所选 Runtime 适配器，并通过同一份根安装配置装配 Data Source、Analytics Sink 与 Feature。远程声明会控制可选插件的启停、配置和 Secret 绑定名称。已安装包与所选 Source 的初始连接设置必须在读取 `config.json` 前可用，因此仍属于启动配置。包结构与故障边界详见 [../docs/zh-CN/plugins/architecture.md](../docs/zh-CN/plugins/architecture.md)。
 
 ## 环境变量与配置
 
@@ -96,7 +96,7 @@ source: {
 
 分类只在边缘端本地生成受控的流量、机器人、置信度、资源、设备、匹配、结果和探测类别。因此，即使机器人访问 `redirects.json` 之外的路径，也能进入抽样 Runtime 分析。事件不会发送 IP、完整 User-Agent、完整来源 URL、查询参数、目标地址或原始未匹配路径。匹配事件只包含配置中的规则路径和稳定统计 ID。旧规则没有 `analyticsId` 时，Runtime 会生成确定性的兼容 ID。通过 WebUI 保存的显式对象规则会持久化 UUID；字符串简写规则在转换成对象格式前继续使用兼容 ID。
 
-计数口径、归因 token、抽样、隐私限制、迁移顺序和验收场景详见 [统计架构文档](../../docs/analytics.zh-CN.md)。
+计数口径、归因 Token、抽样、隐私限制、Schema 更新顺序和验收场景详见[统计架构文档](../docs/zh-CN/reference/analytics.md)。
 
 自定义适配器启用统计后，还应通过 `HandlerOptions` 传入 `provider`、可选的 `country` 和平台提供的 `waitUntil`。
 

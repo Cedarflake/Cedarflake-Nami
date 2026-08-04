@@ -9,4 +9,4 @@ pnpm --filter @i0c/plugin-catalog check
 pnpm --filter @i0c/plugin-catalog test
 ```
 
-完整架构见 [../../docs/plugins.zh-CN.md](../../docs/plugins.zh-CN.md)。
+完整架构见 [../../apps/docs/zh-CN/plugins/architecture.md](../../apps/docs/zh-CN/plugins/architecture.md)。

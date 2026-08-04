@@ -1,6 +1,6 @@
 # Analytics architecture and semantics
 
-This document defines the Analytics V2 contract shared by the edge Runtime, the WebUI collector, and PostgreSQL. The implementation is vendor-neutral; Neon is supported through its standard PostgreSQL connection string, but no Neon-specific API is required.
+This document defines the Analytics V2 contract shared by the edge Runtime, the WebUI collector, and the selected analytics store. PostgreSQL and Cloudflare D1 implement the same store contract; Neon works through its standard PostgreSQL connection string and needs no vendor-specific API.
 
 ## System boundary
 
@@ -8,10 +8,10 @@ The Runtime and WebUI remain independent deployments:
 
 1. A Runtime instance handles a redirect, proxy, or unmatched request.
 2. It builds a privacy-bounded event, signs the exact JSON body, and posts it to `https://u.i0c.cc/api/analytics/events`.
-3. The WebUI collector verifies the signature and timestamp, validates the event contract, and writes to PostgreSQL.
+3. The WebUI collector verifies the signature and timestamp, validates the event contract, and writes through the selected analytics store.
 4. Authenticated WebUI pages query aggregate tables for presentation.
 
-The Runtime never connects to PostgreSQL. Collector delivery is best effort and uses each provider's background execution mechanism. A collector or database failure is logged but never changes the redirect response. There is currently no delivery retry queue, so an event can be lost when the collector or network is unavailable.
+The Runtime never connects to PostgreSQL or D1. Collector delivery is best effort and uses each provider's background execution mechanism. A collector or database failure is logged but never changes the redirect response. There is currently no delivery retry queue, so an event can be lost when the collector or network is unavailable.
 
 ## Configuration
 
@@ -32,7 +32,7 @@ Configure every Runtime deployment with the shared signing secret:
 I0C_SECRET="replace-with-a-32-byte-random-secret"
 ```
 
-Configure the WebUI deployment with:
+Configure the WebUI deployment with the matching secret. The default PostgreSQL store also requires `DATABASE_URL`; D1 uses its server-only API token and bootstrap identifiers instead.
 
 ```dotenv
 DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
@@ -120,7 +120,7 @@ The response contains a URL with a signed `_i0c_via` parameter. Campaign tokens 
 
 ### Controlled short-link chain
 
-When short link A redirects over HTTPS to another hostname or path inside the same source namespace, A appends a signed upstream token with a two-minute lifetime. B verifies and removes it before routing. PostgreSQL claims each upstream event once, so replaying the same token cannot repeatedly suppress entry counts.
+When short link A redirects over HTTPS to another hostname or path inside the same source namespace, A appends a signed upstream token with a two-minute lifetime. B verifies and removes it before routing. The selected analytics store claims each upstream event once, so replaying the same token cannot repeatedly suppress entry counts.
 
 For A → B → C:
 
@@ -157,29 +157,37 @@ Events do not contain:
 
 Matched events contain the configured rule path and stable analytics ID. Hostnames, identifiers, enums, request bodies, timestamps, and token lifetimes are validated and length-bounded before storage. The collector accepts only the configured source ID, and its signed request window is five minutes.
 
-## Database migrations
+## Analytics schema updates
 
-Run migrations from the repository root before deploying the analytics collector:
+Update the selected analytics store schema from the repository root before deploying the collector:
 
 ```bash
-pnpm analytics:migrate
+# PostgreSQL
+pnpm database:update postgres analytics
+
+# Cloudflare D1
+pnpm database:update d1 analytics
 ```
 
-The migration runner applies files in filename order inside transactions and records SHA-256 checksums. Never edit a migration after it has been applied; add a new numbered migration instead.
+Each provider owns an ordered, checksummed schema migration history. Never edit a schema migration after it has been applied; add a new numbered file instead.
+
+The PostgreSQL history is split by capability:
 
 - `001_short_link_analytics.sql`: original link events and aggregates.
 - `002_domain_attribution.sql`: entry-domain, campaign, internal-source, classification, and UTC aggregate dimensions.
 - `003_runtime_traffic_analysis.sql`: sampled Runtime events, cross-kind idempotency receipts, and automation aggregates.
 - `004_raw_event_retention.sql`: cleanup indexes and the fixed 181-day raw-event retention function.
+- `005_aggregate_rebuild.sql`: aggregate reconstruction from retained raw events.
+- `006_open_runtime_providers.sql`: accepted Runtime provider identifiers.
+
+The D1 store owns an independent SQLite-compatible `001_analytics_store.sql` schema migration with the equivalent store contract.
 
 Recommended rollout order:
 
-1. Apply all database migrations.
+1. Apply every required schema update.
 2. Deploy the WebUI collector that accepts V1 and V2 events.
-3. Configure and deploy the Cloudflare Runtime.
-4. Configure and deploy the Vercel Runtime.
-5. Configure and deploy the Netlify Runtime.
-6. Check collector errors, `unknown` entry domains, observed/estimated ratios, and all-domain sums.
+3. Configure and deploy the Runtime provider or providers you selected.
+4. Check collector errors, `unknown` entry domains, observed/estimated ratios, and all-domain sums.
 
 After a successful analytics ingestion, the WebUI schedules retention in the background at most
 once per running instance per day. It deletes link events, Runtime events, idempotency receipts,

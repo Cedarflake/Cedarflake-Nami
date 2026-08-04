@@ -11,11 +11,11 @@ Plugins are workspace packages selected at build time. Remote `config.json` may 
 | Layer | Package or directory | Responsibility |
 |-------|----------------------|----------------|
 | Domain | `@i0c/analytics-domain` | Provider-neutral analytics events, ranges, classifications, and store result types |
-| D1 infrastructure | `@i0c/database-d1` | Binding-compatible contract, checked operations, REST transport, migrations, and the SQLite test adapter shared by D1 plugins |
-| PostgreSQL infrastructure | `@i0c/database-postgres` | Client construction and file-backed migration mechanics shared by PostgreSQL plugins |
-| Protocol | `@i0c/plugin-api` | Manifests, host and slot types, plugin contracts, health, migrations, feature hooks, and WebUI slots |
+| D1 infrastructure | `@i0c/database-d1` | Binding-compatible contract, checked operations, REST transport, schema migrations, and the SQLite test adapter shared by D1 plugins |
+| PostgreSQL infrastructure | `@i0c/database-postgres` | Client construction and file-backed schema-migration mechanics shared by PostgreSQL plugins |
+| Protocol | `@i0c/plugin-api` | Manifests, host and slot types, plugin contracts, health, schema migrations, feature hooks, and WebUI slots |
 | Authoring SDK | `@i0c/plugin-sdk` | Typed manifests, configuration validation, Runtime and WebUI authoring helpers, and workspace scaffolding |
-| Contracts | `@i0c/plugin-testkit` | Manifest, adapter, repository, sink, store, migration, feature, and dependency-boundary tests |
+| Contracts | `@i0c/plugin-testkit` | Manifest, adapter, repository, sink, store, schema-migration, feature, and dependency-boundary tests |
 | Catalog | `@i0c/plugin-catalog` | Optional official manifest presets and host-specific configuration validation |
 | Runtime host | `@i0c/runtime-host` | Platform-neutral deployment assembly and host context enrichment |
 | Runtime build | `@i0c/runtime-build` | Build-time installation config validation and selected-platform bundling |
@@ -24,7 +24,7 @@ Plugins are workspace packages selected at build time. Remote `config.json` may 
 | Data repositories | `@i0c/plugin-data-repository-postgres`, `@i0c/plugin-data-repository-d1` | Optimistic, atomic config-and-rules persistence in PostgreSQL or Cloudflare D1 |
 | Runtime | `@i0c/plugin-runtime-cloudflare`, `@i0c/plugin-runtime-vercel`, `@i0c/plugin-runtime-netlify` | Provider request, environment, cache, country, and background-task adaptation |
 | Sink | `@i0c/plugin-analytics-sink-http` | Signed best-effort HTTP analytics delivery |
-| Stores | `@i0c/plugin-analytics-store-postgres`, `@i0c/plugin-analytics-store-d1` | Analytics ingest, queries, rebuild, retention, health, and owned migrations |
+| Stores | `@i0c/plugin-analytics-store-postgres`, `@i0c/plugin-analytics-store-d1` | Analytics ingest, queries, rebuild, retention, health, and owned schema migrations |
 | Feature | `@i0c/plugin-feature-bot-classifier` | Runtime analytics classification through the bounded feature pipeline |
 
 The applications are hosts: `apps/runtime` assembles Runtime plugins, while `apps/webui` assembles repository and analytics-store plugins. Plugins may depend on the protocol and domain packages, but they may not import application internals.
@@ -36,7 +36,7 @@ The editable non-secret data plane contains two documents:
 - `config.json` stores versioned instance settings and installed-plugin declarations.
 - `redirects.json` stores redirect rules.
 
-The PostgreSQL and D1 Repositories store both documents with optimistic revisions, atomic snapshots, immutable history, and rollback. The checked-in deployment selects PostgreSQL. GitHub Contents remains available and preserves the archived `data` branch workflow. Repository migration history is independent from analytics migrations.
+The PostgreSQL and D1 Repositories store both documents with optimistic revisions, atomic snapshots, immutable history, and rollback. The checked-in deployment selects PostgreSQL. GitHub Contents remains available and preserves the archived `data` branch workflow. Repository and analytics Stores maintain independent schema migration histories.
 
 The checked-in HTTP Snapshot Source reads one validated `{ revision, config, redirects }` response from the WebUI, deduplicates concurrent loads, revalidates with an ETag, and retains the last host-valid snapshot after a failed refresh. GitHub Raw remains available and reads both Git-backed documents independently. Runtime never connects directly to the selected database Repository.
 
@@ -44,7 +44,7 @@ Some values must exist before either document can be loaded. The selected Reposi
 
 ## Manifest and configuration model
 
-Every installed plugin has a manifest with a unique ID, package version, independent Plugin API version, supported hosts, kind, slot, capabilities, configuration version and Schema, Secret declarations, and optional health or migration capability.
+Every installed plugin has a manifest with a unique ID, package version, independent Plugin API version, supported hosts, kind, slot, capabilities, configuration version and Schema, Secret declarations, and optional health or schema-migration capability.
 
 The remote declaration shape is:
 
@@ -75,7 +75,7 @@ The remote declaration shape is:
 - The selected Runtime Source, selected WebUI Repository, and current Runtime provider are mandatory bootstrap capabilities. Explicitly disabling one invalidates that host's configuration.
 - The HTTP Sink, bot classifier, and analytics Store are optional. Disabling them removes delivery, feature registration, or analytics storage respectively.
 
-Missing declarations use compatibility defaults during the first migration. Once explicit declarations are published, `enabled`, plugin config, and Secret mappings drive the selected factories and feature pipeline.
+Missing declarations use compatibility defaults during the transition period. Once explicit declarations are published, `enabled`, plugin config, and Secret mappings drive the selected factories and feature pipeline.
 
 ## Authoring SDK
 
@@ -88,6 +88,8 @@ pnpm plugin:create --kind feature --name request-sampler
 ```
 
 The generator supports Runtime platforms, data sources, data repositories, analytics sinks, analytics stores, and Runtime features. It writes a manifest, configuration definition, typed plugin skeleton, contract test, and bilingual README under the matching `plugins/<category>/` directory. It deliberately does not edit the active installation configuration. The author must review the implementation and explicitly register it in the owning root configuration.
+
+See [Write an adapter](/plugins/adapters) for the complete platform, repository, and analytics-store registration flow.
 
 ## Compile-time installation
 
@@ -114,20 +116,20 @@ The production installation keeps these slots empty except for the host-owned pl
 
 `GET /api/plugins/status` reports installed manifests, configuration state, capabilities, observable Secret bindings, selected-store health, and missing prerequisites. It requires WebUI read access, disables response caching, bounds health checks with a timeout, and does not expose raw database errors or Secret values.
 
-## Data repositories and migrations
+## Data repositories and schema updates
 
 `AtomicVersionedDataRepository` exposes document reads, optimistic writes, and an atomic two-document snapshot. GitHub maps its commit SHA to the repository revision and resolves both documents at one commit. PostgreSQL and D1 add the same managed contract for first-run initialization, immutable revision history, atomic import, and non-destructive restore.
 
-PostgreSQL Repository migrations live in `plugins/repository/postgres/migrations` and use their own migration table and advisory lock. D1 Repository migrations live in `plugins/repository/d1/migrations`, use checksums and continuous-history validation, and execute each migration plus its version record in an atomic D1 batch. Builds, application startup, Runtime requests, and WebUI health checks never apply them automatically. Selecting PostgreSQL requires `DATABASE_URL`. Selecting D1 uses an injected native binding when available, otherwise the bundled WebUI uses its server-only REST adapter with bootstrap Account and Database IDs plus `CLOUDFLARE_D1_API_TOKEN`; run `pnpm data:migrate:d1` before setup. Both database Repositories must be paired with the HTTP Snapshot Runtime Source so saved state reaches edge deployments without giving them database credentials; incompatible bootstrap selections fail the build.
+PostgreSQL Repository schema migrations live in `plugins/repository/postgres/migrations` and use their own schema history table and advisory lock. D1 Repository schema migrations live in `plugins/repository/d1/migrations`, use checksums and continuous-history validation, and execute each structural change plus its version record in an atomic D1 batch. Builds, application startup, Runtime requests, and WebUI health checks never update schemas automatically. Selecting PostgreSQL requires `DATABASE_URL`. Selecting D1 uses an injected native binding when available, otherwise the bundled WebUI uses its server-only REST adapter with bootstrap Account and Database IDs plus `CLOUDFLARE_D1_API_TOKEN`; initialize a new database with `pnpm database:init`. Both database Repositories must be paired with the HTTP Snapshot Runtime Source so saved state reaches edge deployments without giving them database credentials; incompatible bootstrap selections fail the build.
 
-## Analytics stores and migrations
+## Analytics stores and schema updates
 
 `AnalyticsStore` exposes domain operations rather than SQL. Both PostgreSQL and D1 implement the same shared behavior contract for idempotent ingest, traffic and automation queries, hourly and daily aggregation, entry-domain filtering, raw-event rebuild, 181-day raw retention, aggregate retention, health, and capability reporting.
 
-- PostgreSQL is the current deployed Store and continues to use `DATABASE_URL` by default. Its migrations live in `plugins/store/postgres/migrations`.
-- D1 is a selectable second implementation with independent migrations in `plugins/store/d1/migrations`. The bundled WebUI accepts a native binding or uses the same Binding-compatible contract through its server-only REST adapter. The REST path requires D1 bootstrap IDs and `CLOUDFLARE_D1_API_TOKEN`; its bundled migration command is `pnpm analytics:migrate:d1`. Native-binding hosts apply the same migration files through their own D1 tooling.
+- PostgreSQL is the current deployed Store and continues to use `DATABASE_URL` by default. Its schema migrations live in `plugins/store/postgres/migrations`.
+- D1 is a selectable second implementation with independent schema migrations in `plugins/store/d1/migrations`. The bundled WebUI accepts a native binding or uses the same Binding-compatible contract through its server-only REST adapter. The REST path requires D1 bootstrap IDs and `CLOUDFLARE_D1_API_TOKEN`; its schema-update command is `pnpm database:update d1 analytics`. Native-binding hosts apply the same schema migration files through their own D1 tooling.
 
-Each Store owns `status`, `plan`, and `apply` migration semantics while the provider packages supply shared connection and migration mechanics. Builds, application startup, health checks, and ordinary requests never apply migrations automatically. PostgreSQL's real shared contract runs in Plugin CI against an isolated PostgreSQL service; local runs skip only that integration test when `TEST_POSTGRES_URL` is absent. D1 runs the same behavior contract through the shared Node SQLite-backed D1 test adapter, and its REST transport has request-shape and error-handling tests.
+Each Store owns `schemaMigrationStatus`, `schemaMigrationPlan`, and `applySchemaMigrations`, while provider packages supply shared connection and schema-migration mechanics. Builds, application startup, health checks, and ordinary requests never update schemas automatically. PostgreSQL's real shared contract runs in Plugin CI against an isolated PostgreSQL service; local runs skip only that integration test when `TEST_POSTGRES_URL` is absent. D1 runs the same behavior contract through the shared Node SQLite-backed D1 test adapter, and its REST transport has request-shape and error-handling tests.
 
 ## Checks and CI
 

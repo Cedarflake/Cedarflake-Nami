@@ -44,7 +44,7 @@ After deploying:
 
 Need a custom platform or Runtime feature? Add a workspace package with its Manifest and typed factory or `./installation` entry, then add it to `i0c.runtime.config.ts`. The Runtime host source and official catalog do not need plugin-specific changes. The external fixture builds a custom platform and Feature and verifies the Feature marker in the emitted artifact. The current contract proves source-workspace integration; the shared plugin packages are not yet published as a public npm SDK. Programmatic consumers can still import `handleRedirectRequest` from [src/lib/handler.ts](src/lib/handler.ts). Stable plugin manifests and adapter contracts live in [../../packages/plugin-api](../../packages/plugin-api).
 
-Each build injects only the selected Runtime adapter and uses the same root installation configuration to assemble its Data Source, Analytics Sink, and Features. Remote declarations control optional enablement, configuration, and Secret binding names. Installed packages and the selected Source's initial connection settings remain bootstrap configuration because they are required before `config.json` can be read. See [../../docs/plugins.md](../../docs/plugins.md) for the package and failure boundaries.
+Each build injects only the selected Runtime adapter and uses the same root installation configuration to assemble its Data Source, Analytics Sink, and Features. Remote declarations control optional enablement, configuration, and Secret binding names. Installed packages and the selected Source's initial connection settings remain bootstrap configuration because they are required before `config.json` can be read. See [../docs/plugins/architecture.md](../docs/plugins/architecture.md) for the package and failure boundaries.
 
 ## Environment variables and configuration
 
@@ -96,7 +96,7 @@ The event records the actual entry hostname and adapter provider separately. Ent
 
 Classification locally derives bounded traffic, bot, confidence, resource, device, match, outcome, and probe categories. This makes robots that request paths outside `redirects.json` visible in sampled Runtime analysis. Events never send IP addresses, full User-Agent strings, full referrer URLs, query strings, destination URLs, or raw unmatched paths. Matched events contain only the configured rule path and stable analytics ID. Existing rules without an `analyticsId` receive a deterministic legacy identifier at runtime. Explicit object rules saved through the WebUI persist a UUID for future aggregation; string shortcuts continue using their legacy identifier until converted to object form.
 
-See [../../docs/analytics.md](../../docs/analytics.md) for counting semantics, attribution tokens, sampling, privacy limits, migration order, and acceptance scenarios.
+See [../docs/reference/analytics.md](../docs/reference/analytics.md) for counting semantics, attribution tokens, sampling, privacy limits, schema-update order, and acceptance scenarios.
 
 Custom adapters that enable analytics should also pass `provider`, optional `country`, and the platform's `waitUntil` through `HandlerOptions`.
 
