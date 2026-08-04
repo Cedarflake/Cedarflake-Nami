@@ -4,7 +4,9 @@ i0c.cc `AnalyticsStore` 领域契约的 Cloudflare D1 实现。它拥有独立�
 
 D1 与 PostgreSQL 共用同一套统计语义、能力集合与行为契约；两者的 SQL、事务和索引策略仍由各自后端实现。
 
-支持 D1 的 WebUI 宿主可以通过 `configureAnalyticsStoreBinding` 注入 binding 后选择该插件。仓库当前的 Vercel 部署没有提供此 binding。迁移不会自动执行。
+WebUI 宿主可以通过 `configureAnalyticsStoreBinding` 提供兼容的 `D1Database` 后选择该插件。Cloudflare 宿主可以直接传入原生 binding；其他服务端宿主可以使用 `@i0c/database-d1/rest`，并配置仅服务端可见的 API Token。选择前需要明确运行 `pnpm analytics:migrate:d1`，迁移不会自动执行。
+
+插件负责统计表结构与领域查询；共用的 D1 传输、迁移和测试基础设施位于 `@i0c/database-d1`。
 
 ```bash
 pnpm --filter @i0c/plugin-analytics-store-d1 check

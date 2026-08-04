@@ -2,7 +2,8 @@ import {
   assertBootstrapConfigCompatibility,
   bootstrapConfig,
 } from "@i0c/config"
-import type { D1Database } from "@i0c/plugin-data-repository-d1/d1"
+import type { D1Database } from "@i0c/database-d1"
+import { createD1RestDatabase } from "@i0c/database-d1/rest"
 import type { GitHubFetch } from "@i0c/plugin-github-data/webui"
 import {
   defineWebUiPluginInstallations,
@@ -46,13 +47,17 @@ export const webUiPluginInstallations = defineWebUiPluginInstallations({
     },
     {
       ...webUiPluginDescriptors.analyticsStores[1],
-      create: async ({ bindings, declaration }) => {
-        const database = bindings.get(
+      create: async ({
+        bindings,
+        declaration,
+        readEnvironment,
+      }) => {
+        const database = resolveConfiguredD1Database(
+          bindings,
+          readEnvironment,
           webUiPluginDescriptors.analyticsStores[1].manifest.id,
+          bootstrapConfig.webui.d1.databaseIds.analytics,
         )
-        if (!isD1Database(database)) {
-          return null
-        }
         const [
           { resolveD1AnalyticsStoreConfig },
           { createD1AnalyticsStore },
@@ -88,14 +93,12 @@ async function createConfiguredDataRepository(
     })
   }
   if (repository.provider === "d1") {
-    const database = context.bindings.get(
+    const database = resolveConfiguredD1Database(
+      context.bindings,
+      context.readEnvironment,
       webUiPluginDescriptors.dataRepository.manifest.id,
+      bootstrapConfig.webui.d1.databaseIds.dataRepository,
     )
-    if (!isD1Database(database)) {
-      throw new TypeError(
-        "The D1 data repository requires a D1Database host binding",
-      )
-    }
     const { createD1DataRepository } = await import(
       "@i0c/plugin-data-repository-d1/repository"
     )
@@ -113,6 +116,31 @@ async function createConfiguredDataRepository(
   )
 }
 
+function resolveConfiguredD1Database(
+  bindings: ReadonlyMap<string, unknown>,
+  readEnvironment: (name: string) => string | undefined,
+  pluginId: string,
+  databaseId: string,
+): D1Database {
+  const binding = bindings.get(pluginId)
+  if (isD1Database(binding)) {
+    return binding
+  }
+  if (bindings.has(pluginId)) {
+    throw new TypeError(
+      `The ${pluginId} host binding must implement the D1Database contract`,
+    )
+  }
+
+  const config = bootstrapConfig.webui.d1
+  return createD1RestDatabase({
+    accountId: config.accountId,
+    apiToken: readEnvironment(config.apiTokenBinding) ?? "",
+    databaseId,
+    requestTimeoutMs: config.requestTimeoutMs,
+  })
+}
+
 function isD1Database(value: unknown): value is D1Database {
   return typeof value === "object"
     && value !== null
@@ -120,4 +148,6 @@ function isD1Database(value: unknown): value is D1Database {
     && typeof value.prepare === "function"
     && "batch" in value
     && typeof value.batch === "function"
+    && "exec" in value
+    && typeof value.exec === "function"
 }

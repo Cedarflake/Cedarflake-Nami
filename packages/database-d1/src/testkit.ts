@@ -8,7 +8,7 @@ import type {
   D1ExecResult,
   D1PreparedStatement,
   D1Result,
-} from "../src/d1"
+} from "./types"
 
 export class SQLiteD1Database implements D1Database {
   readonly database = new DatabaseSync(":memory:")

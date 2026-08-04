@@ -34,6 +34,17 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
 
    迁移属于明确的外部写入，不会在构建、启动、健康检查或普通请求中自动执行。
 
+   如果改用 D1，请在 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 中把 Repository 与 Analytics Store 的 `provider` 设为 `"d1"`。没有原生 D1 binding 的宿主还需在 `bootstrapConfig.webui.d1` 填写非敏感的 Cloudflare Account ID 与两个 Database ID，并配置具有 D1 读写权限的 `CLOUDFLARE_D1_API_TOKEN`。内置迁移命令同样使用这些 REST 凭据：
+
+   ```bash
+   pnpm data:migrate:d1
+   pnpm analytics:migrate:d1
+   ```
+
+   这些命令只会创建或升级所选 D1 的表结构，不会把 PostgreSQL 中的文档、修订历史或统计记录复制到 D1。
+
+   注入原生 binding 的宿主可以不填写 REST ID，但必须通过自己的 D1 工具应用同一批插件迁移文件；构建和启动不会自动执行迁移。
+
 3. 在 GitHub 创建 OAuth App，回调地址填写 `http(s)://<localhost:3000 或你的域名>/api/auth/callback/github`，并配置 `GITHUB_CLIENT_ID`、`GITHUB_CLIENT_SECRET`。默认 scope 为 `read:user user:email`；PostgreSQL 控制面不需要 Repository 权限。
 
 4. 生成一个至少 32 个随机字节的 `I0C_SECRET`，并在 WebUI 与每个平台的 Runtime 中配置相同值。NextAuth 通常会自动推断请求地址；仅当自托管代理未正确转发地址时，才设置可选的 `NEXTAUTH_URL` 覆盖值。
@@ -60,11 +71,11 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
 
 ## Data Repository
 
-仓库当前通过 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 选择 PostgreSQL，并使用 `DATABASE_URL`。支持 D1 的 WebUI 宿主可以选择 `provider: "d1"`，并在首次使用 Repository 前通过 `configureAppDataRepositoryBinding` 注入 `D1Database` binding。
+仓库当前通过 [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) 选择 PostgreSQL，并使用 `DATABASE_URL`。选择 D1 后，内置 WebUI 会优先使用注入的原生 `D1Database` binding；没有 binding 时，则使用配置的 Account ID、Database ID 与 `CLOUDFLARE_D1_API_TOKEN` 通过 Cloudflare 服务端 REST API 连接。
 
 PostgreSQL 与 D1 由同一套共享行为契约约束。首次初始化会原子创建两份文档，并拒绝只存在其中一份文档的半初始化数据库。在可视化规则弹窗中确认后，该次修改会立即保存并创建不可变版本。GitHub Contents 会声明手动保存能力，因此仍保留页面级保存和本地撤销/重做。导入会先校验两份 JSON，再原子替换；恢复则把旧内容复制为新的活动版本，不会改写历史。管理者可以在 **设置 → 数据与历史** 中导出、导入、查看和恢复版本。
 
-D1 使用 [../../plugins/repository/d1/migrations](../../plugins/repository/d1/migrations) 中的独立迁移。打开初始化页面前，需要明确将这些迁移应用到绑定的数据库。当前 Vercel 部署仍使用 PostgreSQL，因为 Vercel 不提供原生 D1 binding。
+D1 使用 [../../plugins/repository/d1/migrations](../../plugins/repository/d1/migrations) 中的独立迁移。打开初始化页面前，需要明确执行 `pnpm data:migrate:d1`。Vercel 不提供原生 D1 binding，因此 WebUI 会通过仅服务端 REST 适配器继续使用同一套 Binding 兼容契约。
 
 `seed` 命令继续用于受控的非交互迁移，但不再属于正常部署流程：
 
@@ -80,7 +91,7 @@ GitHub Contents 与 GitHub Raw 继续保留在 workspace 中，作为归档的�
 
 当前部署的统计功能选择 PostgreSQL Store 插件，不依赖特定厂商的数据库 API。对于小型部署，可以使用 [Neon](https://neon.com/pricing) 等免费托管 PostgreSQL；[Supabase](https://supabase.com/pricing) 也可以使用同一插件和迁移。如果服务商提供连接池地址，建议优先使用。
 
-仓库还包含完整的 D1 Store，它通过同一套统计行为契约，并拥有独立迁移。D1 目前用于验证协议和支持其他宿主；当前 Vercel WebUI 仍使用 PostgreSQL。选择 D1 的宿主必须在 Store 初始化前注入 D1 binding。`data/config.json` 必须至多选择一个 Store；关闭全部 Store 时，规则编辑仍可使用，统计路由会报告缺失能力。
+仓库还包含完整的 D1 Store，它通过同一套统计行为契约，并拥有独立迁移。它既可以使用注入的原生 binding，也可以使用内置的服务端 REST 适配器。`data/config.json` 必须至多选择一个 Store；启动配置中的 Analytics Store 选择决定初始化页面生成的首份文档。关闭全部 Store 时，规则编辑仍可使用，统计路由会报告缺失能力。
 
 1. 创建 PostgreSQL 数据库，并在 WebUI 环境中配置：
 
@@ -94,6 +105,8 @@ GitHub Contents 与 GitHub Raw 继续保留在 workspace 中，作为归档的�
    ```bash
    pnpm analytics:migrate
    ```
+
+   通过 REST 适配器使用 D1 时，请配置 `CLOUDFLARE_D1_API_TOKEN`，并执行 `pnpm analytics:migrate:d1`。使用原生 binding 的宿主也可以通过自己的 D1 工具迁移。这些命令不会在构建或启动时自动运行。
 
 3. 配置每个 Runtime 部署，将签名后的事件发送到 WebUI：
 

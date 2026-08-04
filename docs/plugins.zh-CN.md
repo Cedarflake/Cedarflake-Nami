@@ -11,6 +11,8 @@ i0c.cc 使用轻量的静态注册插件架构，让重定向核心不直接绑�
 | 层级 | 包或目录 | 职责 |
 |------|----------|------|
 | 领域 | `@i0c/analytics-domain` | 平台无关的统计事件、时间范围、分类和 Store 结果类型 |
+| D1 基础设施 | `@i0c/database-d1` | D1 插件共用的 Binding 兼容契约、结果校验、REST 传输、迁移和 SQLite 测试适配器 |
+| PostgreSQL 基础设施 | `@i0c/database-postgres` | PostgreSQL 插件共用的客户端创建与文件迁移机制 |
 | 协议 | `@i0c/plugin-api` | Manifest、宿主与插槽类型、插件契约、健康检查、迁移、Feature Hook 与 WebUI 插槽 |
 | 开发 SDK | `@i0c/plugin-sdk` | 类型化 Manifest、配置校验、Runtime 与 WebUI 开发辅助函数，以及 workspace 脚手架 |
 | 契约 | `@i0c/plugin-testkit` | Manifest、适配器、仓库、Sink、Store、迁移、Feature 与依赖边界测试 |
@@ -38,7 +40,7 @@ PostgreSQL 与 D1 Repository 都以乐观版本写入两份文档，并提供原
 
 仓库当前启用的 HTTP Snapshot Source 会从 WebUI 一次读取经过校验的 `{ revision, config, redirects }`，合并并发加载、使用 ETag 重新验证，并在刷新失败时保留最后一次通过宿主校验的快照。GitHub Raw 仍然可用，并会分别读取两份 Git 文档。Runtime 不会直接连接所选数据库 Repository。
 
-有些值必须在读取远程文档之前存在。所选 Repository 与 Source、GitHub 所有者、仓库、分支和路径、OAuth scope、数据库 binding 与连接策略、HTTP 快照地址与重试策略，以及已安装插件包因此属于**启动配置**，不是远程插件配置。默认值位于 `@i0c/config`；Runtime 可执行安装位于根目录 `i0c.runtime.config.ts`，WebUI 服务端安装位于根目录 `i0c.webui.config.ts`，客户端安全的 WebUI 扩展位于 `apps/webui/webui.extensions.ts`。修改安装项后需要重新构建。插件 Manifest 会明确拒绝在 `plugins.*.config` 中填写这些启动字段，避免出现“能通过校验，却无法初始化自身加载器”的假配置。
+有些值必须在读取远程文档之前存在。所选 Repository、Source 与初始 Analytics Store、GitHub 所有者、仓库、分支和路径、OAuth scope、数据库 binding 与连接策略、可选的 D1 REST Account 和 Database ID、HTTP 快照地址与重试策略，以及已安装插件包因此属于**启动配置**，不是远程插件配置。默认值位于 `@i0c/config`；Runtime 可执行安装位于根目录 `i0c.runtime.config.ts`，WebUI 服务端安装位于根目录 `i0c.webui.config.ts`，客户端安全的 WebUI 扩展位于 `apps/webui/webui.extensions.ts`。D1 REST API Token 仍然是仅服务端环境绑定。修改安装项后需要重新构建。插件 Manifest 会明确拒绝在 `plugins.*.config` 中填写这些启动字段，避免出现“能通过校验，却无法初始化自身加载器”的假配置。
 
 ## Manifest 与配置模型
 
@@ -116,16 +118,16 @@ WebUI 提供四个静态注册扩展插槽：
 
 `AtomicVersionedDataRepository` 提供文档读取、乐观并发写入和两份文档的原子快照。GitHub 把 commit SHA 作为 Repository revision，并在同一 commit 上读取两份文档；PostgreSQL 与 D1 还实现相同的首次初始化、不可变版本历史、原子导入和非破坏性恢复契约。
 
-PostgreSQL Repository 迁移位于 `plugins/repository/postgres/migrations`，使用独立迁移表和 advisory lock。D1 Repository 迁移位于 `plugins/repository/d1/migrations`，会校验 checksum 与迁移历史连续性，并在一个原子 D1 batch 中执行每次迁移和版本记录。构建、应用启动、Runtime 请求与 WebUI 健康检查都不会自动执行迁移。选择 PostgreSQL 时需要配置 `DATABASE_URL`；选择 D1 时，支持 D1 的 WebUI 宿主必须在首次使用前注入 binding。两种数据库 Repository 都必须搭配 HTTP Snapshot Runtime Source，让保存状态能到达边缘部署，同时不向 Runtime 提供数据库凭据；不兼容的启动选择会让构建失败。
+PostgreSQL Repository 迁移位于 `plugins/repository/postgres/migrations`，使用独立迁移表和 advisory lock。D1 Repository 迁移位于 `plugins/repository/d1/migrations`，会校验 checksum 与迁移历史连续性，并在一个原子 D1 batch 中执行每次迁移和版本记录。构建、应用启动、Runtime 请求与 WebUI 健康检查都不会自动执行迁移。选择 PostgreSQL 时需要配置 `DATABASE_URL`。选择 D1 时会优先使用注入的原生 binding，否则内置 WebUI 会使用启动配置中的 Account 与 Database ID 加 `CLOUDFLARE_D1_API_TOKEN` 通过仅服务端 REST 适配器连接；初始化前执行 `pnpm data:migrate:d1`。两种数据库 Repository 都必须搭配 HTTP Snapshot Runtime Source，让保存状态能到达边缘部署，同时不向 Runtime 提供数据库凭据；不兼容的启动选择会让构建失败。
 
 ## Analytics Store 与迁移
 
 `AnalyticsStore` 暴露领域操作，不暴露 SQL。PostgreSQL 与 D1 会运行同一套共享行为契约，覆盖幂等写入、流量与自动化查询、小时与天级聚合、入口域名筛选、原始事件重算、181 天原始事件保留、聚合保留、健康检查和能力声明。
 
 - PostgreSQL 是当前部署使用的 Store，默认继续读取 `DATABASE_URL`。迁移位于 `plugins/store/postgres/migrations`。
-- D1 是用于证明协议并非围绕 PostgreSQL 设计的第二实现。独立迁移位于 `plugins/store/d1/migrations`；选择 D1 的宿主必须先注入 D1 binding。仓库内置 WebUI 尚未提供该 binding 接入，因此 D1 当前是协议验证实现，不是应用中可直接选择的部署选项。
+- D1 是可选择的第二实现，独立迁移位于 `plugins/store/d1/migrations`。内置 WebUI 可以接收原生 binding，也可以通过仅服务端 REST 适配器继续使用同一套 Binding 兼容契约。REST 方案需要 D1 启动 ID 与 `CLOUDFLARE_D1_API_TOKEN`，内置迁移命令为 `pnpm analytics:migrate:d1`；原生 binding 宿主则通过自己的 D1 工具应用同一批迁移文件。
 
-每个 Store 自己实现 `status`、`plan` 与 `apply` 迁移语义。构建、应用启动、健康检查和普通请求都不会自动执行迁移。Plugin CI 会使用隔离 PostgreSQL 服务执行真实共享契约；本地没有 `TEST_POSTGRES_URL` 时只跳过该集成测试。D1 通过基于 Node SQLite 的 D1 测试适配器运行同一行为契约。
+每个 Store 自己实现 `status`、`plan` 与 `apply` 迁移语义，共享 Provider 包则提供连接与迁移机制。构建、应用启动、健康检查和普通请求都不会自动执行迁移。Plugin CI 会使用隔离 PostgreSQL 服务执行真实共享契约；本地没有 `TEST_POSTGRES_URL` 时只跳过该集成测试。D1 通过共享的 Node SQLite 测试适配器运行同一行为契约，REST 传输还会校验请求形状与错误处理。
 
 ## 检查与 CI
 

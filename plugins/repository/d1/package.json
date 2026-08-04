@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@i0c/config": "workspace:*",
+    "@i0c/database-d1": "workspace:*",
     "@i0c/plugin-api": "workspace:*"
   },
   "devDependencies": {

@@ -1,4 +1,7 @@
-import postgres, { type Sql } from "postgres"
+import {
+  createPostgresClient,
+  type PostgresSql,
+} from "@i0c/database-postgres"
 
 import type { PostgresAnalyticsStoreConfig } from "./config"
 
@@ -7,7 +10,7 @@ interface AnalyticsDatabaseGlobal {
 }
 
 interface AnalyticsDatabaseState {
-  client: Sql
+  client: PostgresSql
   connectionOptionsKey: string
   connectionString: string
 }
@@ -40,7 +43,7 @@ function resolveConnectionOptions(): PostgresConnectionOptions {
   }
 }
 
-function closeReplacedClient(client: Sql): void {
+function closeReplacedClient(client: PostgresSql): void {
   void client.end({ timeout: 5 }).catch(() => {})
 }
 
@@ -69,7 +72,7 @@ export function isDatabaseConfigured(): boolean {
   return databaseUrl !== null
 }
 
-export function getDatabase(): Sql {
+export function getDatabase(): PostgresSql {
   if (!databaseUrl || !databaseConfig) {
     throw new Error("Analytics is not configured: DATABASE_URL is missing")
   }
@@ -98,7 +101,11 @@ export function getDatabase(): Sql {
     return cachedDatabase.client
   }
 
-  const client = postgres(databaseUrl, options)
+  const client = createPostgresClient(databaseUrl, {
+    maxConnections: options.max,
+    idleTimeoutSeconds: options.idle_timeout,
+    connectTimeoutSeconds: options.connect_timeout,
+  })
   const nextDatabase = {
     client,
     connectionOptionsKey,

@@ -4,7 +4,9 @@ Cloudflare D1 implementation of the i0c.cc `AnalyticsStore` domain contract. It 
 
 D1 and PostgreSQL share the same analytics semantics, capability set, and behavior contract. Their SQL, transaction, and indexing strategies remain backend-specific.
 
-A D1-capable WebUI host can select this plugin after injecting its binding through `configureAnalyticsStoreBinding`. The checked-in Vercel deployment does not provide that binding. Migrations are never applied automatically.
+A WebUI host can select this plugin after providing a compatible `D1Database` through `configureAnalyticsStoreBinding`. Cloudflare hosts can pass a native binding; other server hosts can use the `@i0c/database-d1/rest` transport with a server-only API token. Run `pnpm analytics:migrate:d1` deliberately before selection. Migrations are never applied automatically.
+
+The plugin owns analytics tables and domain queries. Shared D1 transport, migration, and test infrastructure lives in `@i0c/database-d1`.
 
 ```bash
 pnpm --filter @i0c/plugin-analytics-store-d1 check

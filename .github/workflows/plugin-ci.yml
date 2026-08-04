@@ -14,6 +14,8 @@ on:
       - packages/runtime-build/**
       - packages/runtime-host/**
       - packages/analytics-domain/**
+      - packages/database-d1/**
+      - packages/database-postgres/**
       - plugins/**
       - package.json
       - pnpm-lock.yaml
@@ -31,6 +33,8 @@ on:
       - packages/runtime-build/**
       - packages/runtime-host/**
       - packages/analytics-domain/**
+      - packages/database-d1/**
+      - packages/database-postgres/**
       - plugins/**
       - package.json
       - pnpm-lock.yaml

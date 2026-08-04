@@ -7,7 +7,7 @@ i0c.cc 是一个以数据库为控制面、默认启用 PostgreSQL、并保留�
 这个仓库面向个人使用和工程实验，不准备成为托管短链接服务或企业级重定向平台。
 
 - 按部署环境选择所需的 Runtime 适配器；Cloudflare、Vercel 与 Netlify 是可选方案，不要求同时运行。
-- 默认使用 PostgreSQL；兼容的 WebUI 宿主也可绑定 Cloudflare D1，实现即时保存、不可变历史与回滚；Git 只作为归档的构建期回退方案保留。
+- 默认使用 PostgreSQL；也可通过原生 binding 或仅服务端 REST 适配器访问 Cloudflare D1，实现即时保存、不可变历史与回滚；Git 只作为归档的构建期回退方案保留。
 - WebUI 与统计功能服务于个人工作流；后续路线优先保证清晰和可靠，不追求与商业产品功能对齐。
 
 ## 项目
@@ -17,6 +17,8 @@ i0c.cc 是一个以数据库为控制面、默认启用 PostgreSQL、并保留�
 | Runtime | [apps/runtime](apps/runtime) | 可按平台选择的重定向运行时，支持 Cloudflare Workers、Vercel Edge Functions 与 Netlify Edge Functions。 |
 | WebUI | [apps/webui](apps/webui) | 基于 Next.js 的管理面板，用于编辑 `config.json` 与 `redirects.json`、查看插件状态并查询统计。 |
 | 配置 | [packages/config](packages/config) | 两个应用共用的启动默认值、两份数据文档 Schema 与校验。 |
+| D1 基础设施 | [packages/database-d1](packages/database-d1) | D1 插件共用的 Binding 兼容契约、REST 传输、迁移机制与测试适配器。 |
+| PostgreSQL 基础设施 | [packages/database-postgres](packages/database-postgres) | PostgreSQL 插件共用的客户端创建与文件迁移机制。 |
 | 插件 API | [packages/plugin-api](packages/plugin-api) | 官方插件使用的稳定编译期 Manifest、生命周期契约与类型化扩展边界。 |
 | 插件 SDK | [packages/plugin-sdk](packages/plugin-sdk) | 用于开发 workspace 编译期插件的内部辅助函数与脚手架。 |
 | 插件 Testkit | [packages/plugin-testkit](packages/plugin-testkit) | 共享插件契约与依赖边界检查。 |
@@ -82,7 +84,7 @@ Vercel 需要保持开启 **Include source files outside of the Root Directory i
 - `config.json` 存放非敏感实例配置，包括 Runtime 规范域名、缓存时间、robots 策略、统计命名空间与收集端地址、WebUI 访问策略，以及按命名空间隔离的插件配置。
 - `redirects.json` 存放重定向规则。
 
-PostgreSQL 与 D1 Repository 实现同一套乐观版本、原子快照、不可变历史、导入导出和回滚契约。仓库当前部署选择 PostgreSQL；支持 D1 的 WebUI 宿主可选择 D1，并在 Repository 初始化前注入数据库 binding。
+PostgreSQL 与 D1 Repository 实现同一套乐观版本、原子快照、不可变历史、导入导出和回滚契约。仓库当前部署选择 PostgreSQL；内置 WebUI 可通过注入的原生 binding 或仅服务端 Cloudflare REST 传输选择 D1。REST 方案把 D1 Account 与 Database ID 保存在启动配置中，API Token 只保存在 WebUI 环境变量中。
 
 GitHub Contents 仍保留为归档的构建期回退方案，并可在指定分支保留 commit，但仓库当前部署不会启用它。WebUI 可以编辑两份文档；即使 `config.json` 写坏，管理员仍能看到原文并修复。
 

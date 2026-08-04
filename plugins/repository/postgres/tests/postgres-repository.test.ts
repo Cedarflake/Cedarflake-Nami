@@ -1,9 +1,11 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
-import postgres, { type Sql } from "postgres"
-
 import { DataRepositoryConflictError } from "@i0c/config"
+import {
+  createPostgresClient,
+  type PostgresSql,
+} from "@i0c/database-postgres"
 import {
   assertManagedDataRepositoryBehaviorContract,
   assertPluginManifest,
@@ -194,11 +196,10 @@ test(
       connectionString,
     })
     await migrations.applyMigrations()
-    const sql = postgres(connectionString, {
-      max: 1,
-      idle_timeout: 1,
-      connect_timeout: 30,
-      prepare: false,
+    const sql = createPostgresClient(connectionString, {
+      maxConnections: 1,
+      idleTimeoutSeconds: 1,
+      connectTimeoutSeconds: 30,
     })
 
     try {
@@ -240,7 +241,7 @@ interface MemorySqlTag {
   unsafe(query: string): Promise<readonly unknown[]>
 }
 
-function createMemorySql(): Sql {
+function createMemorySql(): PostgresSql {
   const rows = new Map<MemoryRow["kind"], MemoryRow>()
   const revisions = new Map<
     MemoryRow["kind"],
@@ -386,5 +387,5 @@ function createMemorySql(): Sql {
     operation: (transaction: MemorySqlTag) => Promise<T>,
   ): Promise<T> => operation(query)
   query.unsafe = async () => []
-  return query as unknown as Sql
+  return query as unknown as PostgresSql
 }

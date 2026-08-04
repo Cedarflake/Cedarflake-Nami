@@ -6,7 +6,10 @@ import type { PluginManifest } from "@i0c/plugin-api";
 
 import { runtimePlatformManifests } from "../../../../../i0c.runtime.manifests";
 
-import { getAnalyticsStore } from "@/lib/analytics/store";
+import {
+  getAnalyticsStore,
+  resolveAnalyticsStoreSelection,
+} from "@/lib/analytics/store";
 import { getEffectiveDataConfig } from "@/lib/configuration/data-config";
 
 import type {
@@ -27,7 +30,7 @@ const HEALTH_CHECK_TIMEOUT_MS = 3_000;
 
 export async function getWebUiPluginStatusSnapshot(): Promise<WebUiPluginStatusSnapshot> {
   const config = await getEffectiveDataConfig();
-  const selectedStoreId = resolveSelectedStoreId(config);
+  const selectedStoreId = resolveAnalyticsStoreSelection(config)?.pluginId;
   const selectedStoreHealth = selectedStoreId
     ? await resolveSelectedStoreHealth()
     : "disabled";
@@ -119,15 +122,6 @@ function resolveConfigurationState(
     return declaration.enabled ? "configured" : "disabled";
   }
   return declaration.enabled ? "compatibility" : "disabled";
-}
-
-function resolveSelectedStoreId(config: DataConfig): string | undefined {
-  const postgres = resolveEffectiveDeclaration(POSTGRES_ANALYTICS_STORE_PLUGIN_ID, config);
-  const d1 = resolveEffectiveDeclaration(D1_ANALYTICS_STORE_PLUGIN_ID, config);
-  if (d1.enabled) {
-    return D1_ANALYTICS_STORE_PLUGIN_ID;
-  }
-  return postgres.enabled ? POSTGRES_ANALYTICS_STORE_PLUGIN_ID : undefined;
 }
 
 function resolveMissingSecretBindings(

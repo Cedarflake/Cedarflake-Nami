@@ -43,10 +43,13 @@ export type {
   ProxyRedirectOptions,
 } from "./proxy-options"
 export type {
+  AnalyticsStoreBootstrapConfig,
   BootstrapConfig,
   DataConfig,
   DataRepositoryBootstrapConfig,
   DataSourceTarget,
+  D1DataRepositoryBootstrapConfig,
+  D1WebUiBootstrapConfig,
   GitHubDataRepositoryBootstrapConfig,
   GitHubRuntimeDataSourceBootstrapConfig,
   HttpRuntimeDataSourceBootstrapConfig,

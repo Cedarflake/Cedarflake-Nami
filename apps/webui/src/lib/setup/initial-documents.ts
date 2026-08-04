@@ -1,4 +1,5 @@
 import {
+  bootstrapConfig,
   defaultDataConfig,
   validateRedirectsConfig,
   type DataConfig,
@@ -57,7 +58,16 @@ export function createInitialDocuments(
   setPluginEnabled(config, "@i0c/runtime-netlify", enabledProviders.has("netlify"));
   setPluginEnabled(config, "@i0c/runtime-vercel", enabledProviders.has("vercel"));
   setPluginEnabled(config, "@i0c/analytics-sink-http", input.analyticsEnabled);
-  setPluginEnabled(config, "@i0c/analytics-store-postgres", input.analyticsEnabled);
+  setPluginEnabled(
+    config,
+    "@i0c/analytics-store-postgres",
+    input.analyticsEnabled && bootstrapConfig.webui.analyticsStore.provider === "postgres",
+  );
+  setPluginEnabled(
+    config,
+    "@i0c/analytics-store-d1",
+    input.analyticsEnabled && bootstrapConfig.webui.analyticsStore.provider === "d1",
+  );
   setPluginEnabled(config, "@i0c/feature-bot-classifier", input.analyticsEnabled);
 
   const configContent = `${JSON.stringify(config, null, 2)}\n`;

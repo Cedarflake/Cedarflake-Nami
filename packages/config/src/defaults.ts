@@ -38,6 +38,18 @@ export const bootstrapConfig: BootstrapConfig = {
     },
   },
   webui: {
+    analyticsStore: {
+      provider: "postgres",
+    },
+    d1: {
+      accountId: "",
+      apiTokenBinding: "CLOUDFLARE_D1_API_TOKEN",
+      databaseIds: {
+        analytics: "",
+        dataRepository: "",
+      },
+      requestTimeoutMs: 10_000,
+    },
     githubOAuthScope: "read:user user:email",
   },
 }
@@ -104,7 +116,7 @@ export const defaultDataConfig: DataConfig = {
       },
     },
     "@i0c/analytics-store-postgres": {
-      enabled: true,
+      enabled: bootstrapConfig.webui.analyticsStore.provider === "postgres",
       version: 1,
       config: {
         maxConnections: 3,
@@ -118,7 +130,7 @@ export const defaultDataConfig: DataConfig = {
       },
     },
     "@i0c/analytics-store-d1": {
-      enabled: false,
+      enabled: bootstrapConfig.webui.analyticsStore.provider === "d1",
       version: 1,
     },
   },
