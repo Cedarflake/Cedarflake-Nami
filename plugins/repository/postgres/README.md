@@ -4,6 +4,10 @@ This compile-time WebUI plugin stores `config` and `redirects` as versioned
 PostgreSQL documents. It provides optimistic writes and an atomic read snapshot
 without coupling the Runtime to PostgreSQL.
 
+The plugin owns its document schema, transactions, and domain queries. Shared
+PostgreSQL client construction and migration-history enforcement lives in
+`@i0c/database-postgres`.
+
 ## Requirements
 
 - PostgreSQL compatible with the `postgres` client.

@@ -25,11 +25,11 @@ export const webUiPluginDescriptors = {
   },
   analyticsStores: [
     {
-      enabledByDefault: true,
+      enabledByDefault: bootstrapConfig.webui.analyticsStore.provider === "postgres",
       manifest: postgresAnalyticsStoreManifest,
     },
     {
-      enabledByDefault: false,
+      enabledByDefault: bootstrapConfig.webui.analyticsStore.provider === "d1",
       manifest: d1AnalyticsStoreManifest,
     },
   ],

@@ -40,6 +40,14 @@ test("creates valid database-backed documents for selected Runtime providers", (
     true,
   );
   assert.equal(
+    result.config.plugins["@i0c/analytics-store-postgres"]?.enabled,
+    true,
+  );
+  assert.equal(
+    result.config.plugins["@i0c/analytics-store-d1"]?.enabled,
+    false,
+  );
+  assert.equal(
     result.config.plugins["@i0c/github-contents-repository"],
     undefined,
   );
@@ -70,6 +78,10 @@ test("disables the analytics pipeline when analytics is not selected", () => {
   );
   assert.equal(
     result.config.plugins["@i0c/analytics-store-postgres"]?.enabled,
+    false,
+  );
+  assert.equal(
+    result.config.plugins["@i0c/analytics-store-d1"]?.enabled,
     false,
   );
   assert.equal(

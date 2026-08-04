@@ -1,5 +1,4 @@
-import type { Sql } from "postgres"
-
+import type { PostgresSql } from "@i0c/database-postgres"
 import { PluginError } from "@i0c/plugin-api"
 
 import type { PostgresAnalyticsStoreConfig } from "./config"
@@ -73,7 +72,7 @@ export async function rebuildPostgresAggregates(
 }
 
 async function runAggregateRebuild(
-  sql: Sql,
+  sql: PostgresSql,
   sourceId: string,
   start: string,
   end: string,

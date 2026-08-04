@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 import test from "node:test"
 
+import { SQLiteD1Database } from "@i0c/database-d1/testkit"
 import {
   assertManagedDataRepositoryBehaviorContract,
   assertMigrationState,
@@ -16,7 +17,6 @@ import {
   type D1DataRepositoryMigration,
 } from "../src/migrations"
 import { createD1DataRepository } from "../src/repository"
-import { SQLiteD1Database } from "./sqlite-d1"
 
 test("declares a valid D1 data repository manifest", () => {
   assertPluginManifest(d1DataRepositoryManifest)

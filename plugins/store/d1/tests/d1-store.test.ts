@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url"
 import test from "node:test"
 
 import type { CanonicalAnalyticsLinkEvent } from "@i0c/analytics-domain/events"
+import { SQLiteD1Database } from "@i0c/database-d1/testkit"
 import {
   assertAnalyticsStoreBehaviorContract,
   assertMigrationState,
@@ -22,7 +23,6 @@ import {
 } from "../src/migrations"
 import { createD1AnalyticsStore } from "../src/store"
 import type { D1AnalyticsStoreTypes } from "../src/types"
-import { SQLiteD1Database } from "./sqlite-d1"
 
 const now = new Date("2026-07-22T10:30:00.000Z")
 const event: CanonicalAnalyticsLinkEvent = {

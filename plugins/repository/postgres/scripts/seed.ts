@@ -2,12 +2,11 @@ import { readFile } from "node:fs/promises"
 import path from "node:path"
 import process from "node:process"
 
-import postgres from "postgres"
-
 import {
   validateDataConfig,
   validateRedirectsConfig,
 } from "@i0c/config"
+import { createPostgresClient } from "@i0c/database-postgres"
 
 import {
   resolvePostgresDataRepositoryConnectionOptions,
@@ -34,11 +33,10 @@ validateDocumentContent("redirects", redirectsContent)
 const options = resolvePostgresDataRepositoryConnectionOptions({
   connectionString,
 })
-const sql = postgres(options.connectionString, {
-  max: 1,
-  idle_timeout: options.idleTimeoutSeconds,
-  connect_timeout: options.connectTimeoutSeconds,
-  prepare: false,
+const sql = createPostgresClient(options.connectionString, {
+  maxConnections: 1,
+  idleTimeoutSeconds: options.idleTimeoutSeconds,
+  connectTimeoutSeconds: options.connectTimeoutSeconds,
 })
 const repository = createPostgresDataRepository(options, { sql })
 

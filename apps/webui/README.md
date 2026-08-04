@@ -36,6 +36,18 @@ This project provides two rule-editing modes and a separate settings surface:
 
    Migrations are deliberate external writes. They are never run by the build, startup, health checks, or ordinary requests.
 
+   To use D1 instead, select `provider: "d1"` for the Repository and Analytics Store in [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts). On a host without native D1 bindings, fill the non-sensitive Cloudflare Account and Database IDs in `bootstrapConfig.webui.d1`, then configure `CLOUDFLARE_D1_API_TOKEN` with D1 read/write permission. The bundled migration commands also use these REST credentials:
+
+   ```bash
+   pnpm data:migrate:d1
+   pnpm analytics:migrate:d1
+   ```
+
+   These commands only create or upgrade the selected D1 schemas. They do not
+   copy PostgreSQL documents, revision history, or analytics records into D1.
+
+   A host supplying native bindings may leave the REST identifiers empty, but it must apply the same plugin migration files through its own D1 tooling. Builds and startup never apply them automatically.
+
 3. Create a GitHub OAuth App with callback URL `http(s)://<localhost:3000 or your domain>/api/auth/callback/github`. Configure `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`. The default OAuth scope is `read:user user:email`; Repository permissions are not required by the PostgreSQL control plane.
 
 4. Generate one `I0C_SECRET` value of at least 32 random bytes and configure the same value on the WebUI and every Runtime provider. NextAuth normally infers the request origin; set the optional `NEXTAUTH_URL` override only when a self-hosted proxy does not forward it correctly.
@@ -62,11 +74,11 @@ This project provides two rule-editing modes and a separate settings surface:
 
 ## Data repository
 
-The checked-in deployment selects PostgreSQL through [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) and uses `DATABASE_URL`. A D1-capable WebUI host may select `provider: "d1"` and inject a `D1Database` binding through `configureAppDataRepositoryBinding` before the Repository is first used.
+The checked-in deployment selects PostgreSQL through [../../packages/config/src/defaults.ts](../../packages/config/src/defaults.ts) and uses `DATABASE_URL`. Selecting D1 makes the bundled WebUI use an injected native `D1Database` binding when present, otherwise it connects through Cloudflare's server-side REST API using the configured Account ID, Database ID, and `CLOUDFLARE_D1_API_TOKEN`.
 
 PostgreSQL and D1 are held to the same shared behavior contract. First-run setup creates both documents atomically and refuses partially initialized databases. Confirming a visual rule dialog saves that mutation immediately and creates an immutable revision. GitHub Contents instead advertises manual-save capability, so its editor retains the page-level Save action and local undo/redo. Import validates both JSON files and replaces them atomically, while restore copies an old document into a new head revision instead of rewriting history. Managers can export, import, inspect, and restore revisions from **Settings → Data and history**.
 
-D1 owns independent migrations in [../../plugins/repository/d1/migrations](../../plugins/repository/d1/migrations). Apply them deliberately to the bound database before opening setup. The current Vercel deployment remains on PostgreSQL because Vercel does not provide a native D1 binding.
+D1 owns independent migrations in [../../plugins/repository/d1/migrations](../../plugins/repository/d1/migrations). Run `pnpm data:migrate:d1` deliberately before opening setup. Vercel does not provide a native D1 binding, so the WebUI uses the same Binding-compatible contract through the server-only REST adapter.
 
 The `seed` command remains available for controlled non-interactive migrations, but it is not part of the normal deployment flow:
 
@@ -82,7 +94,7 @@ GitHub Contents and GitHub Raw remain in the workspace as archived build-time al
 
 The deployed analytics feature selects the PostgreSQL Store plugin and does not depend on a vendor-specific database API. A free hosted PostgreSQL database such as [Neon](https://neon.com/pricing) is suitable for a small deployment; [Supabase](https://supabase.com/pricing) can use the same plugin and migrations. Prefer the provider's pooled connection URL when one is available.
 
-The repository also contains a complete D1 Store that passes the same analytics behavior contract with independent migrations. It is a protocol-validation and alternate-host option; the current Vercel WebUI remains on PostgreSQL. A host selecting D1 must inject its D1 binding before the Store is initialized. Select exactly one Store through `data/config.json`; disabling every Store keeps rule editing available while analytics routes report the missing capability.
+The repository also contains a complete D1 Store that passes the same analytics behavior contract with independent migrations. It can use either an injected native binding or the bundled server-side REST adapter. Select exactly one Store through `data/config.json`; the bootstrap Analytics Store choice controls the initial document created by setup. Disabling every Store keeps rule editing available while analytics routes report the missing capability.
 
 1. Create a PostgreSQL database and add these values to the WebUI environment:
 
@@ -96,6 +108,8 @@ The repository also contains a complete D1 Store that passes the same analytics 
    ```bash
    pnpm analytics:migrate
    ```
+
+   When D1 uses the REST adapter, configure `CLOUDFLARE_D1_API_TOKEN` and run `pnpm analytics:migrate:d1`. A native-binding host may use its own D1 migration tooling instead. These commands never run during build or startup.
 
 3. Configure every runtime deployment to send signed events to the WebUI:
 

@@ -7,7 +7,7 @@ i0c.cc is a personal edge redirect playground with a database-backed control pla
 This repository is maintained for personal use and engineering experimentation. It is not intended to be a hosted URL-shortening service or an enterprise redirect platform.
 
 - Deploy whichever Runtime adapter fits the environment; Cloudflare, Vercel, and Netlify are supported alternatives rather than required replicas.
-- Use PostgreSQL by default, or bind Cloudflare D1 on a compatible WebUI host, for immediate saves, immutable history, and rollback; Git remains an archived build-time fallback.
+- Use PostgreSQL by default, or access Cloudflare D1 through a native binding or the server-only REST adapter, for immediate saves, immutable history, and rollback; Git remains an archived build-time fallback.
 - Use the WebUI and analytics when they help the personal workflow; the roadmap prioritizes clarity and reliability over feature parity with commercial products.
 
 ## Projects
@@ -17,6 +17,8 @@ This repository is maintained for personal use and engineering experimentation. 
 | Runtime | [apps/runtime](apps/runtime) | Provider-selectable redirect runtime for Cloudflare Workers, Vercel Edge Functions, and Netlify Edge Functions. |
 | WebUI | [apps/webui](apps/webui) | Next.js management panel for editing `config.json` and `redirects.json`, inspecting plugins, and querying analytics. |
 | Configuration | [packages/config](packages/config) | Bootstrap defaults, both data-document schemas, and validation shared by both applications. |
+| D1 infrastructure | [packages/database-d1](packages/database-d1) | Binding-compatible D1 contract, REST transport, migration mechanics, and test adapter shared by D1 plugins. |
+| PostgreSQL infrastructure | [packages/database-postgres](packages/database-postgres) | PostgreSQL client construction and file-backed migration mechanics shared by PostgreSQL plugins. |
 | Plugin API | [packages/plugin-api](packages/plugin-api) | Stable compile-time manifests, lifecycle contracts, and typed extension boundaries for official plugins. |
 | Plugin SDK | [packages/plugin-sdk](packages/plugin-sdk) | Internal authoring helpers and scaffolding for workspace compile-time plugins. |
 | Plugin Testkit | [packages/plugin-testkit](packages/plugin-testkit) | Shared plugin contracts and dependency-boundary checks. |
@@ -82,7 +84,7 @@ The selected WebUI Repository contains two independently editable documents:
 - `config.json` stores non-sensitive instance settings such as the canonical Runtime origin, cache TTLs, robots policy, analytics namespace and collector endpoint, WebUI access policy, and namespaced plugin configuration.
 - `redirects.json` stores redirect rules.
 
-The PostgreSQL and D1 Repositories implement the same optimistic-revision, atomic-snapshot, immutable-history, import/export, and rollback contract. The checked-in deployment selects PostgreSQL. A D1-capable WebUI host may select D1 and inject its database binding before the Repository is initialized.
+The PostgreSQL and D1 Repositories implement the same optimistic-revision, atomic-snapshot, immutable-history, import/export, and rollback contract. The checked-in deployment selects PostgreSQL. The bundled WebUI can select D1 through either an injected native binding or its server-only Cloudflare REST transport. The REST path keeps D1 Account and Database IDs in bootstrap configuration and the API token in the WebUI environment.
 
 GitHub Contents remains available as an archived build-time fallback that preserves commits on a configured branch, but it is not enabled by the checked-in deployment. The WebUI can edit both documents; invalid `config.json` content remains visible to managers so it can be repaired.
 

@@ -59,6 +59,20 @@ export type RuntimeDataSourceBootstrapConfig =
   | GitHubRuntimeDataSourceBootstrapConfig
   | HttpRuntimeDataSourceBootstrapConfig
 
+export interface D1WebUiBootstrapConfig {
+  accountId: string
+  apiTokenBinding: string
+  databaseIds: {
+    analytics: string
+    dataRepository: string
+  }
+  requestTimeoutMs: number
+}
+
+export interface AnalyticsStoreBootstrapConfig {
+  provider: "d1" | "postgres"
+}
+
 export interface BootstrapConfig {
   data: {
     github: DataSourceTarget
@@ -66,6 +80,8 @@ export interface BootstrapConfig {
     source: RuntimeDataSourceBootstrapConfig
   }
   webui: {
+    analyticsStore: AnalyticsStoreBootstrapConfig
+    d1: D1WebUiBootstrapConfig
     githubOAuthScope: string
   }
 }

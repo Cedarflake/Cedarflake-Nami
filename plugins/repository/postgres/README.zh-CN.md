@@ -4,6 +4,9 @@
 PostgreSQL 文档。它提供乐观并发写入和原子快照读取，同时不让 Runtime
 直接依赖 PostgreSQL。
 
+插件负责文档表结构、事务与领域查询；共用的 PostgreSQL 客户端创建和迁移历史校验位于
+`@i0c/database-postgres`。
+
 ## 前置条件
 
 - PostgreSQL 能够由 `postgres` 客户端连接。

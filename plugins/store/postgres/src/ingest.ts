@@ -1,9 +1,8 @@
-import type { TransactionSql } from "postgres";
-
 import type {
   CanonicalAnalyticsEvent,
   CanonicalAnalyticsLinkEvent,
 } from "@i0c/analytics-domain/events"
+import type { PostgresTransactionSql } from "@i0c/database-postgres"
 
 import { getDatabase } from "./database";
 
@@ -81,7 +80,7 @@ export async function ingestAnalyticsEvent(
 }
 
 async function ingestLinkEvent(
-  transaction: TransactionSql,
+  transaction: PostgresTransactionSql,
   event: CanonicalAnalyticsLinkEvent,
 ): Promise<boolean> {
   await transaction`

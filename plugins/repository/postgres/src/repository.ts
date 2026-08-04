@@ -1,7 +1,5 @@
 import { createHash } from "node:crypto"
 
-import postgres, { type Sql, type TransactionSql } from "postgres"
-
 import {
   DataDocumentNotFoundError,
   DataRepositoryConflictError,
@@ -20,6 +18,11 @@ import {
   type DataRepositoryWriteInput,
   type DataRepositoryWriteResult,
 } from "@i0c/config"
+import {
+  createPostgresClient,
+  type PostgresSql,
+  type PostgresTransactionSql,
+} from "@i0c/database-postgres"
 import type { AtomicVersionedDataRepository } from "@i0c/plugin-api"
 
 import {
@@ -55,10 +58,10 @@ interface TableExistsRow {
   revision_table_exists: boolean
 }
 
-type RepositorySql = Sql | TransactionSql
+type RepositorySql = PostgresSql | PostgresTransactionSql
 
 export interface PostgresDataRepositoryServices {
-  sql?: Sql
+  sql?: PostgresSql
 }
 
 export type PostgresDataRepository = AtomicVersionedDataRepository<
@@ -79,11 +82,10 @@ export function createPostgresDataRepository(
   const options = resolvePostgresDataRepositoryConnectionOptions(
     connectionOptions,
   )
-  const sql = services.sql ?? postgres(options.connectionString, {
-    max: options.maxConnections,
-    idle_timeout: options.idleTimeoutSeconds,
-    connect_timeout: options.connectTimeoutSeconds,
-    prepare: false,
+  const sql = services.sql ?? createPostgresClient(options.connectionString, {
+    maxConnections: options.maxConnections,
+    idleTimeoutSeconds: options.idleTimeoutSeconds,
+    connectTimeoutSeconds: options.connectTimeoutSeconds,
   })
 
   const repository: PostgresDataRepository = {
@@ -177,7 +179,7 @@ export const postgresDataRepositoryPlugin = {
 }
 
 async function writeDocument(
-  sql: Sql,
+  sql: PostgresSql,
   kind: DataDocumentKind,
   input: DataRepositoryWriteInput,
   operation: DataDocumentRevisionOperation,
@@ -232,7 +234,7 @@ async function writeDocument(
 }
 
 async function initializeDocuments(
-  sql: Sql,
+  sql: PostgresSql,
   input: DataRepositoryInitializeInput,
 ): Promise<DataRepositorySnapshot> {
   assertActorGitHubUserId(input.actorGitHubUserId)
@@ -296,7 +298,7 @@ async function initializeDocuments(
 }
 
 async function importSnapshot(
-  sql: Sql,
+  sql: PostgresSql,
   input: DataRepositoryImportInput,
 ): Promise<DataRepositorySnapshot> {
   assertPostgresRevision(input.expectedConfigRevision)
@@ -333,7 +335,7 @@ async function importSnapshot(
 }
 
 async function listRevisions(
-  sql: Sql,
+  sql: PostgresSql,
   input: {
     beforeRevision?: string
     kind: DataDocumentKind
@@ -384,7 +386,7 @@ async function listRevisions(
 }
 
 async function readRevision(
-  sql: Sql,
+  sql: PostgresSql,
   kind: DataDocumentKind,
   revision: string,
 ): Promise<DataDocumentRevision> {
@@ -414,7 +416,7 @@ async function readRevision(
 }
 
 async function restoreRevision(
-  sql: Sql,
+  sql: PostgresSql,
   input: DataRepositoryRestoreInput,
 ): Promise<DataRepositoryWriteResult> {
   assertPostgresRevision(input.revision)
@@ -610,7 +612,7 @@ function normalizeRevision(revision: bigint | number | string): string {
 }
 
 async function readDocument(
-  sql: Sql,
+  sql: PostgresSql,
   kind: DataDocumentKind,
 ): Promise<DataDocument> {
   const [row] = await sql<DataDocumentRow[]>`

@@ -12,6 +12,8 @@ on:
       - i0c.webui.manifests.ts
       - apps/webui/**
       - packages/config/**
+      - packages/database-d1/**
+      - packages/database-postgres/**
       - packages/plugin-api/**
       - packages/plugin-catalog/**
       - packages/plugin-sdk/**
@@ -36,6 +38,8 @@ on:
       - i0c.webui.manifests.ts
       - apps/webui/**
       - packages/config/**
+      - packages/database-d1/**
+      - packages/database-postgres/**
       - packages/plugin-api/**
       - packages/plugin-catalog/**
       - packages/plugin-sdk/**

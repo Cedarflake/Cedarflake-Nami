@@ -36,8 +36,8 @@
   },
   "dependencies": {
     "@i0c/config": "workspace:*",
-    "@i0c/plugin-api": "workspace:*",
-    "postgres": "^3.4.9"
+    "@i0c/database-postgres": "workspace:*",
+    "@i0c/plugin-api": "workspace:*"
   },
   "devDependencies": {
     "@i0c/plugin-testkit": "workspace:*",
