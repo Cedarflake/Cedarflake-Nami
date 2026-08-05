@@ -1,96 +1,50 @@
 ---
 title: About this project
-description: Understand what i0c.cc is, who it serves, and how to prepare a deployment.
+description: Learn the purpose, components, scope, and next steps of i0c.cc.
 ---
 
 # About this project
 
-i0c.cc is a self-hosted edge redirect playground. A normal installation has one WebUI, one database backend, and one Runtime provider. The three Runtime adapters are alternatives; you do not need to deploy all of them.
+i0c.cc is a personal edge redirect experiment that serves Revaea. It combines a database-backed control plane, optional edge Runtimes, optional analytics, and compile-time extensions in one repository.
 
-**Who i0c.cc is for.** It is maintained for personal use and engineering experiments, and currently serves as Revaea's edge redirect infrastructure. It is not a hosted URL-shortening service or an enterprise redirect platform. There is currently no plan to publish its internal plugins or SDK as public packages; extensions remain source-level, compile-time modules within the repository.
+It is not a hosted short-link service or an enterprise redirect platform. Its plugins and SDK serve this workspace and are not planned as public packages. This documentation describes the existing system and the steps required to deploy another instance.
 
-**Who this documentation is for.** It records the architecture, deployment, and operations needed to maintain the project. Other developers who find the implementation useful can also follow it to study, self-deploy, or extend their own instance.
+## Use case
 
-## Prerequisites
+Suppose you want this result:
 
-- Node.js 22
-- Corepack and the pnpm version declared by the repository
-- A GitHub OAuth application for WebUI sign-in
-- PostgreSQL or two Cloudflare D1 databases
-- One supported edge provider: Cloudflare, Vercel, or Netlify
-
-## Install the workspace
-
-```sh
-git clone https://github.com/Revaea/i0c.cc.git
-cd i0c.cc
-corepack enable
-pnpm install --frozen-lockfile
+```text
+https://go.example.com/docs  →  https://docs.example.com
 ```
 
-## Choose the initial topology
+A `/docs` rule created in the WebUI is stored in the database with its revision history. A Runtime deployed at the edge receives public requests for `go.example.com` and returns the redirect or proxy response.
 
-The default checked-in bootstrap configuration uses PostgreSQL for both editable data and analytics, and exposes Runtime snapshots through the WebUI.
+## Main components
 
-For the smallest deployment:
+- **The WebUI** is the management surface. It handles sign-in, rule editing, settings, and analytics.
+- **The database** stores editable state. PostgreSQL is the default, with Cloudflare D1 as an alternative.
+- **The Runtime** handles visitor requests. Cloudflare, Vercel, and Netlify are alternative hosts; a first deployment needs only one.
 
-1. Provision PostgreSQL and configure the WebUI environment locally.
-2. Run `pnpm database:init` to initialize both selected schemas.
-3. Deploy the WebUI.
-4. Deploy one Runtime provider.
-5. Configure the same `I0C_SECRET` on the WebUI and Runtime.
-6. Point your public Runtime domain at that deployment.
+The WebUI turns the stored configuration into a validated snapshot. The Runtime reads that snapshot, so it never needs a database account or connection string.
 
-Choose D1 instead when Cloudflare-managed storage is a better fit. D1 requires separate repository and analytics database IDs.
+## Feature scope
 
-## Configure secrets
+The common uses are straightforward:
 
-Copy the examples into provider-managed environment settings rather than committing local secret files.
+- send one short path such as `/docs` to a full URL;
+- move a whole old path tree such as `/old/*` to a new site;
+- transparently proxy an upstream while the Runtime domain stays in the browser address bar.
 
-WebUI requires:
+Analytics is optional. When enabled, it shows matched requests, estimated human visits, entry domains, and automated traffic without storing IP addresses, full User-Agent strings, full referrer URLs, or raw query parameters.
 
-```dotenv
-DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
-GITHUB_CLIENT_ID="your-client-id"
-GITHUB_CLIENT_SECRET="your-client-secret"
-I0C_SECRET="replace-with-a-32-byte-random-secret"
-```
+## Intended use
 
-Every Runtime deployment requires the matching secret:
+i0c.cc primarily supports Revaea infrastructure and personal engineering experiments. It can also be studied or self-deployed by developers interested in the implementation.
 
-```dotenv
-I0C_SECRET="replace-with-the-same-secret"
-```
-
-When D1 is selected, configure `CLOUDFLARE_D1_API_TOKEN` on the WebUI and fill the non-sensitive D1 account and database IDs in the checked-in bootstrap configuration.
-
-## Initialize storage
-
-After selecting the providers and making their credentials available to the invoking shell, run this once before the first WebUI deployment:
-
-```sh
-pnpm database:init
-```
-
-The command reads the checked-in bootstrap provider choices, initializes the selected data repository first, then the selected analytics store. Re-running it is safe when the schema is already current. It is an explicit external write and is never called by a build or application startup.
-
-## Validate before deployment
-
-Run only the checks for the owner you changed:
-
-```sh
-pnpm config:check
-pnpm plugins:check
-pnpm webui:lint
-pnpm webui:build
-pnpm runtime:build
-```
-
-The aggregate `pnpm check` command runs the full workspace suite. Database initialization, schema updates, and provider deploy commands are explicit operations and are never part of a build.
+Each component must be deployed and configured by its operator. Plugins are selected at build time, and changing database providers does not migrate existing data.
 
 ## Next steps
 
-- [Choose a deployment topology](/deployment/choose-a-topology)
-- [Deploy the WebUI](/deployment/webui)
-- [Deploy a Runtime](/deployment/runtime)
-- [Understand instance configuration](/guide/configuration)
+Read [how it works](/guide/architecture) for the data flow between the WebUI, database, and Runtime.
+
+For deployment, continue with [choose a setup](/deployment/choose-a-topology). It begins with one practical combination without requiring prior knowledge of every provider and plugin.

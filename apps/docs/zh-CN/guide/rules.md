@@ -1,66 +1,94 @@
 ---
-title: 重定向规则
-description: 定义精确重定向、前缀重定向与透明反代规则。
+title: 管理规则
+description: 根据实际 URL 行为选择精确跳转、前缀跳转或透明反代，并在需要时查看原始 JSON。
 ---
 
-# 重定向规则
+# 管理规则
 
-规则位于 `Slots`、`slots` 或兼容旧格式的 `SLOT` 根节点下。路径键可以放入具名分组中便于管理，分组名称不会改变公开路径。
+新建规则时，先别从字段名出发。先问自己：访客打开这个路径后，浏览器地址栏应该发生什么？
+
+## 只跳一个路径：`exact`
+
+`exact` 只匹配填写的完整路径。
+
+```text
+/docs        → 命中
+/docs/setup  → 不命中
+```
+
+它适合普通短链接、活动入口或一个固定旧地址。测试时用 `302` 或 `307`，确定不会再改后再考虑 `301` 或 `308`，避免浏览器长期缓存错误结果。
+
+## 迁移整段路径：`prefix`
+
+`prefix` 会匹配一个路径以及它下面的内容。
+
+例如路径是 `/old`，目标是 `https://new.example.com`，并开启“拼接路径”：
+
+```text
+/old          → https://new.example.com/
+/old/install  → https://new.example.com/install
+```
+
+它适合站点迁移、目录改名和一组结构相同的旧链接。关闭“拼接路径”后，所有命中请求都会去同一个目标地址。
+
+## 地址栏保持不变：`proxy`
+
+`proxy` 让 Runtime 代替浏览器请求上游。访客继续看到公开 Runtime 域名：
+
+```text
+浏览器访问 https://go.example.com/images/a.jpg
+Runtime 请求 https://image.example.com/a.jpg
+```
+
+默认透明反代会保留应用层请求信息，包括方法、请求体、Cookie、Authorization、Origin 和 Referer；逐跳头仍会被移除。上游返回的 `Set-Cookie` 会分别传给浏览器，并按公开代理域名处理 Cookie Domain。
+
+大多数自有服务不需要再填高级选项。上游明确要求固定 Referer、额外请求头、较短超时或特殊跳转行为时，才打开“高级反向代理”。部署平台自己的请求体和执行时间限制仍然优先。
+
+## WebUI 中的几个常用字段
+
+- **路径**必须以 `/` 开头；分组名称只整理界面，不会加到路径前面。
+- **描述**只给管理者看，不参与匹配，也不会发送给访客。
+- **统计 ID**由 WebUI 生成。修改路径或目标时保留它，统计历史才会继续归在同一条规则下。
+- **优先级**只在多条规则可能同时命中时有用，数字越小越先执行。
+- **状态码**只用于跳转规则，`proxy` 不返回跳转状态。
+
+使用数据库保存规则时，弹窗确认后会立即创建新修订。只有改用 GitHub Contents 存储插件后，页面才会恢复暂存、撤销、重做和统一“保存改动”的工作流。
+
+## 需要直接编辑 JSON 时
+
+可视化编辑器已经覆盖日常字段。只有在排查兼容格式、批量检查或使用 GitHub 存储方式时，才有必要打开 JSON 编辑器。
+
+一份简化配置如下：
 
 ```json
 {
   "$schema": "https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json",
   "Slots": {
     "Main": {
-      "/": {
-        "type": "proxy",
-        "target": "https://example.com",
-        "appendPath": true,
-        "description": "主站"
-      },
       "/docs": {
         "type": "exact",
         "target": "https://docs.example.com",
-        "status": 302
+        "status": 302,
+        "description": "项目文档"
+      },
+      "/old": {
+        "type": "prefix",
+        "target": "https://new.example.com",
+        "appendPath": true,
+        "status": 308
+      },
+      "/images": {
+        "type": "proxy",
+        "target": "https://image.example.com",
+        "appendPath": true
       }
     }
   }
 }
 ```
 
-## 规则类型
+`Slots` 下可以使用具名分组，也兼容旧格式的 `slots` 与 `SLOT`。字符串值仍是前缀跳转的简写，但完整对象更适合长期维护，因为它能保存描述、优先级和稳定统计 ID。
 
-| 类型 | 匹配与响应行为 |
-| --- | --- |
-| `exact` | 只匹配完整路径，并返回 HTTP 重定向 |
-| `prefix` | 匹配路径前缀，并返回 HTTP 重定向 |
-| `proxy` | 匹配路径前缀，并把请求转发到单个上游 |
+共享 Schema 会在保存前检查未知字段、目标地址、状态码与反代选项。完整高级字段以 WebUI 表单和 `packages/config/redirects.schema.json` 为准。
 
-字符串值是前缀重定向的简写。需要稳定统计 ID、描述、优先级或反代选项时，建议使用完整对象。
-
-## 通用字段
-
-- `target`：目标 URL。`to` 与 `url` 仍作为别名接受，但三者只能出现一个。
-- `appendPath`：为前缀和反代规则拼接未匹配的路径后缀。
-- `status`：非反代规则返回的重定向状态码。
-- `priority`：多条规则共享基础路径时，数值越小越先执行。
-- `analyticsId`：稳定 UUID，用于在路径或目标变化后保留同一条规则的统计身份。
-- `description`：只在管理界面展示的说明，最多 500 个字符，不影响路由。
-
-## 透明反代默认值
-
-反代规则默认转发请求方法、请求体、Cookie、Authorization、Origin、Referer 和端到端请求头。上游返回的多个 `Set-Cookie` 会分别传回；必要时，其 Domain 会改写为公开 Runtime 主机。
-
-只有上游明确提出要求时，才需要使用高级 `proxyOptions`：
-
-- 设置或删除请求头、响应头；
-- 1–120 秒的上游超时；
-- 最大 100 MB 的应用层请求体限制；
-- 跟随或透传上游跳转，以及最大跳转次数；
-- 改写、保留或移除响应 Cookie Domain。
-
-平台自身限制仍然生效。逐跳头和平台控制头不能作为普通覆盖项安全转发。
-
-## 安全编辑
-
-WebUI 会生成并保留 `analyticsId`。你仍然可以编辑原始 JSON，但替换稳定 ID 会创建新的统计身份。Repository 保存修订前会执行 Schema 校验。
+规则保存后但 Runtime 仍返回旧结果时，先等待规则缓存周期，再按[故障排查](/zh-CN/operations/troubleshooting)检查快照来源和密钥。

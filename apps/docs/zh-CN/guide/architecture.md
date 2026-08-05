@@ -1,69 +1,63 @@
 ---
-title: 架构
-description: 了解控制面、数据面、存储与编译期扩展边界。
+title: 工作原理
+description: 说明规则从 WebUI 写入数据库、生成快照并由 Runtime 处理的完整流程。
 ---
 
-# 架构
+# 工作原理
 
-i0c.cc 把管理和请求处理分开：WebUI 是控制面，Runtime 部署是数据面。
+以下示例用于说明一条规则从保存到生效的过程：
 
 ```text
-浏览器 ──► WebUI ──► 数据 Repository
-                 └──► 统计 Store
-
-访问者 ──► Runtime ──► 上游目标
-                 ├──► WebUI 快照端点
-                 └──► WebUI 统计 Collector
+/docs  →  https://docs.example.com
 ```
 
-## WebUI 控制面
+## 保存规则
 
-Next.js WebUI 负责认证、可视化规则编辑、实例设置、校验、不可变修订、备份与回滚，以及统计查询。只有 WebUI 会接收数据库凭据。
+在 WebUI 中填写路径和目标地址并保存后，WebUI 会先校验内容，再把新版本写入数据库。
 
-默认配置使用 PostgreSQL 同时保存可编辑数据与统计数据。通过 Bootstrap 配置选择后，也可以用 D1 适配器替换任一存储。
+数据库保存的是可以继续编辑的原始数据和修订历史。Runtime 不会直接查询这些表。WebUI 会另外提供一份给 Runtime 使用的快照，其中只有已经通过校验的实例设置和规则。
 
-## Runtime 数据面
+```text
+WebUI 中的编辑
+      ↓
+校验并写入数据库
+      ↓
+生成 Runtime 可以读取的快照
+```
 
-Runtime 读取并缓存已经校验的快照，匹配请求，然后返回重定向或透明反代响应。它不会直接连接 PostgreSQL 或 D1。
+这样做的直接好处是：数据库凭据只放在 WebUI，公开的 Runtime 不需要知道数据库在哪里。
 
-同一个 Host Core 可以与以下任一平台适配器一起构建：
+## 处理访客请求
 
-- Cloudflare Workers
-- Vercel Edge Functions
-- Netlify Edge Functions
+访客打开 `https://go.example.com/docs` 后，请求先到达所选的边缘平台。Runtime 从当前快照中找到 `/docs`，然后返回跳转响应。
 
-你可以只部署一个平台，也可以部署多个相互独立的平台。启用统计后，每个部署都会把实际入口域名和平台记录到同一个统计 Source 中。
+```text
+访客请求 → Runtime → 匹配 /docs → 返回 302 → 浏览器打开目标地址
+```
 
-## 三层配置
+如果规则类型是透明反代，最后一步会变成 Runtime 请求上游并把响应传回浏览器，地址栏仍然停留在 `go.example.com`。
 
-1. **Bootstrap 配置**：选择 WebUI 加载前必须确定的实现，例如 Repository 和统计 Store。
-2. **实例配置**：保存可编辑的 Runtime、统计、访问权限和插件非敏感设置。
-3. **重定向规则**：保存分组与基于路径的路由行为。
+Runtime 会缓存最近一次有效快照。WebUI 或数据库短暂不可用时，已经加载的规则不会立刻消失；下一次刷新失败也不会覆盖这份可用配置。
 
-密钥始终保留在部署环境变量中。实例配置只保存 `I0C_SECRET`、`DATABASE_URL` 之类的绑定名称。
+## 控制面与 Runtime 分离
 
-## 编译期扩展
+WebUI 和 Runtime 面对的是两种不同的工作：
 
-插件通过静态安装和打包进入产物。Host 使用带类型的 Manifest 与 Installation 契约装配数据源、Repository、统计 Store、统计 Sink、Feature 和 Runtime 平台。
+- WebUI 需要登录、数据库连接、表单校验和版本历史；
+- Runtime 需要尽快处理公开请求，而且应该尽量少接触密钥和状态。
 
-这套架构服务于源码级组合与可预测的边缘产物；它不是动态插件市场，也不会在运行时下载远程可执行代码。
+把它们分开后，管理端可以留在普通应用平台，公开请求则可以放到 Cloudflare、Vercel 或 Netlify 的边缘 Runtime。三个 Runtime 适配器解决的是同一个问题，不代表三个都要部署。
 
-## 内置兼容性
+## 统计链路
 
-| 扩展点 | 内置实现 |
-| --- | --- |
-| Runtime 平台 | Cloudflare Workers、Vercel Edge Functions、Netlify Edge Functions |
-| Runtime 数据源 | WebUI HTTP Snapshot、GitHub Raw |
-| WebUI Data Repository | PostgreSQL、Cloudflare D1、GitHub Contents |
-| Analytics Store | PostgreSQL、Cloudflare D1 |
-| 统计投递 | 带签名 HTTP Collector |
-| Runtime Feature | 注重隐私的机器人分类器 |
+启用统计后，Runtime 会把签名后的事件发送到 WebUI 的 Collector，再由 WebUI 写入统计数据库。事件投递失败不会改变当前跳转结果。
 
-D1 插件既可以在兼容 Host 中使用注入的原生 Binding，也可以使用 WebUI 的仅服务端 REST 传输。选择 D1 时，仓库当前的 WebUI 部署使用 REST 路径。
+Runtime 不会上报 IP、完整 User-Agent、目标地址或原始查询参数。页面中的“有效访问”还会排除机器人、链接预览和受控续跳，因此它和“已匹配请求”不会总是相同。
 
-## 故障边界
+## 需要重新部署的修改
 
-- 快照刷新失败时，Runtime 继续使用上一份有效快照。
-- Repository 写入使用乐观版本，拒绝冲突编辑。
-- 数据库初始化与 Schema 更新是显式、带版本的操作。
-- 关闭已经部署的平台适配器会让该 Runtime 不可用，但不会自动删除平台上的部署。
+日常规则和实例设置保存在数据库中，保存后由快照更新，不需要重新构建。
+
+数据库类型、Runtime 快照来源和安装哪些插件都要在应用启动前确定。它们写在仓库的启动配置（Bootstrap config）中，修改后需要重新构建对应应用。真实密钥则留在部署平台的环境变量中，不会写入实例文档。
+
+下一步可以[选择部署组合](/zh-CN/deployment/choose-a-topology)。第一次部署只需要一套最小组合，无需预先了解完整插件架构。

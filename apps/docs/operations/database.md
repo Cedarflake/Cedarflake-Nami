@@ -1,76 +1,56 @@
 ---
-title: Database initialization and schema updates
-description: Initialize selected databases, then apply later schema updates explicitly and safely.
+title: Initialize or update the database
+description: Create tables for a first deployment, then update an existing database only when a release changes its schema.
 ---
 
-# Database initialization and schema updates
+# Initialize or update the database
 
-Database initialization and schema updates are external writes. They never run during `build`, application startup, or validation.
+The database commands are easy to confuse. Use `pnpm database:init` for an empty database during the first deployment. Use the matching `pnpm database:update` only when an existing instance moves to a version that needs another table, column, or index.
 
-Before changing a schema, confirm the selected provider, exact database, current schema version, backup or rollback path, and the application version that will consume the result.
+Neither command moves PostgreSQL data to D1 or the other way around. If you only need to check a connection, use the plugin status page instead of a write command.
+
+Builds and application startup never run these commands automatically. A normal deployment should not change a database before you have confirmed the target.
 
 ## First deployment
 
-After provisioning the selected databases and exposing their credentials to the invoking shell, run:
+Follow [prepare the database](/deployment/databases) to create PostgreSQL, or create separate rules and analytics databases in D1. Once the current shell can read the required credentials, run this from the repository root:
 
 ```sh
 pnpm database:init
 ```
 
-This command reads `bootstrapConfig`, then initializes the selected data repository schema before the selected analytics store schema. A GitHub data repository has no database schema and is skipped. Internally, each provider applies ordered, checksummed schema migrations and does nothing when the schema is already current.
+The command reads the database choices already made in the repository. It prepares the rules-and-settings tables first, followed by analytics. If GitHub stores the rules, that part has no database schema and is skipped.
 
-The command does not discover databases, create D1 databases, transfer data between providers, deploy applications, or run automatically. Review the provider-specific commands below when updating only one store.
+It is safe to run again when the tables are already current. It does not create a cloud database, deploy either application, or copy records between database products.
 
-## PostgreSQL repository
+Open the WebUI after it finishes. An empty database should show **Initialize this deployment**; that screen creates the first instance settings and empty rule set.
 
-Set the PostgreSQL binding configured by `bootstrapConfig.data.repository.databaseUrlBinding` for the intended database. Its checked-in default is `DATABASE_URL`. Then run:
+## Update an existing database
 
-```sh
-pnpm database:update postgres repository
-```
+Update only when the application version actually includes a schema change. Use this order:
 
-This owns the instance configuration, rules, revision, backup, and rollback tables.
+1. confirm the exact database the command will reach;
+2. back it up, or confirm that it contains disposable test data;
+3. check how the old and new application versions relate to the change;
+4. run the one command that matches the database and purpose below;
+5. inspect plugin health, then test the WebUI and analytics queries;
+6. keep the previous deployment and a rollback path until verification is complete.
 
-## PostgreSQL analytics
+| Database | Data it owns | Command |
+| --- | --- | --- |
+| PostgreSQL | Rules, settings, and revisions | `pnpm database:update postgres repository` |
+| PostgreSQL | Analytics events and aggregates | `pnpm database:update postgres analytics` |
+| D1 | Rules, settings, and revisions | `pnpm database:update d1 repository` |
+| D1 | Analytics events and aggregates | `pnpm database:update d1 analytics` |
 
-Set the Analytics Store database binding for the intended database. The bundled PostgreSQL Store defaults to `DATABASE_URL`. Then run:
+PostgreSQL reads its connection from `DATABASE_URL` by default. D1 reads the Account ID and Database IDs from startup configuration, plus `CLOUDFLARE_D1_API_TOKEN` from the server environment.
 
-```sh
-pnpm database:update postgres analytics
-```
+## Why D1 has two commands
 
-The command delegates to `@i0c/plugin-analytics-store-postgres` and owns event, aggregate, retention, and schema history tables.
+D1 uses two independent databases: one for rules and settings, and another for analytics. Each has its own tables and version history. Do not swap their Database IDs, and do not expect updating one to update the other.
 
-## D1 repository
+## What “schema migration” means in the source
 
-Fill `bootstrapConfig.webui.d1.accountId`, the `dataRepository` database ID, and the configured API token binding. Then run:
+The source and database tooling still use **schema migration** for a new table, column, index, or constraint. This guide calls that a database update to distinguish it from moving application data between PostgreSQL and D1.
 
-```sh
-pnpm database:update d1 repository
-```
-
-## D1 analytics
-
-Fill the same account, the separate `analytics` database ID, and the API token binding. Then run:
-
-```sh
-pnpm database:update d1 analytics
-```
-
-## Safe sequence
-
-1. Back up the target or confirm it contains disposable data.
-2. On the first deployment, run `pnpm database:init` before sending production traffic to the WebUI.
-3. On later additive upgrades, deploy code that can tolerate the current schema when appropriate.
-4. Run the initialization command or the exact provider schema-update command against the intended target.
-5. Inspect the schema version and application health.
-6. Deploy or promote the consumer version if it was not deployed first.
-7. Keep the rollback decision and old deployment available until checks pass.
-
-Do not use a schema-update command merely to test whether credentials work. Use the plugin health/status surface or a read-only provider command instead.
-
-Adding a table, column, index, or constraint is a **schema migration** in the implementation. The user-facing operation remains a **schema update** because no application data is being moved between database providers.
-
-## Cross-provider moves
-
-These commands only create or upgrade schemas. Moving rows between PostgreSQL and D1 is a separate **data migration** with its own export, transformation, import, verification, and rollback plan.
+When changing database products, the initialization and update commands only prepare the destination structure. Existing rules, revisions, and analytics need a separate export, conversion, import, verification, and rollback plan.

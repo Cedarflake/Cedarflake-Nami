@@ -14,34 +14,36 @@ const footerMessage = [
 const englishNav = [
   {
     text: "Guide",
-    activeMatch: "^/guide/",
+    activeMatch: "^/guide/(getting-started|architecture|rules|configuration|analytics)",
     items: [
       { text: "About this project", link: "/guide/getting-started" },
-      { text: "Architecture", link: "/guide/architecture" },
-      { text: "Instance configuration", link: "/guide/configuration" },
-      { text: "Redirect rules", link: "/guide/rules" },
+      { text: "How it works", link: "/guide/architecture" },
+      { text: "Manage rules", link: "/guide/rules" },
+      { text: "Instance settings", link: "/guide/configuration" },
+      { text: "Read analytics", link: "/guide/analytics" },
     ],
   },
   {
-    text: "Deployment",
-    activeMatch: "^/deployment/",
+    text: "Deploy",
+    activeMatch: "^/(deployment/|guide/first-rule)",
     items: [
-      { text: "Choose a topology", link: "/deployment/choose-a-topology" },
+      { text: "Choose a setup", link: "/deployment/choose-a-topology" },
+      { text: "Prepare the database", link: "/deployment/databases" },
       { text: "Deploy the WebUI", link: "/deployment/webui" },
       { text: "Deploy a Runtime", link: "/deployment/runtime" },
-      { text: "Choose a database", link: "/deployment/databases" },
+      { text: "Create the first rule", link: "/guide/first-rule" },
     ],
   },
   {
-    text: "Operations",
+    text: "Maintain",
     activeMatch: "^/operations/",
     items: [
-      { text: "Database setup", link: "/operations/database" },
+      { text: "Database updates", link: "/operations/database" },
       { text: "Troubleshooting", link: "/operations/troubleshooting" },
     ],
   },
   {
-    text: "Plugins",
+    text: "Develop",
     activeMatch: "^/plugins/",
     items: [
       { text: "Plugin architecture", link: "/plugins/architecture" },
@@ -64,34 +66,36 @@ const englishNav = [
 const chineseNav = [
   {
     text: "指南",
-    activeMatch: "^/zh-CN/guide/",
+    activeMatch: "^/zh-CN/guide/(getting-started|architecture|rules|configuration|analytics)",
     items: [
       { text: "了解这个项目", link: "/zh-CN/guide/getting-started" },
-      { text: "架构", link: "/zh-CN/guide/architecture" },
-      { text: "实例配置", link: "/zh-CN/guide/configuration" },
-      { text: "重定向规则", link: "/zh-CN/guide/rules" },
+      { text: "它如何工作", link: "/zh-CN/guide/architecture" },
+      { text: "管理规则", link: "/zh-CN/guide/rules" },
+      { text: "实例设置", link: "/zh-CN/guide/configuration" },
+      { text: "查看统计", link: "/zh-CN/guide/analytics" },
     ],
   },
   {
     text: "部署",
-    activeMatch: "^/zh-CN/deployment/",
+    activeMatch: "^/zh-CN/(deployment/|guide/first-rule)",
     items: [
-      { text: "选择部署拓扑", link: "/zh-CN/deployment/choose-a-topology" },
+      { text: "选择部署组合", link: "/zh-CN/deployment/choose-a-topology" },
+      { text: "准备数据库", link: "/zh-CN/deployment/databases" },
       { text: "部署 WebUI", link: "/zh-CN/deployment/webui" },
       { text: "部署 Runtime", link: "/zh-CN/deployment/runtime" },
-      { text: "选择数据库", link: "/zh-CN/deployment/databases" },
+      { text: "创建第一条规则", link: "/zh-CN/guide/first-rule" },
     ],
   },
   {
-    text: "运维",
+    text: "维护",
     activeMatch: "^/zh-CN/operations/",
     items: [
-      { text: "数据库初始化", link: "/zh-CN/operations/database" },
+      { text: "数据库更新", link: "/zh-CN/operations/database" },
       { text: "故障排查", link: "/zh-CN/operations/troubleshooting" },
     ],
   },
   {
-    text: "插件",
+    text: "开发",
     activeMatch: "^/zh-CN/plugins/",
     items: [
       { text: "插件架构", link: "/zh-CN/plugins/architecture" },
@@ -113,32 +117,34 @@ const chineseNav = [
 
 const englishSidebar = [
   {
-    text: "Start here",
+    text: "Start",
     items: [
       { text: "About this project", link: "/guide/getting-started" },
-      { text: "Architecture", link: "/guide/architecture" },
+      { text: "How it works", link: "/guide/architecture" },
     ],
   },
   {
     text: "Deploy",
     items: [
-      { text: "Choose a topology", link: "/deployment/choose-a-topology" },
+      { text: "Choose a setup", link: "/deployment/choose-a-topology" },
+      { text: "Prepare the database", link: "/deployment/databases" },
       { text: "Deploy the WebUI", link: "/deployment/webui" },
       { text: "Deploy a Runtime", link: "/deployment/runtime" },
-      { text: "Choose a database", link: "/deployment/databases" },
+      { text: "Create the first rule", link: "/guide/first-rule" },
     ],
   },
   {
-    text: "Configure and use",
+    text: "Use",
     items: [
-      { text: "Instance configuration", link: "/guide/configuration" },
-      { text: "Redirect rules", link: "/guide/rules" },
+      { text: "Manage rules", link: "/guide/rules" },
+      { text: "Instance settings", link: "/guide/configuration" },
+      { text: "Read analytics", link: "/guide/analytics" },
     ],
   },
   {
-    text: "Operate",
+    text: "Maintain",
     items: [
-      { text: "Database setup", link: "/operations/database" },
+      { text: "Database updates", link: "/operations/database" },
       { text: "Troubleshooting", link: "/operations/troubleshooting" },
     ],
   },
@@ -162,32 +168,34 @@ const englishSidebar = [
 
 const chineseSidebar = [
   {
-    text: "从这里开始",
+    text: "开始",
     items: [
       { text: "了解这个项目", link: "/zh-CN/guide/getting-started" },
-      { text: "架构", link: "/zh-CN/guide/architecture" },
+      { text: "它如何工作", link: "/zh-CN/guide/architecture" },
     ],
   },
   {
     text: "部署",
     items: [
-      { text: "选择部署拓扑", link: "/zh-CN/deployment/choose-a-topology" },
+      { text: "选择部署组合", link: "/zh-CN/deployment/choose-a-topology" },
+      { text: "准备数据库", link: "/zh-CN/deployment/databases" },
       { text: "部署 WebUI", link: "/zh-CN/deployment/webui" },
       { text: "部署 Runtime", link: "/zh-CN/deployment/runtime" },
-      { text: "选择数据库", link: "/zh-CN/deployment/databases" },
+      { text: "创建第一条规则", link: "/zh-CN/guide/first-rule" },
     ],
   },
   {
-    text: "配置与使用",
+    text: "使用",
     items: [
-      { text: "实例配置", link: "/zh-CN/guide/configuration" },
-      { text: "重定向规则", link: "/zh-CN/guide/rules" },
+      { text: "管理规则", link: "/zh-CN/guide/rules" },
+      { text: "实例设置", link: "/zh-CN/guide/configuration" },
+      { text: "查看统计", link: "/zh-CN/guide/analytics" },
     ],
   },
   {
-    text: "运维",
+    text: "维护",
     items: [
-      { text: "数据库初始化", link: "/zh-CN/operations/database" },
+      { text: "数据库更新", link: "/zh-CN/operations/database" },
       { text: "故障排查", link: "/zh-CN/operations/troubleshooting" },
     ],
   },
@@ -211,7 +219,7 @@ const chineseSidebar = [
 
 export default defineConfig({
   title: "i0c.cc Docs",
-  description: "A personal edge redirect playground with a database-backed control plane.",
+  description: "Documentation for the personal edge redirect infrastructure used by Revaea.",
   vite: {
     build: {
       // The workspace esbuild pin rejects Vite 5's equivalent multi-target transform list.

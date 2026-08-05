@@ -1,56 +1,102 @@
 ---
-title: 故障排查
-description: 按所有权边界诊断常见 WebUI、Runtime、统计、OAuth 与存储问题。
+title: 按现象排查问题
+description: 先判断错误来自浏览器、Runtime、WebUI、数据库还是部署平台，再检查对应日志。
 ---
 
-# 故障排查
+# 按现象排查问题
 
-先确定失败边界。Runtime 响应、WebUI API 响应、数据库错误和平台构建错误分别属于不同所有者。
+i0c.cc 的 WebUI、Runtime 和数据库各自部署。遇到错误时，先看当前页面或响应究竟是谁返回的，通常能省掉很多无效重启。
 
-## 首次加载配置返回 500，刷新后正常
+## 先花一分钟确认错误来自哪里
 
-请检查第一次失败的服务端堆栈，不要把刷新当成修复。常见原因包括数据库瞬时连接失败、文件修改后的开发模块过期，或 Repository 初始化竞争。先确认所选 Repository 的健康状态；只有明确任务进程后，才重启对应开发服务器。
+| 看到的现象 | 先检查哪里 |
+| --- | --- |
+| i0c.cc 自己的 404 页面 | 请求已经到达 Runtime，只是没有规则匹配 |
+| Cloudflare、Vercel 或 Netlify 自带的 404 | 域名、项目根目录或平台路由配置 |
+| Runtime 返回 500 或 Bad Gateway | Runtime 日志、快照加载、适配器和反代上游 |
+| WebUI 页面或 `/api/config` 返回 500 | WebUI 服务端日志和数据库连接 |
+| `/api/analytics/events` 返回 401 或 405 | 实例密钥、签名或请求方法 |
+| 浏览器和 `curl` 的结果不同 | 浏览器缓存，尤其是 301/308 永久跳转 |
 
-## `relation ... does not exist`
+先用无痕窗口或一条新的 `curl` 请求复现一次，记下准确 URL、时间和 HTTP 状态。接着查看处理这次请求的那份日志，不要同时重启所有服务。
 
-所选 PostgreSQL 数据库尚未应用归属插件的 Schema 更新，或应用连接了另一数据库。只有在确认准确的 `DATABASE_URL` 目标后，才执行对应 Repository 或统计 Schema 更新。
+## 规则已保存，Runtime 仍显示 404
 
-## D1 提示缺少数据表
+这通常说明 Runtime 还没有读到新快照：
 
-先确认 Repository 与统计 Database ID 没有填反，再对具体插件槽执行 Schema 更新。它们是两个独立数据库，Schema migration 历史也彼此独立。
+1. 确认路径以 `/` 开头，并且匹配类型符合预期；
+2. 等待设置页中的规则缓存时间，默认是 60 秒；
+3. 检查 `bootstrapConfig.data.source.snapshotUrl` 是否指向你自己的 WebUI；
+4. 确认 WebUI 与 Runtime 使用相同的 `I0C_SECRET`；
+5. 查看 Runtime 日志中最近一次快照刷新是否成功。
 
-## Analytics Collector 返回 401
-
-事件签名缺失、过期，或使用了不同的 `I0C_SECRET`。WebUI 与每个 Runtime 必须配置完全相同的值。不要把真实值写进实例配置。
-
-## Analytics Collector 返回 405
-
-端点收到了不支持的 HTTP 方法。Runtime 使用 Collector 预期的带签名 `POST`；在浏览器直接打开会发送 `GET`，不能用于测试事件写入。
-
-## 某个 Runtime 平台没有统计
-
-检查该平台适配器与 HTTP Analytics Sink 是否启用、部署是否包含当前构建、`I0C_SECRET` 是否一致，以及后台投递日志中是否有网络错误。请按实际 `entryDomain` 筛选，不要假设所有平台域名都折叠为同一个标签。
+永久跳转还可能被浏览器缓存。若 `curl -I` 已经正确而浏览器仍跳到旧地址，先换无痕窗口测试。
 
 ## Runtime 返回 500 或 Bad Gateway
 
-检查快照是否成功加载并通过校验、当前平台适配器是否启用，以及反代上游是否失败。关闭适配器不会删除外部服务，只会使已有部署无法正常提供路由。
+先看 Runtime 日志中的第一条实际错误，而不是浏览器里的笼统状态。常见原因有：
 
-## 切换账号后 GitHub OAuth 回调失败
+- 快照无法获取、签名不正确或没有通过校验；
+- 当前平台适配器在实例设置中被停用，但外部部署仍在接收请求；
+- 透明反代的上游拒绝请求、超时或全部候选都失败；
+- 构建产物缺少当前平台需要的模块。
 
-核对回调 URL；测试时只清理本应用自己的 Session；检查 Auth.js 错误，而不是无关的浏览器 Manifest 图标警告。组织 OAuth 限制也可能导致登录成功后仍无法访问仓库。
+停用适配器不会删除 Cloudflare、Vercel 或 Netlify 上的项目。确定不再使用某个平台时，还要单独下线那份部署。
 
-## Vercel 在 pnpm 工作区运行了 `npm install`
+## WebUI 第一次加载返回 500，刷新后正常
 
-应用级 Vercel 项目没有稳定识别仓库根的 `pnpm-lock.yaml` 与 `packageManager` 声明。不要为子应用增加第二份锁文件，也不要在工作区运行 npm。项目 Root Directory 仍保持为 `apps/webui` 或 `apps/docs`；仓库内相应的 `vercel.json` 会明确执行 `corepack pnpm -C ../.. install --frozen-lockfile`，由仓库固定的 pnpm 版本从工作区根安装依赖。
+刷新只能掩盖问题，不能说明第一次失败是正常行为。回到 WebUI 服务端日志，检查第一次请求的堆栈。常见原因是数据库短暂无法连接、开发模式热更新留下了旧模块，或空数据库初始化发生竞争。
 
-## 平台构建成功但部署失败
+如果每次修改代码后都只失败一次，先确认开发服务器是否仍在使用旧构建；如果生产环境也能复现，再检查数据库连接和初始化流程。
 
-构建成功只证明本地输出生成完成。请检查平台报告的 Unsupported Module、Edge Runtime、输出目录和 Root Directory 信息，并先运行平台专用构建命令再修改部署设置。
+## 提示 `relation ... does not exist`
 
-## Bug 报告应包含
+应用连接到的 PostgreSQL 没有对应表，或者连接地址指向了另一个数据库。确认 `DATABASE_URL` 的实际目标后，再按[初始化或更新数据库](/zh-CN/operations/database)运行准确命令。
 
-- 准确路由与部署平台；
-- 当前 Commit 和构建命令；
-- 所选 Repository 与统计 Provider，但不包含凭据；
-- HTTP 状态与相关服务端堆栈；
-- 直接发起全新请求时是否复现，而不只是导航缓存复用后的表现。
+D1 报缺表时，还要确认规则数据库和统计数据库的 Database ID 没有填反。两者需要分别初始化或更新。
+
+## 统计端点返回 401
+
+WebUI 无法验证 Runtime 的事件签名。检查所有部署的 `I0C_SECRET` 是否完全相同，并确认没有把环境变量名称误当成密钥值。密钥轮换后，WebUI 和每个 Runtime 都要一起更新。
+
+## 统计端点返回 405
+
+端点收到了不支持的方法。Runtime 会发送带签名的 `POST`；在浏览器地址栏直接打开端点发送的是 `GET`，因此 405 本身不能证明统计写入有问题。
+
+## 只有某个 Runtime 没有统计
+
+依次检查：
+
+1. 该平台适配器和 HTTP 统计投递插件是否启用；
+2. 外部平台是否已经部署包含这些设置的新版本；
+3. `I0C_SECRET` 是否与 WebUI 一致；
+4. Runtime 后台投递日志是否出现网络或签名错误；
+5. 统计页是否筛选了另一个入口域名。
+
+多个平台共用一个统计来源 ID，但入口域名和平台仍会分开记录。
+
+## 切换 GitHub 账号后登录失败
+
+先看 Auth.js 在 WebUI 服务端记录的具体错误。核对 OAuth App 的回调地址，并只清理当前 i0c.cc 实例自己的 Session。浏览器关于 GitHub Manifest 图标的警告通常与 OAuth 回调无关。
+
+如果需要读取受组织 OAuth 限制保护的仓库，还要在组织设置中允许该 OAuth App；默认数据库控制面只读取用户身份，不需要仓库内容权限。
+
+## Vercel 运行了 `npm install`
+
+这说明应用项目没有稳定识别仓库根的 `pnpm-lock.yaml` 和 `packageManager`。项目根目录仍应设为对应的 `apps/webui` 或 `apps/docs`；仓库内的 `vercel.json` 会从 Workspace 根使用锁定的 pnpm 安装依赖。
+
+不要在子应用再放一份锁文件，也不要为了绕过一次失败改用 npm。若日志只是偶发安装故障，先重试；稳定复现时再检查项目根目录和最新提交是否包含正确的 `vercel.json`。
+
+## 构建成功，部署阶段仍失败
+
+构建成功只说明文件已经生成。继续查看平台报告的 Unsupported Module、Edge Runtime、Output Directory、Root Directory 或路由错误。Runtime 要使用对应平台的专用构建命令，文档站和 WebUI 也要从各自项目根部署。
+
+## 记录问题时带上这些信息
+
+- 出问题的准确 URL 和平台；
+- 当前 Commit 与实际构建命令；
+- PostgreSQL、D1 或 GitHub 中实际选择了哪一种存储，但不要附带凭据；
+- HTTP 状态和处理该请求的服务端错误；
+- 无痕窗口或全新 `curl` 请求能否复现。
+
+这些信息通常已经足够判断问题属于浏览器缓存、Runtime、WebUI、数据库还是部署平台。

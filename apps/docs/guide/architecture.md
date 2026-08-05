@@ -1,69 +1,63 @@
 ---
 title: Architecture
-description: Understand the control plane, data plane, storage, and compile-time extension boundaries.
+description: Learn how a rule moves from the WebUI to the database, snapshot, and Runtime response.
 ---
 
 # Architecture
 
-i0c.cc separates management from request handling. The WebUI is the control plane; a Runtime deployment is the data plane.
+The following example shows how a rule moves from storage to a public response:
 
 ```text
-Browser ──► WebUI ──► Data repository
-                └──► Analytics store
-
-Visitor ──► Runtime ──► Upstream target
-                ├──► WebUI snapshot endpoint
-                └──► WebUI analytics collector
+/docs  →  https://docs.example.com
 ```
 
-## WebUI control plane
+## Saving a rule
 
-The Next.js WebUI owns authentication, visual rule editing, instance settings, validation, immutable revisions, backup and rollback, and analytics queries. It is the only application that receives database credentials.
+You enter the path and destination in the WebUI, then save. The WebUI validates the input before it writes a new revision to the database.
 
-The default setup stores both editable data and analytics in PostgreSQL. D1 adapters can replace either store when selected in the bootstrap configuration.
+The database holds editable documents and their revision history. The Runtime does not query those tables. Instead, the WebUI exposes a separate snapshot containing only validated instance settings and redirect rules.
 
-## Runtime data plane
+```text
+Edit in the WebUI
+        ↓
+Validate and write to the database
+        ↓
+Expose a snapshot the Runtime can read
+```
 
-The Runtime reads a validated snapshot, caches it, matches requests, and produces redirects or transparent proxy responses. It does not connect directly to PostgreSQL or D1.
+The practical result is that database credentials stay with the WebUI. The public Runtime never needs to know where the database lives.
 
-The same host core is built with one of three platform adapters:
+## Handling a visitor request
 
-- Cloudflare Workers
-- Vercel Edge Functions
-- Netlify Edge Functions
+A request for `https://go.example.com/docs` first reaches the selected edge platform. The Runtime finds `/docs` in its current snapshot and returns a redirect response.
 
-Deploy one provider or several independent providers. Each deployment reports its actual entry domain and provider into the same analytics source when analytics is enabled.
+```text
+Visitor → Runtime → match /docs → return 302 → browser opens the destination
+```
 
-## Three configuration layers
+For a transparent proxy rule, the last step changes: the Runtime requests the upstream and passes its response back while `go.example.com` remains in the address bar.
 
-1. **Bootstrap configuration** chooses implementations that must be known before the WebUI can load, such as the repository and analytics store providers.
-2. **Instance configuration** contains editable, non-sensitive Runtime, analytics, access, and plugin settings.
-3. **Redirect rules** contain groups and path-based routing behavior.
+The Runtime caches its last valid snapshot. A brief WebUI or database outage does not immediately remove working rules, and a failed refresh cannot replace the good snapshot with invalid data.
 
-Secrets stay in deployment environment variables. Instance configuration stores only binding names such as `I0C_SECRET` or `DATABASE_URL`.
+## Separating the control plane and Runtime
 
-## Compile-time extensions
+The WebUI and Runtime have different jobs:
 
-Plugins are statically installed and bundled. The host resolves a typed manifest and installation contract for data sources, repositories, analytics stores and sinks, features, and Runtime platforms.
+- the WebUI needs sign-in, database access, form validation, and revision history;
+- the Runtime needs to answer public requests quickly while holding as little state and as few secrets as possible.
 
-This architecture is designed for source-level composition and predictable edge bundles. It is not a dynamic marketplace and does not download remote executable code at runtime.
+Keeping them separate lets the management surface run on a regular application platform while public traffic runs in a Cloudflare, Vercel, or Netlify edge environment. Those three adapters solve the same hosting problem; they are choices, not required replicas.
 
-## Built-in compatibility
+## Analytics flow
 
-| Extension point | Built-in implementations |
-| --- | --- |
-| Runtime platform | Cloudflare Workers, Vercel Edge Functions, Netlify Edge Functions |
-| Runtime data source | WebUI HTTP snapshot, GitHub Raw |
-| WebUI data repository | PostgreSQL, Cloudflare D1, GitHub Contents |
-| Analytics store | PostgreSQL, Cloudflare D1 |
-| Analytics delivery | Signed HTTP collector |
-| Runtime feature | Privacy-safe bot classifier |
+When analytics is enabled, the Runtime sends signed events to the WebUI collector, and the WebUI writes them to the analytics database. A delivery failure does not change the redirect response already being served.
 
-D1 plugins can consume an injected native binding in a compatible host or use the WebUI's server-only REST transport. The checked-in WebUI deployment uses the REST path when D1 is selected.
+Events omit IP addresses, full User-Agent strings, destination URLs, and raw query parameters. “Effective visits” also excludes bots, link previews, and controlled continuation hops, so it will not always equal the matched-request count.
 
-## Failure boundaries
+## Changes that require a rebuild
 
-- The Runtime keeps a last-known-good snapshot when a refresh fails.
-- Repository writes use optimistic revisions to reject conflicting edits.
-- Database initialization and schema updates are explicit, versioned operations.
-- Disabling the adapter for a deployed Runtime makes that provider unavailable; it does not undeploy the provider automatically.
+Everyday rules and instance settings live in the database. Saving them publishes a new snapshot without rebuilding an application.
+
+The database type, Runtime snapshot source, and installed plugins must be known before the application starts. Those choices live in the repository's startup configuration (the bootstrap config) and require a rebuild when changed. Actual secret values remain in the deployment platform's environment settings.
+
+Continue with [choose a setup](/deployment/choose-a-topology). A first deployment only needs one small combination and does not require prior knowledge of the complete plugin architecture.

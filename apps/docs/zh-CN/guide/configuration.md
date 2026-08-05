@@ -1,66 +1,80 @@
 ---
-title: 实例配置
-description: 了解 Bootstrap 选择、可编辑实例设置与密钥绑定。
+title: 实例设置
+description: 按 WebUI 中实际看到的分类管理 Runtime、统计、访问权限、插件和数据历史。
 ---
 
-# 实例配置
+# 实例设置
 
-i0c.cc 有意把应用启动前必须确定的选项，与可以通过 WebUI 编辑的设置分开。
+侧栏底部的**设置**保存当前实例的日常配置。这里的修改写入数据库，并随下一份快照到达 Runtime；不用重新构建应用。
 
-## Bootstrap 配置
+设置页按用途分成几类。
 
-[`packages/config/src/defaults.ts`](https://github.com/Revaea/i0c.cc/blob/main/packages/config/src/defaults.ts) 保存仓库内的 Bootstrap 配置，用于选择：
+## Runtime
 
-- 可编辑数据的 Repository Provider；
-- Runtime 快照数据源；
-- 统计 Store Provider；
-- PostgreSQL 连接限制；
-- D1 Account 与 Database ID；
-- GitHub OAuth Scope。
+这里决定访客面对的公开行为：
 
-切换 Bootstrap Provider 会改变应用所需的依赖，因此需要重新构建并部署。
+- **Runtime 规范地址**用于二维码和界面生成的公开链接；
+- **Robots 策略**决定是否允许遵守规则的爬虫索引；
+- **设置缓存时间**和**规则缓存时间**决定 Runtime 多久检查一次新快照。
 
-## 可编辑实例配置
+缓存越短，保存后的变化越快出现，但 Runtime 会更频繁请求 WebUI。个人实例通常不需要把它们设得很低。排查“规则已经保存但访问还是旧结果”时，先看这里的规则缓存时间。
 
-WebUI 管理由 `packages/config/config.schema.json` 描述的实例文档。
+## 统计
 
-| 区域 | 用途 |
-| --- | --- |
-| `runtime` | 规范域名、Robots 策略与快照缓存时间 |
-| `analytics` | Collector 地址与稳定的 Source ID |
-| `webui.access` | 登录模式、管理员 ID 与黑名单 ID |
-| `plugins` | 启用状态、公开选项与环境变量绑定名称 |
+统计接收端点通常是 WebUI 下的 `/api/analytics/events`。统计来源 ID 则是整套实例共用的基础域名，例如 `i0c.cc`，不是 `cloudflare`、`vercel` 之类的平台名称。
 
-通过 Repository 保存后，Runtime 可以从 WebUI 快照端点获取新配置，不需要重新构建应用。
+多个 Runtime 可以使用同一个来源 ID；统计页会另外记录实际入口域名和运行平台。关闭统计插件后，规则仍能工作，只是不再写入新事件。
 
-## 密钥绑定
+## WebUI 访问
 
-插件声明可以按名称引用环境变量：
+访问模式决定谁能进入控制台：
+
+- **任意已登录 GitHub 用户**：除黑名单外，登录后都可以进入；
+- **仅限管理者**：只有管理者 ID 列表中的账号可以进入；
+- **GitHub 用户只读，管理者可编辑**：普通登录用户只能查看，管理者可以保存，黑名单账号会被拒绝。
+
+这里使用 GitHub 数字用户 ID，因为用户名可以修改。一个 ID 不能同时出现在管理者名单和黑名单中。
+
+## 已安装插件
+
+这个页面列出构建时已经装进 WebUI 或 Runtime 的插件。点开一个插件，可以查看它的用途、当前状态、公开设置和所需环境变量绑定。
+
+“停用”只改变实例配置，不会从外部平台删除部署。尤其是 Runtime 平台适配器：如果对应项目仍在接收流量，停用后它会进入错误兜底。确定以后不再使用某个平台时，还要到平台后台删除或下线那份部署。
+
+设置页不能安装新代码。增加一种新的 Runtime、数据库适配器或功能插件，仍要先把它加入仓库工作区并重新构建。
+
+## 数据与历史
+
+这里可以导出当前设置与规则、导入备份、查看历史修订，或把旧版本恢复成一个新的活动版本。
+
+恢复不会改写原来的历史记录。导入和恢复前，先处理当前未保存的设置或规则，避免把两种修改混在一起。
+
+## 密钥为什么只显示名称
+
+插件设置里保存的是环境变量名称，例如：
 
 ```json
 {
-  "@i0c/analytics-sink-http": {
-    "enabled": true,
-    "version": 1,
-    "secrets": {
-      "writeKey": "I0C_SECRET"
-    }
+  "secrets": {
+    "writeKey": "I0C_SECRET"
   }
 }
 ```
 
-文档保存的是 `I0C_SECRET` 这个名称，而不是密钥值。真实值只应配置在 WebUI 与 Runtime 的部署环境中，并且必须完全一致。
+这句话的意思是“运行时从 `I0C_SECRET` 读取密钥”，而不是把真实密钥存进数据库。密钥值仍然只放在 WebUI、Runtime 或数据库平台的环境设置中。
 
-## 访问模式
+## 哪些选项不在设置页
 
-- `authenticated`：除黑名单外，任意已登录 GitHub 用户都可以使用 WebUI。
-- `allowlist`：只有配置的管理员 ID 可以进入。
-- `public-readonly`：已登录用户可以只读查看，管理员可以编辑；黑名单用户被拒绝。
+有些选择必须在应用读取数据库之前就确定，因此仍留在 `packages/config/src/defaults.ts`：
 
-这里使用 GitHub 数字用户 ID，因为用户名可能变化。
+- 规则与设置由 PostgreSQL、D1 还是 GitHub 保存；
+- Runtime 从 HTTP Snapshot 还是 GitHub Raw 读取数据；
+- 统计写入哪个存储插件；
+- D1 的 Account ID 和 Database ID；
+- GitHub OAuth Scope。
 
-## 校验与修订
+这些选项由应用启动时读取，也就是 Bootstrap 配置；修改后需要重新构建相应应用。真实密钥依然不写进这个文件。
 
-共享 Schema 和已安装插件 Manifest 会在配置被接受前完成校验。Repository 写入携带预期修订号，因此旧编辑器不能静默覆盖较新的改动。
+保存设置时，WebUI 会同时检查共享 Schema 和已安装插件的要求。若页面提示某个字段无效，先修正提示中的具体分类；旧修订号也不能静默覆盖已经被其他页面保存的新版本。
 
-日常编辑请使用 WebUI。`pnpm data:validate` 只校验仓库所配置的本地输入，不会自动获取更新的远程 Git Ref。
+统计页面的日常读法见[查看统计](/zh-CN/guide/analytics)。

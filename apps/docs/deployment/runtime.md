@@ -1,69 +1,93 @@
 ---
 title: Deploy a Runtime
-description: Build and deploy the same redirect host to Cloudflare, Vercel, or Netlify.
+description: Put one Cloudflare, Vercel, or Netlify Runtime in front of public traffic and connect it to the WebUI snapshot.
 ---
 
 # Deploy a Runtime
 
-The Runtime project root is `apps/runtime`. Choose one platform adapter for a normal installation.
+The Runtime is the public entry point. Visitor requests for short links arrive here, not at the WebUI.
 
-## Shared secret
+Choose one of the three providers below. Before starting, finish the WebUI initialization and keep the exact same `I0C_SECRET` available for the Runtime environment.
 
-Every deployment needs only the shared instance secret by default:
+## 1. Point the Runtime at your WebUI snapshot
 
-```dotenv
-I0C_SECRET="the-same-32-character-or-longer-secret-as-the-webui"
+The Runtime must know where to fetch its first snapshot before it is built. Open `packages/config/src/defaults.ts` and change:
+
+```ts
+bootstrapConfig.data.source.snapshotUrl
 ```
 
-Non-sensitive Runtime settings and rules come from the configured snapshot source. Runtime deployments do not need `DATABASE_URL` or D1 credentials.
+to your own WebUI endpoint:
 
-## Cloudflare Workers
+```text
+https://your-webui.example.com/api/runtime/snapshot
+```
 
-The checked-in `wrangler.toml` builds `dist/platforms/cloudflare.js`.
+The checked-in default points to the public i0c.cc instance. A self-hosted Runtime left unchanged would not read the database you just initialized.
+
+Changing the snapshot source requires a Runtime rebuild. Later rule and instance-setting edits made in the WebUI do not.
+
+## 2. Choose one provider
+
+### Cloudflare Workers
+
+Create a Worker project from the complete monorepo checkout. Use `apps/runtime` as the project root. The included `wrangler.toml` specifies:
+
+```text
+Build command: pnpm build:cf
+Entry file: dist/platforms/cloudflare.js
+```
+
+Add `I0C_SECRET` as a Worker secret, then deploy. The equivalent repository-root commands are:
 
 ```sh
 pnpm runtime:build:cf
-pnpm runtime:dev:cf
 pnpm runtime:deploy:cf
 ```
 
-Set `I0C_SECRET` as a Worker secret. The deploy command is an external write and should be run only for the intended Cloudflare account and environment.
+The deploy command writes to the active Wrangler account, so run it only after confirming the intended account and environment.
 
-## Vercel Edge Functions
+### Vercel Edge Functions
 
-Create a Vercel project with `apps/runtime` as its Root Directory. The checked-in configuration uses:
+Create a second Vercel project with `apps/runtime` as its Root Directory. Leave **Include source files outside of the Root Directory in the Build Step** enabled.
+
+`apps/runtime/vercel.json` already declares:
 
 ```text
 Build command: pnpm build:vc
 Output directory: .vercel/output
 ```
 
-Local wrapper commands are also available:
+Add `I0C_SECRET` to the project environment. You can also build and deploy from the repository root with:
 
 ```sh
 pnpm runtime:build:vc
-pnpm runtime:dev:vc
 pnpm runtime:deploy:vc
 ```
 
-## Netlify Edge Functions
+### Netlify Edge Functions
 
-Create a Netlify site with `apps/runtime` as its Base directory. `netlify.toml` runs `pnpm build:nf`, publishes `dist`, and maps the generated edge function to `/*`.
+Create a Netlify Site with `apps/runtime` as the Base directory. The included `netlify.toml` runs `pnpm build:nf` and maps the generated Edge Function to every path.
+
+Add `I0C_SECRET` to the Site environment. The matching repository-root commands are:
 
 ```sh
 pnpm runtime:build:nf
-pnpm runtime:dev:nf
 pnpm runtime:deploy:nf
 ```
 
-## Domains and analytics
+## 3. Bind the public domain
 
-Configure each public hostname at the provider. Runtime analytics uses the actual request hostname as `entryDomain`, while `sourceId` identifies the whole i0c.cc instance. Multiple domains therefore remain filterable without splitting one instance into unrelated sources.
+Attach the planned `go.example.com` domain to this Runtime deployment. Do not point it at the WebUI.
 
-## Other platforms
+With an empty rule set, opening the domain should show the i0c.cc 404 page. That is a useful result: DNS, the provider deployment, and the Runtime handler are connected, but no rule matches the path yet.
 
-Cloudflare, Vercel, and Netlify are the built-in adapters, not a closed platform list. You can implement another provider as a `runtime-platform` plugin, register it at build time, and keep provider-specific APIs outside the shared redirect handler. See [Write an adapter](/plugins/adapters#add-a-runtime-platform).
+If you see the provider's own 404, a 500, or Bad Gateway instead, check the project root, provider build command, `I0C_SECRET`, and snapshot URL first.
 
-## Failure behavior
+<!-- Real screenshot needed: one successfully deployed Runtime provider showing the domain and environment setting location, without a secret value. -->
 
-The Runtime validates new snapshots before accepting them and retains its last-known-good configuration when refreshes fail. If the platform adapter itself is disabled in instance configuration, a still-deployed provider cannot serve routing normally; remove unused provider deployments separately when they are no longer wanted.
+## 4. Check the instance settings
+
+Back in the WebUI settings, confirm that the canonical Runtime URL is the HTTPS domain you just attached and that the provider you actually deployed is enabled. Disabling an adapter while its external deployment still exists sends that deployment into its error fallback; it does not delete the provider project for you.
+
+The Runtime is ready. Continue with [create the first rule](/guide/first-rule) and turn that initial 404 into a real redirect.

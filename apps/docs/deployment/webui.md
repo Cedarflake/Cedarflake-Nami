@@ -1,67 +1,88 @@
 ---
 title: Deploy the WebUI
-description: Deploy the Next.js control plane and configure authentication, storage, and the shared instance secret.
+description: Configure GitHub sign-in and database access, deploy the management surface, and complete its first-run setup.
 ---
 
 # Deploy the WebUI
 
-The WebUI project root is `apps/webui`. It is a Next.js application and the repository includes a Vercel build configuration.
+The WebUI is the application you will open for everyday management. It owns sign-in, rule editing, instance settings, revision history, and analytics. It is also the only application that needs database credentials.
 
-## Required environment variables
+Before starting, [prepare the database](/deployment/databases) and decide which HTTPS domain the WebUI will use. The steps below use Vercel because the repository already includes its build configuration.
 
-```dotenv
-DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
-GITHUB_CLIENT_ID="your-client-id"
-GITHUB_CLIENT_SECRET="your-client-secret"
-I0C_SECRET="replace-with-a-32-byte-random-secret"
-```
+## 1. Create a GitHub OAuth App
 
-`NEXTAUTH_URL` is an optional compatibility override when the deployment URL cannot be inferred. Do not configure it by habit.
-
-For the D1 REST adapter and D1 schema-update commands, also configure:
-
-```dotenv
-CLOUDFLARE_D1_API_TOKEN="your-d1-read-write-api-token"
-```
-
-## GitHub OAuth
-
-Create a GitHub OAuth application for the WebUI origin. Use the deployment's Auth.js callback URL:
+Create an OAuth App in GitHub Developer settings. Use the WebUI address as the Homepage URL and this exact callback shape:
 
 ```text
 https://your-webui.example.com/api/auth/callback/github
 ```
 
-The WebUI uses the checked-in OAuth scope and numeric GitHub IDs from instance access settings. If an organization restricts third-party OAuth applications, authorize the OAuth application for that organization before expecting repository access.
+Save the Client ID and generate a Client Secret. The default database-backed control plane only reads GitHub identity and does not need repository permissions.
 
-## Vercel project settings
+If the WebUI must access resources in an organization that restricts OAuth Apps, allow this App in the organization's settings as well.
 
-- Repository: `Revaea/i0c.cc` or your fork
-- Root Directory: `apps/webui`
-- Install command: `corepack pnpm -C ../.. install --frozen-lockfile`
-- Build command: `corepack pnpm build`
-- Framework: Next.js
+## 2. Create the instance secret
 
-The checked-in `vercel.json` overrides Vercel's install and build detection. It asks Corepack to use the repository's pinned pnpm version and installs the monorepo workspace from the repository root. Keep all secrets in the Vercel project environment.
-
-## Initialize storage
-
-Before the first WebUI deployment, expose the selected database credentials to the invoking shell and run:
+The WebUI and every Runtime must share one `I0C_SECRET`. Generate one with Node.js:
 
 ```sh
-pnpm database:init
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-This initializes the selected repository and analytics schemas in order. Run it before production traffic reaches the WebUI. Builds and application startup do not migrate databases.
+Keep the result. It should be at least 32 characters, must never be committed, and must match exactly across the WebUI and Runtime environments.
 
-See [Database initialization and schema updates](/operations/database) for provider-specific commands and upgrade safety.
+## 3. Create the Vercel project
 
-## Post-deployment checks
+Connect your i0c.cc repository or fork and use these project settings:
 
-1. Open the sign-in page without credentials embedded in the URL.
-2. Sign in with a configured manager account.
-3. Confirm settings and rules load from the selected repository.
-4. Request `/api/runtime/snapshot` with the Runtime authentication contract.
-5. Confirm the analytics collector rejects unsigned or incorrectly signed events.
+```text
+Root Directory: apps/webui
+Framework Preset: Next.js
+```
 
-Do not treat a successful Next.js build as proof that OAuth, storage, or the public deployment is healthy.
+Leave **Include source files outside of the Root Directory in the Build Step** enabled. The WebUI imports shared workspace packages from the rest of the monorepo.
+
+`apps/webui/vercel.json` already pins the pnpm install and build commands, so you do not need to copy them into the Vercel dashboard.
+
+## 4. Add environment variables
+
+The default PostgreSQL deployment needs:
+
+```dotenv
+DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
+GITHUB_CLIENT_ID="your-client-id"
+GITHUB_CLIENT_SECRET="your-client-secret"
+I0C_SECRET="the-secret-generated-above"
+```
+
+Add this when using D1:
+
+```dotenv
+CLOUDFLARE_D1_API_TOKEN="your-d1-read-write-api-token"
+```
+
+Auth.js normally infers the public URL from the request. Use `NEXTAUTH_URL` only when a self-hosted proxy does not forward that information correctly; it is not a routine requirement.
+
+## 5. Deploy and initialize the instance
+
+Open the deployed WebUI and sign in with GitHub. An empty database sends you to “Initialize this deployment” instead of the rule list.
+
+The form asks for:
+
+- the same instance secret you set in the environment;
+- the public WebUI URL;
+- the public URL you plan to give the Runtime;
+- the Runtime platform you are actually deploying;
+- whether analytics should be enabled and which base domain identifies the source.
+
+After confirmation, the WebUI atomically creates the first instance settings document and an empty rule set. The current GitHub account becomes the first manager.
+
+<!-- Real screenshot needed: WebUI first-run form with the secret and account details redacted. -->
+
+## How to tell it is ready
+
+Initialization should take you to the rules page, where the sidebar shows an empty rule group and the settings page opens normally. Refresh the browser: if the same state returns, the WebUI is reading from the database rather than showing temporary client state.
+
+If the page reports missing tables or asks for database structure setup, return to [prepare the database](/deployment/databases) and check `pnpm database:init` and the environment values.
+
+Next, [deploy a Runtime](/deployment/runtime). The WebUI does not serve public short links by itself.

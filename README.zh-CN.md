@@ -55,10 +55,12 @@ pnpm database:init
 ## 文档
 
 - [了解这个项目](apps/docs/zh-CN/guide/getting-started.md)
-- [架构](apps/docs/zh-CN/guide/architecture.md)
-- [选择部署拓扑](apps/docs/zh-CN/deployment/choose-a-topology.md)
+- [它如何工作](apps/docs/zh-CN/guide/architecture.md)
+- [选择部署组合](apps/docs/zh-CN/deployment/choose-a-topology.md)
+- [创建第一条规则](apps/docs/zh-CN/guide/first-rule.md)
+- [查看统计](apps/docs/zh-CN/guide/analytics.md)
 - [数据库初始化与 Schema 更新](apps/docs/zh-CN/operations/database.md)
-- [统计架构与口径](apps/docs/zh-CN/reference/analytics.md)
+- [统计口径参考](apps/docs/zh-CN/reference/analytics.md)
 - [编译期插件架构](apps/docs/zh-CN/plugins/architecture.md)
 - [命令索引](apps/docs/zh-CN/reference/commands.md)
 - [Runtime 包文档](apps/runtime/README.zh-CN.md)

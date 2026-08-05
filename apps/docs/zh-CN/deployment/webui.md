@@ -1,67 +1,88 @@
 ---
 title: 部署 WebUI
-description: 部署 Next.js 控制面，并配置认证、存储和共享实例密钥。
+description: 配置 GitHub 登录和数据库连接，把管理界面部署起来并完成首次初始化。
 ---
 
 # 部署 WebUI
 
-WebUI 项目根目录为 `apps/webui`。它是 Next.js 应用，仓库已经包含 Vercel 构建配置。
+WebUI 是你平时真正会打开的管理界面。它负责登录、规则编辑、实例设置、修订历史和统计，也是唯一需要数据库凭据的应用。
 
-## 必填环境变量
+开始前，请先完成[数据库准备](/zh-CN/deployment/databases)，并确定 WebUI 将使用的 HTTPS 域名。下面以 Vercel 为例，因为仓库已经为它准备了构建配置。
 
-```dotenv
-DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
-GITHUB_CLIENT_ID="your-client-id"
-GITHUB_CLIENT_SECRET="your-client-secret"
-I0C_SECRET="replace-with-a-32-byte-random-secret"
-```
+## 1. 创建 GitHub OAuth App
 
-只有部署地址无法自动推断时，才需要用 `NEXTAUTH_URL` 做兼容覆盖，不要习惯性配置它。
-
-使用 D1 REST 适配器或 D1 Schema 更新命令时，还需要：
-
-```dotenv
-CLOUDFLARE_D1_API_TOKEN="your-d1-read-write-api-token"
-```
-
-## GitHub OAuth
-
-为 WebUI 域名创建 GitHub OAuth Application，并把 Auth.js 回调地址配置为：
+在 GitHub 的 Developer settings 中创建 OAuth App。Homepage URL 填 WebUI 地址，Authorization callback URL 必须是：
 
 ```text
 https://your-webui.example.com/api/auth/callback/github
 ```
 
-WebUI 使用仓库内配置的 OAuth Scope，以及实例访问设置中的 GitHub 数字 ID。如果组织限制第三方 OAuth App，需要先在组织中授权这个 OAuth Application，才能访问相应资源。
+创建后保存 Client ID，并生成 Client Secret。默认数据库控制面只需要读取 GitHub 用户身份，不需要访问仓库内容的权限。
 
-## Vercel 项目设置
+如果 WebUI 需要读取 Revaea 等启用了 OAuth App 限制的组织资源，还要在组织设置中允许这个 App。
 
-- Repository：`Revaea/i0c.cc` 或你的 Fork
-- Root Directory：`apps/webui`
-- Install command：`corepack pnpm -C ../.. install --frozen-lockfile`
-- Build command：`corepack pnpm build`
-- Framework：Next.js
+## 2. 准备实例密钥
 
-仓库内的 `vercel.json` 会覆盖 Vercel 自动探测的安装和构建命令，要求 Corepack 使用仓库固定的 pnpm 版本，并从仓库根安装 Monorepo 工作区。所有密钥都应保存在 Vercel 项目环境中。
-
-## 初始化存储
-
-首次部署 WebUI 前，让执行命令的 Shell 能读取所选数据库凭据，然后运行：
+WebUI 和所有 Runtime 要使用同一个 `I0C_SECRET`。可以用 Node.js 生成：
 
 ```sh
-pnpm database:init
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-该命令会按顺序初始化所选 Repository 与 Analytics Schema。请在生产流量进入 WebUI 前完成。构建和应用启动都不会自动初始化或更新数据库 Schema。
+保存生成结果。它至少应有 32 个字符，不要提交到仓库，也不要把 WebUI 和 Runtime 配成不同值。
 
-Provider 专用命令和升级安全顺序见[数据库初始化与 Schema 更新](/zh-CN/operations/database)。
+## 3. 创建 Vercel 项目
 
-## 部署后检查
+连接你的 i0c.cc 仓库或 Fork，并使用这些项目设置：
 
-1. 在 URL 不携带凭据的情况下打开登录页。
-2. 使用配置的管理员账号登录。
-3. 确认设置与规则来自选中的 Repository。
-4. 按 Runtime 认证契约请求 `/api/runtime/snapshot`。
-5. 确认 Collector 会拒绝未签名或签名错误的统计事件。
+```text
+Root Directory: apps/webui
+Framework Preset: Next.js
+```
 
-Next.js 构建成功不等于 OAuth、存储或公开部署已经正常。
+保持开启 **Include source files outside of the Root Directory in the Build Step**，否则 WebUI 无法读取仓库中的共享 Workspace 包。
+
+`apps/webui/vercel.json` 已经固定 pnpm 安装与构建命令，不需要在 Vercel 后台重新抄一遍。
+
+## 4. 配置环境变量
+
+PostgreSQL 默认部署需要：
+
+```dotenv
+DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
+GITHUB_CLIENT_ID="your-client-id"
+GITHUB_CLIENT_SECRET="your-client-secret"
+I0C_SECRET="the-secret-generated-above"
+```
+
+如果选择 D1，再加入：
+
+```dotenv
+CLOUDFLARE_D1_API_TOKEN="your-d1-read-write-api-token"
+```
+
+Auth.js 通常能从请求判断公开地址。只有反向代理没有正确转发地址时，才用 `NEXTAUTH_URL` 覆盖；不要把它当成每次部署都必须填写的变量。
+
+## 5. 部署并完成首次初始化
+
+部署成功后打开 WebUI，用 GitHub 登录。空数据库会把你带到“初始化此部署”页面，而不是规则列表。
+
+这里需要填写：
+
+- 与环境变量相同的实例密钥；
+- WebUI 的公开地址；
+- 准备绑定给 Runtime 的公开地址；
+- 实际准备部署的 Runtime 平台；
+- 是否启用统计，以及统计使用的基础域名。
+
+确认后，WebUI 会原子创建首份实例设置和空规则集。当前 GitHub 账号会成为第一位管理员。
+
+<!-- 需要真实截图：WebUI 首次初始化页面，遮蔽实例密钥和账号信息。 -->
+
+## 怎么判断 WebUI 已经就绪
+
+初始化完成后，应该能进入规则页面，侧栏显示空的规则分组，并能打开设置页面。刷新浏览器后仍能读取相同内容，说明 WebUI 已经在使用数据库，而不是只显示本地状态。
+
+如果页面提示缺少表或需要设置数据库结构，回到[准备数据库](/zh-CN/deployment/databases)重新检查 `pnpm database:init` 与环境变量。
+
+下一步是[部署 Runtime](/zh-CN/deployment/runtime)。WebUI 自己不会处理公开短链接。
