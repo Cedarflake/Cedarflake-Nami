@@ -55,10 +55,12 @@ Run `pnpm check` for the full workspace suite, or use the owner-specific command
 ## Documentation
 
 - [About this project](apps/docs/guide/getting-started.md)
-- [Architecture](apps/docs/guide/architecture.md)
-- [Choose a deployment topology](apps/docs/deployment/choose-a-topology.md)
+- [How it works](apps/docs/guide/architecture.md)
+- [Choose a setup](apps/docs/deployment/choose-a-topology.md)
+- [Create the first rule](apps/docs/guide/first-rule.md)
+- [Read analytics](apps/docs/guide/analytics.md)
 - [Database initialization and schema updates](apps/docs/operations/database.md)
-- [Analytics architecture and semantics](apps/docs/reference/analytics.md)
+- [Analytics semantics reference](apps/docs/reference/analytics.md)
 - [Compile-time plugin architecture](apps/docs/plugins/architecture.md)
 - [Command reference](apps/docs/reference/commands.md)
 - [Runtime package documentation](apps/runtime/README.md)

@@ -5,7 +5,18 @@ description: Find the repository-owned pnpm command for development, validation,
 
 # Commands
 
-Run workspace commands from the repository root with the pnpm version declared in `package.json`.
+This page is a lookup table. Run every command from the repository root with the pnpm version pinned by `package.json`. Common entry points come first; use the application sections when the command is not there.
+
+| Task | Command |
+| --- | --- |
+| Start WebUI development | `pnpm webui:dev` |
+| Start the documentation site | `pnpm docs:dev` |
+| Check a documentation change | `pnpm docs:check` |
+| Check the complete workspace serially | `pnpm check` |
+| Initialize a first-deployment database | `pnpm database:init` |
+| Build all three Runtime platforms | `pnpm runtime:build` |
+
+A command containing `deploy` writes to an external provider. Do not use one as a build or validation command.
 
 ## Repository checks
 
@@ -40,7 +51,7 @@ Run workspace commands from the repository root with the pnpm version declared i
 | `pnpm runtime:dev:vc` | Start Vercel development tools |
 | `pnpm runtime:dev:nf` | Start Netlify development tools |
 
-`runtime:deploy:cf`, `runtime:deploy:vc`, and `runtime:deploy:nf` write to external providers. They are not validation commands.
+`runtime:deploy:cf`, `runtime:deploy:vc`, and `runtime:deploy:nf` write to external providers. Confirm the signed-in account and target environment before running one.
 
 ## Database initialization and schema updates
 

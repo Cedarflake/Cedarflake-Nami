@@ -1,21 +1,141 @@
-# Analytics architecture and semantics
+---
+title: Analytics semantics
+description: Look up the exact meaning of analytics values, time ranges, attribution, sampling, and retention.
+---
 
-This document defines the Analytics V2 contract shared by the edge Runtime, the WebUI collector, and the selected analytics store. PostgreSQL and Cloudflare D1 implement the same store contract; Neon works through its standard PostgreSQL connection string and needs no vendor-specific API.
+# Analytics semantics
 
-## System boundary
+The two easiest things to misread are observed versus estimated traffic, followed by the boundary between a rolling day and a calendar day. Use [read analytics](/guide/analytics) for the normal UI; come here when you need the exact field or calculation.
 
-The Runtime and WebUI remain independent deployments:
+## Values that are easy to confuse
 
-1. A Runtime instance handles a redirect, proxy, or unmatched request.
-2. It builds a privacy-bounded event, signs the exact JSON body, and posts it to `https://u.i0c.cc/api/analytics/events`.
-3. The WebUI collector verifies the signature and timestamp, validates the event contract, and writes through the selected analytics store.
-4. Authenticated WebUI pages query aggregate tables for presentation.
+| UI label | Meaning |
+| --- | --- |
+| Matched requests | Rule-match events actually received and stored from the Runtime |
+| Effective visits | Estimated human entry navigations after bots, previews, and controlled continuation hops are excluded |
+| Entry requests | Matched requests excluding verified internal continuation hops |
+| Observed samples | Sampled events actually received by the database |
+| Estimated requests | `observed samples ÷ sample rate`, used for unmatched and system traffic |
+| All entry domains | The sum of recognized domains and `unknown` in the current analytics source |
 
-The Runtime never connects to PostgreSQL or D1. Collector delivery is best effort and uses each provider's background execution mechanism. A collector or database failure is logged but never changes the redirect response. There is currently no delivery retry queue, so an event can be lost when the collector or network is unavailable.
+An estimate never replaces its observed value. Automation views lead with the number of rows actually received and show extrapolation as secondary context.
 
-## Configuration
+## How data reaches a chart
 
-The collector endpoint and source namespace are versioned in `data/config.json`:
+1. the Runtime finishes a redirect, proxy, or unmatched request;
+2. it extracts a limited set of fields and signs the event with `I0C_SECRET`;
+3. the WebUI collector verifies the signature, time, and body, then writes through the selected analytics store;
+4. an authenticated WebUI query reads aggregates or retained raw events.
+
+The Runtime never connects to PostgreSQL or D1. Delivery is best effort through the provider's background-work mechanism. If the collector or database is unavailable, the redirect still completes, but that event may be lost. There is currently no durable retry queue.
+
+## Time ranges and previous periods
+
+- **1 day** is a rolling 24-hour window shown in hourly points;
+- **7, 30, and 90 days** use calendar days in the browser device's IANA timezone;
+- chart labels, tooltips, and query boundaries use the same device timezone;
+- the previous period is the equally long interval immediately before the current range.
+
+Hourly and daily aggregates remain stored in UTC. Queries whose date boundaries depend on the device timezone use retained raw events within the 181-day window so cards, trends, and dimensions cover the same interval.
+
+When the previous value is zero and the current value is positive, the UI reports no previous-period requests instead of calculating a meaningless percentage. Two zero periods are shown as unchanged.
+
+## Events that are recorded
+
+Analytics V2 has two event types:
+
+- `link`: a successful redirect or proxy rule match with `sampleRate = 1`;
+- `runtime`: an unmatched or system result with `sampleRate = 0.1`.
+
+Runtime results include `not_found`, `proxy_exhausted`, `config_unavailable`, and `internal_error`. Successful `favicon.ico`, `robots.txt`, and `sitemap.xml` responses do not emit analytics.
+
+When a proxy races several candidates, only the final successful candidate emits the matched event. Failed candidates are not counted separately. A browser may cache a permanent redirect; later navigation that bypasses the Runtime cannot produce another event.
+
+## Entry domain and provider
+
+`entryDomain` and `provider` look related but record different things:
+
+- `entryDomain`: the Runtime hostname requested by the visitor;
+- `provider`: the platform adapter that handled it, such as `cloudflare`, `vercel`, or `netlify`.
+
+`analytics.sourceId` is both the analytics namespace and its allowed base domain. With `i0c.cc`, the apex and subdomains can appear separately; a host outside that namespace becomes `unknown`.
+
+The public instance currently uses:
+
+| Entry domain | Provider |
+| --- | --- |
+| `i0c.cc`, `www.i0c.cc`, `api.i0c.cc` | Cloudflare |
+| `vc.i0c.cc` | Vercel |
+| `nf.i0c.cc` | Netlify |
+
+`u.i0c.cc` hosts the WebUI and collector, not a Runtime. Entry-domain filtering applies to totals, trends, popular routes, referrers, providers, and automation views together.
+
+## Referrers, campaigns, and short-link chains
+
+The UI keeps these three sources separate.
+
+### Browser referrer
+
+`referrerDomain` stores only the hostname parsed from the browser's `Referer`. A missing header, `noreferrer`, invalid value, or non-HTTP(S) source becomes `direct`. The Runtime never guesses from the redirect target.
+
+QR codes, pasted links, and many multi-hop redirects therefore appear as `direct`. That reflects the information available from the browser rather than a lost known source.
+
+### Explicit campaign
+
+An authenticated client can create a signed campaign URL with `POST /api/analytics/campaigns`:
+
+```json
+{
+  "url": "https://i0c.cc/r",
+  "analyticsId": "the-rule-analytics-id",
+  "campaignId": "docs-launch",
+  "expiresInDays": 30
+}
+```
+
+The `_i0c_via` value binds the analytics source, rule ID, hostname, path, and expiry for at most 365 days. After verification, the Runtime removes it and uses a short-lived secure cookie for the parameter-free request. An invalid token is removed but never recorded as a valid campaign.
+
+### Controlled short-link chain
+
+When short link A redirects to B inside the same analytics namespace, A adds a signed upstream token valid for two minutes. B verifies and removes it before matching, and the store claims each upstream event only once.
+
+For A → B → C:
+
+- all three rules receive their own matched event;
+- only A is an entry request;
+- B records A as its internal source, and C records B.
+
+This does not depend on browser referrers, and the token is not attached to a non-HTTPS target or one outside the source namespace.
+
+## Bots and unmatched traffic
+
+These classifications describe signals in a request; they do not prove a visitor's identity:
+
+- `declared_bot`: a User-Agent clearly matches a known crawler, preview, or monitor;
+- `suspected_automation`: an automated client, scanner, or suspicious path pattern was detected;
+- `browser_like`: browser navigation signals are present;
+- `unknown`: there is not enough evidence.
+
+WordPress probes, environment files, admin paths, version-control metadata, and traversal attempts are classified locally by the Runtime. The collector receives a category, not the original unmatched path or full User-Agent.
+
+Unmatched and system events are sampled at 10%, so the UI shows both observed samples and estimated requests. `suspected_automation` means “looks automated to this classifier,” not “confirmed bot.”
+
+## Data that is not stored
+
+Analytics events do not contain:
+
+- IP addresses;
+- full User-Agent strings;
+- full referrer URLs;
+- raw query parameters;
+- redirect or proxy targets;
+- original unmatched paths.
+
+A matched event contains the configured rule path and stable analytics ID. Hostnames, identifiers, enums, body sizes, timestamps, and token lifetimes are validated before insertion. The collector accepts only the configured source ID, and signed requests have a five-minute acceptance window.
+
+## Configuration and secrets
+
+Instance settings hold the collector URL and source ID:
 
 ```json
 {
@@ -26,192 +146,31 @@ The collector endpoint and source namespace are versioned in `data/config.json`:
 }
 ```
 
-Configure every Runtime deployment with the shared signing secret:
+The WebUI and every Runtime share one `I0C_SECRET`. PostgreSQL analytics also needs `DATABASE_URL`; D1 uses Account and Database IDs from startup configuration plus the server-only `CLOUDFLARE_D1_API_TOKEN`.
 
-```dotenv
-I0C_SECRET="replace-with-a-32-byte-random-secret"
-```
+Rotating `I0C_SECRET` invalidates existing WebUI sessions and requires every Runtime to be redeployed. Mixing old and new values breaks snapshot authentication, analytics delivery, and short-link attribution.
 
-Configure the WebUI deployment with the matching secret. The default PostgreSQL store also requires `DATABASE_URL`; D1 uses its server-only API token and bootstrap identifiers instead.
+## Database structure and retention
 
-```dotenv
-DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
-I0C_SECRET="the-same-value-as-every-Runtime"
-```
+PostgreSQL and D1 implement the same analytics-store contract and query semantics. Each keeps an ordered, checksummed schema history; builds, startup, and normal requests never update tables automatically.
 
-The Runtime and WebUI do not read the former non-sensitive analytics environment variables. Values left in provider dashboards are ignored; edit the validated remote `config.json` to change them without rebuilding the applications.
+Update an existing analytics database with:
 
-`I0C_SECRET` is the single instance secret shared by the WebUI and every Runtime provider. It signs WebUI sessions, setup authorization, analytics delivery, and attribution data. Rotating it invalidates existing WebUI sessions and requires redeploying every Runtime.
-
-`analytics.sourceId` is both the logical statistics namespace and its base hostname. It is normalized to lowercase. With `i0c.cc`, events may report `i0c.cc` or any subdomain of `i0c.cc`; other hostnames are stored as `unknown`. This bounds entry-domain cardinality without requiring a separate domain-list setting.
-
-## Entry domain and provider
-
-The two fields answer different questions:
-
-- `entryDomain`: the hostname the visitor actually requested, taken from `request.url.hostname`.
-- `provider`: the adapter that handled the request: `cloudflare`, `vercel`, `netlify`, or `unknown`.
-
-The current Runtime namespace is expected to contain:
-
-| Entry domain | Provider |
-|---|---|
-| `i0c.cc` | Cloudflare |
-| `www.i0c.cc` | Cloudflare |
-| `api.i0c.cc` | Cloudflare |
-| `vc.i0c.cc` | Vercel |
-| `nf.i0c.cc` | Netlify |
-
-`u.i0c.cc` hosts the WebUI collector and is not a Runtime entry domain. Preview deployments or unrelated custom domains outside the `i0c.cc` namespace are grouped under `unknown`. Supporting unrelated custom domains in the same source would require a future explicit allowlist rather than trusting arbitrary Host values.
-
-The WebUI domain filter applies the same entry-domain scope to totals, trends, links, geography, devices, providers, referrers, campaigns, internal sources, and automation analysis. “All domains” is therefore the sum of the individual domain scopes, including `unknown`.
-
-## Event types and counting
-
-Analytics V2 has two event kinds:
-
-- `link`: a final matched redirect or proxy result. Link events use `sampleRate = 1`.
-- `runtime`: an unmatched or system result. Runtime events use a fixed `sampleRate = 0.1` and store both observed and weighted estimates.
-
-Only the final winning proxy candidate produces a matched link event. Failed proxy candidates do not produce separate link events. Runtime outcomes are:
-
-- `not_found`
-- `proxy_exhausted`
-- `config_unavailable`
-- `internal_error`
-
-Successful `favicon.ico`, `robots.txt`, and `sitemap.xml` system responses are not analytics events. Requests to arbitrary paths that do not match a rule are eligible for sampled Runtime events.
-
-The metrics use these counting rules:
-
-- Every accepted link event increments that link's request count.
-- Browser-like document navigation is shown separately from declared bots, link previews, and suspected automation.
-- A controlled short-link chain records each matched link request, but only the first request counts as an entry request.
-- Runtime estimates are calculated as `observed / sampleRate`; observed counts remain visible so sampling is not hidden.
-- Permanent redirects may be cached by the browser, so later visits can bypass the Runtime and cannot be counted.
-
-## Attribution
-
-Attribution dimensions are deliberately separate.
-
-### Browser referrer
-
-`referrerDomain` stores only the normalized hostname from the browser's `Referer` header. A missing, suppressed, invalid, or non-HTTP referrer is displayed as `direct`. The Runtime does not infer a source from a redirect destination or from an intermediate service.
-
-An external website or redirect service that links to a short URL is therefore attributed only when the browser supplies a referrer. QR codes, copied URLs, privacy policies such as `noreferrer`, and many redirect chains usually appear as `direct`.
-
-### Explicit campaign
-
-An authenticated client can create a signed campaign URL through:
-
-```http
-POST /api/analytics/campaigns
-Content-Type: application/json
-
-{
-  "url": "https://i0c.cc/r",
-  "analyticsId": "the-rule-analytics-id",
-  "campaignId": "docs-launch",
-  "expiresInDays": 30
-}
-```
-
-The response contains a URL with a signed `_i0c_via` parameter. Campaign tokens are bound to the source, analytics ID, exact hostname, normalized path, issue time, and expiry, with a maximum lifetime of 365 days. The Runtime validates the token, removes the reserved parameter before rule processing, and uses a short-lived secure cookie for the sanitized follow-up request. Invalid tokens are removed and never become attribution data.
-
-### Controlled short-link chain
-
-When short link A redirects over HTTPS to another hostname or path inside the same source namespace, A appends a signed upstream token with a two-minute lifetime. B verifies and removes it before routing. The selected analytics store claims each upstream event once, so replaying the same token cannot repeatedly suppress entry counts.
-
-For A → B → C:
-
-- A, B, and C each receive their own request event.
-- A is the entry request.
-- B records A as its internal source.
-- C records B as its internal source.
-
-This does not rely on the browser referrer. Destinations outside the source namespace and non-HTTPS destinations never receive an upstream token.
-
-## Bot and unmatched-traffic analysis
-
-Classification is heuristic and versioned; “suspected automation” is not a confirmed bot identity.
-
-- `declared_bot`: known search, AI crawler, social preview, or monitoring user-agent signatures.
-- `suspected_automation`: automation clients, generic bot/scanner signatures, or bounded suspicious-path categories.
-- `browser_like`: a request that presents browser navigation signals.
-- `unknown`: insufficient signals.
-
-Probe categories include WordPress paths, environment files, admin paths, version-control metadata, path traversal, scanners, and a bounded `other` group. Classification happens locally at the Runtime. Raw unmatched paths and raw User-Agent strings are not sent to the collector.
-
-The automation page separates observed values from sampling-adjusted estimates and can be filtered by entry domain. It includes traffic class, bot category, confidence, classifier version, resource class, match kind, outcome, probe category, provider, and affected short links.
-
-## Privacy and cardinality limits
-
-Events do not contain:
-
-- IP addresses
-- full User-Agent strings
-- full referrer URLs
-- request query strings
-- redirect or proxy destination URLs
-- raw unmatched request paths
-
-Matched events contain the configured rule path and stable analytics ID. Hostnames, identifiers, enums, request bodies, timestamps, and token lifetimes are validated and length-bounded before storage. The collector accepts only the configured source ID, and its signed request window is five minutes.
-
-## Analytics schema updates
-
-Update the selected analytics store schema from the repository root before deploying the collector:
-
-```bash
-# PostgreSQL
+```sh
 pnpm database:update postgres analytics
-
-# Cloudflare D1
 pnpm database:update d1 analytics
 ```
 
-Each provider owns an ordered, checksummed schema migration history. Never edit a schema migration after it has been applied; add a new numbered file instead.
+Raw matched events, Runtime events, idempotency receipts, and expired upstream claims are retained for 181 days. Hourly and daily aggregates remain available, so 90-day trends and previous-period comparisons do not require raw requests forever. The WebUI schedules retention after successful ingestion, at most once per running instance per day.
 
-The PostgreSQL history is split by capability:
+The 181-day window covers two full 90-day periods plus one day for timezone boundaries and cleanup timing. It provides source data for a manual aggregate rebuild but does not trigger one automatically.
 
-- `001_short_link_analytics.sql`: original link events and aggregates.
-- `002_domain_attribution.sql`: entry-domain, campaign, internal-source, classification, and UTC aggregate dimensions.
-- `003_runtime_traffic_analysis.sql`: sampled Runtime events, cross-kind idempotency receipts, and automation aggregates.
-- `004_raw_event_retention.sql`: cleanup indexes and the fixed 181-day raw-event retention function.
-- `005_aggregate_rebuild.sql`: aggregate reconstruction from retained raw events.
-- `006_open_runtime_providers.sql`: accepted Runtime provider identifiers.
+## Useful acceptance scenarios
 
-The D1 store owns an independent SQLite-compatible `001_analytics_store.sql` schema migration with the equivalent store contract.
-
-Recommended rollout order:
-
-1. Apply every required schema update.
-2. Deploy the WebUI collector that accepts V1 and V2 events.
-3. Configure and deploy the Runtime provider or providers you selected.
-4. Check collector errors, `unknown` entry domains, observed/estimated ratios, and all-domain sums.
-
-After a successful analytics ingestion, the WebUI schedules retention in the background at most
-once per running instance per day. It deletes link events, Runtime events, idempotency receipts,
-and expired upstream claims whose database receive time is more than 181 days old. Hourly and
-daily aggregate tables are retained, so historical trends and prior-period comparisons do not
-depend on keeping raw request rows indefinitely. Retention and schema migrations are never run as
-part of the WebUI build.
-
-The WebUI exposes 1, 7, 30, and 90-day ranges. The 1-day trend is a rolling 24-hour window with
-UTC-aligned hourly storage buckets that are formatted in the device time zone. Longer ranges use
-calendar-day boundaries and trend buckets aligned to the device's IANA time zone. UTC hourly and
-daily tables remain the storage format; non-UTC boundary-sensitive breakdowns use retained raw
-events so cards, trends, and dimensions cover the same interval. The 181-day raw-event policy
-preserves two complete 90-day periods plus one day for boundary handling and the cleanup interval.
-This retention window makes future aggregate rebuilding possible; it does not by itself
-perform a rebuild.
-
-## Acceptance scenarios
-
-- One short link visited once through each of three Runtime domains: total `3`, each domain `1`.
-- External page click with a referrer: referrer hostname recorded.
-- QR code, copy/paste, or `noreferrer`: displayed as `direct`.
-- Signed campaign URL: campaign recorded and `_i0c_via` absent from the routed request.
-- A → B controlled chain: A and B both record a request, but entry requests increase once.
-- Bot access to an arbitrary unmatched path: eligible for sampled Runtime and automation analysis.
-- Old V1 event: accepted and grouped under entry domain `unknown`.
-- Collector unavailable: redirect behavior remains successful while the event may be lost.
+- Visit one rule through three Runtime domains: total 3, each domain 1.
+- Click from an external page with a Referer: record the source domain.
+- Use a QR code, pasted URL, or `noreferrer`: show `direct`.
+- Use a signed campaign URL: record the campaign and remove `_i0c_via` before routing.
+- Follow A → B: both rules record a match, while entry requests increase once.
+- Let a bot request an unmatched path: it may enter sampled Runtime and automation analytics.
+- Make the collector unavailable: the redirect still succeeds, while the event may be lost.

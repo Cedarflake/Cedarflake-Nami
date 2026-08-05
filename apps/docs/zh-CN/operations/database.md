@@ -1,76 +1,56 @@
 ---
-title: 数据库初始化与 Schema 更新
-description: 首次初始化所选数据库，并在后续显式、安全地更新 Schema。
+title: 初始化或更新数据库
+description: 第一次部署时创建表；版本升级需要新表或字段时，再更新已有数据库。
 ---
 
-# 数据库初始化与 Schema 更新
+# 初始化或更新数据库
 
-数据库初始化和 Schema 更新都属于外部写入，不会随 `build`、应用启动或校验命令自动执行。
+数据库命令的名字很容易混在一起。第一次部署空数据库时运行 `pnpm database:init`；已有实例升级到需要新表或字段的版本时，才运行对应的 `pnpm database:update`。
 
-修改 Schema 前，请确认所选 Provider、准确数据库、当前 Schema 版本、备份或回滚路径，以及将使用新结构的应用版本。
+这两类命令都不会把 PostgreSQL 数据搬到 D1，也不会反向搬运。如果只是想确认连接是否正常，打开插件状态页即可，不要用写入命令试连接。
 
-## 首次部署
+这些命令不会跟随构建或应用启动自动执行。这样做是为了避免一次普通部署在你没有确认数据库目标时改动数据。
 
-创建好所选数据库，并让执行命令的 Shell 能读取相应凭据后，运行：
+## 第一次部署
+
+先按照[准备数据库](/zh-CN/deployment/databases)创建 PostgreSQL，或为 D1 分别创建规则数据库和统计数据库。让当前终端能够读取相应凭据后，在仓库根目录运行：
 
 ```sh
 pnpm database:init
 ```
 
-该命令读取 `bootstrapConfig`，先初始化所选 Data Repository Schema，再初始化所选 Analytics Store Schema。GitHub Data Repository 没有数据库 Schema，因此会自动跳过。内部由各 Provider 按顺序执行带校验值的 Schema migration；Schema 已是最新时不会重复修改。
+命令会读取仓库当前选择的数据库类型，先准备规则和设置需要的表，再准备统计表。若选择 GitHub 保存规则，该部分没有数据库表，会自动跳过。
 
-该命令不会自动发现或创建数据库，不会在 Provider 之间搬运数据，不会部署应用，也不会被自动调用。只升级某一个 Store 时，请使用下方对应的 Provider 命令。
+表已经是最新版本时可以再次运行。它不会创建云数据库、部署应用，也不会替你在不同数据库之间复制记录。
 
-## PostgreSQL Repository
+完成后打开 WebUI。空数据库会进入“初始化此部署”页面；在那里才会创建第一份实例设置和空规则集。
 
-把 `bootstrapConfig.data.repository.databaseUrlBinding` 配置的 PostgreSQL Binding 指向目标数据库；仓库默认值为 `DATABASE_URL`。然后运行：
+## 更新已有数据库
 
-```sh
-pnpm database:update postgres repository
-```
+只有当前版本确实带来了新的数据库结构时，才需要更新。建议按下面的顺序处理：
 
-该命令负责创建或更新实例配置、规则、修订、备份和回滚相关表。
+1. 确认命令将连接到哪一个数据库；
+2. 备份数据，或确认它只是可丢弃的测试库；
+3. 确认新旧应用版本如何兼容这次结构变化；
+4. 运行下表中准确对应的命令；
+5. 查看插件健康状态，再验证 WebUI 和统计查询；
+6. 验证完成前保留旧部署和回滚办法。
 
-## PostgreSQL 统计
+| 数据库 | 保存的内容 | 命令 |
+| --- | --- | --- |
+| PostgreSQL | 规则、设置与修订 | `pnpm database:update postgres repository` |
+| PostgreSQL | 统计事件与聚合 | `pnpm database:update postgres analytics` |
+| D1 | 规则、设置与修订 | `pnpm database:update d1 repository` |
+| D1 | 统计事件与聚合 | `pnpm database:update d1 analytics` |
 
-把 Analytics Store 的数据库 Binding 指向目标数据库；内置 PostgreSQL Store 默认使用 `DATABASE_URL`。然后运行：
+PostgreSQL 默认从 `DATABASE_URL` 读取连接地址。D1 则读取启动配置中的 Account ID、Database ID，以及 `CLOUDFLARE_D1_API_TOKEN`。
 
-```sh
-pnpm database:update postgres analytics
-```
+## D1 为什么有两条命令
 
-该命令转交 `@i0c/plugin-analytics-store-postgres`，负责事件、聚合、保留期和 Schema 历史表。
+D1 使用两个独立数据库：一个保存规则和设置，一个保存统计。它们各有自己的表和版本记录，所以不要把两个 Database ID 填反，也不要以为更新其中一个会顺带更新另一个。
 
-## D1 Repository
+## “Schema migration” 指什么
 
-填写 `bootstrapConfig.webui.d1.accountId`、`dataRepository` Database ID，以及配置的 API Token Binding，然后运行：
+源码和数据库工具仍会把新增表、字段、索引或约束称为 **Schema migration**。在这份文档里称为“数据库更新”，是为了和 PostgreSQL、D1 之间搬运业务数据区分开。
 
-```sh
-pnpm database:update d1 repository
-```
-
-## D1 统计
-
-填写同一 Account、单独的 `analytics` Database ID 和 API Token Binding，然后运行：
-
-```sh
-pnpm database:update d1 analytics
-```
-
-## 安全顺序
-
-1. 备份目标数据库，或确认其中是可丢弃的测试数据。
-2. 首次部署时，在 WebUI 接收生产流量前运行 `pnpm database:init`。
-3. 后续兼容新增的升级中，可在合适时先部署兼容旧 Schema 的代码。
-4. 对明确的目标运行统一初始化命令或准确的 Provider 命令。
-5. 检查 Schema 版本和应用健康状态。
-6. 如果消费者版本尚未部署，再部署或提升该版本。
-7. 验证完成前保留回滚方案和旧部署。
-
-不要为了测试凭据而运行 Schema 更新。请使用插件健康状态页或 Provider 的只读命令。
-
-新增表、字段、索引或约束，在实现层仍属于标准的 **Schema migration**；面向使用者时统一称为 **Schema 更新**，因为它并没有在数据库 Provider 之间搬运业务数据。
-
-## 跨 Provider 搬迁
-
-这些命令只负责创建或升级 Schema。把记录从 PostgreSQL 搬到 D1 或反向搬运，才属于单独的**数据迁移**，需要另行规划导出、转换、导入、核对和回滚。
+真正更换数据库时，初始化和更新命令只负责准备目标结构。已有规则、修订和统计还需要单独导出、转换、导入、核对，并为失败准备回滚方案。

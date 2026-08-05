@@ -1,66 +1,45 @@
 ---
 title: Write an adapter
-description: Add a Runtime platform, data repository, or analytics store without coupling it to application core.
+description: Add another Runtime platform, rules database, or analytics database to i0c.cc.
 ---
 
 # Write an adapter
 
-i0c supports self-authored adapters for Runtime platforms and database-backed WebUI services. Adapters are compile-time plugins: the package is added to this workspace, registered in the root installation config, and bundled when its host is rebuilt.
+The easiest way to add an adapter is to begin with a nearby built-in implementation. Use `plugins/runtime` for another edge provider, or the PostgreSQL and D1 plugins for another database. This page describes the boundaries to keep; provider SDK details remain inside the new plugin.
 
-## Choose the extension slot
+An adapter is a build-time plugin. After adding it to the workspace, rebuild the Runtime or WebUI. Instance settings can only select implementations already present in that build.
 
-| Goal | Plugin kind | Contract | Installation target |
-| --- | --- | --- | --- |
-| Run redirects on another edge provider | `runtime-platform` | Convert the provider request into a `RuntimeRequestHandler` call | `i0c.runtime.config.ts` |
-| Store instance configuration and redirect rules elsewhere | `data-repository` | `I0cDataRepository` | `i0c.webui.config.ts` |
-| Store and query analytics elsewhere | `analytics-store` | `I0cAnalyticsStore` | `i0c.webui.config.ts` |
+## Decide which layer you are replacing
 
-Use a data repository for the two control-plane documents: `config` and `redirects`. Use an analytics store for events, queries, aggregate rebuilds, and retention. They are separate slots even when both use the same database product.
+Another edge provider is a `runtime-platform` loaded by the Runtime. Another rules database is a `data-repository`, while another analytics database is an `analytics-store`; both database plugins are loaded by the WebUI.
 
-A database product that supports both jobs normally uses this layout:
+Rules and analytics use separate contracts. Even when one database product supports both jobs, keep two plugins: one owns settings, rules, and revisions, while the other owns events, queries, aggregates, and retention.
 
-```text
-packages/database-example/       # optional shared client and schema-update mechanics
-plugins/repository/example/      # config and redirect documents
-plugins/store/example/           # analytics events and queries
-```
+## Start from the generated package
 
-The shared provider package should contain only reusable connection, transaction, and schema-update primitives. Repository and analytics behavior remains in their respective plugins.
-
-## Common authoring flow
-
-1. Generate the package in the correct plugin category.
-2. Add the workspace package to the root development dependencies with pnpm.
-3. Define its manifest, bilingual description, capabilities, configuration Schema, and secret bindings.
-4. Implement the extension-slot contract.
-5. Add contract and manifest tests.
-6. Add its manifest to the Runtime or WebUI manifest catalog.
-7. Register its factory or platform descriptor in the root installation config.
-8. Select and configure the installed implementation in bootstrap and instance configuration.
-9. Initialize its schema, or apply pending schema updates, when the adapter owns database tables.
-10. Rebuild and deploy the affected host.
-
-The generator creates a workspace package, but deliberately does not activate it:
+Generate the matching package kind first:
 
 ```sh
 pnpm plugin:create --kind <kind> --name <kebab-name>
 ```
 
-After generation, use pnpm to add the generated package to the root manifest; do not hand-edit the lockfile:
+The generator creates a manifest, configuration, implementation skeleton, and tests, but does not enable the plugin. After implementing it, add the manifest to the host list and the factory or platform descriptor to the root installation config. Add the new workspace dependency with pnpm rather than editing the lockfile:
 
 ```sh
 pnpm add -Dw <plugin-package-name>@workspace:*
 ```
 
+Run the plugin contracts and the owning application build. The plugin appears in instance settings only after that build is deployed.
+
 ## Add a Runtime platform
 
-Create the package:
+Scaffold the platform package:
 
 ```sh
 pnpm plugin:create --kind runtime-platform --name example-edge
 ```
 
-Then implement these package surfaces:
+A platform plugin normally contains:
 
 ```text
 plugins/runtime/example-edge/
@@ -70,11 +49,9 @@ plugins/runtime/example-edge/
 └─ tests/
 ```
 
-The Runtime module must export `runtimePlatformPlugin`. Its `create(handler)` function adapts the provider entrypoint to the shared handler and supplies the provider context, environment bindings, background-task hook, country, and cache only when the platform exposes them.
+`runtime.ts` converts the provider request, environment, background work, and geographic metadata into input for the shared `RuntimeRequestHandler`. Matching, redirects, and proxy behavior remain in the Runtime core; do not copy them into the adapter.
 
-Replace the generated generic `./plugin` export with explicit `./runtime` and `./installation` package exports so the build can load both surfaces independently.
-
-The installation descriptor tells the build system which module and packages belong in that platform bundle:
+`installation.ts` tells the build system which module to load, which dependencies to bundle, and where to write the output:
 
 ```ts
 import { defineRuntimePlatformInstallation } from "@i0c/plugin-sdk/runtime"
@@ -90,86 +67,75 @@ export const exampleEdgeInstallation = defineRuntimePlatformInstallation({
 })
 ```
 
-Import the manifest into `i0c.runtime.manifests.ts` and append it to `runtimePlatformManifests`; this lets configuration validation and WebUI status views discover the platform. Then import the descriptor and append it to `runtimeInstallationConfig.platforms` in `i0c.runtime.config.ts`. The redirect handler does not need a new provider `switch`.
+Register it in two places:
 
-Build the adapter directly while developing it:
+- `i0c.runtime.manifests.ts` makes it visible to validation and the WebUI status page;
+- `i0c.runtime.config.ts` includes it in Runtime builds.
+
+Build the new platform on its own while developing:
 
 ```sh
 pnpm --filter i0c-redirect-worker build:platform example-edge
 ```
 
-A provider may still require its own deployment wrapper, output preparation, or provider configuration. Add those at the Runtime deployment boundary; do not move provider-specific APIs into the shared handler.
+Provider-specific deployment wrappers, output preparation, and configuration stay at the Runtime deployment boundary. The shared handler should not import a provider SDK.
 
-## Add a data repository
+## Add a rules database
 
-Create the package:
+Scaffold a data repository:
 
 ```sh
 pnpm plugin:create --kind data-repository --name example-database
 ```
 
-Implement the `I0cDataRepository` contract exported by `@i0c/plugin-sdk`:
+Implement `I0cDataRepository`. Its important behavior is:
 
-- `read` reads one versioned document;
-- `write` performs an optimistic, atomic revision update;
-- `readSnapshot` returns a consistent configuration-and-rules snapshot;
-- optional `management` operations initialize, import, inspect, list revisions, and restore data.
+- read a versioned settings or rules document;
+- reject a write based on an old version instead of silently overwriting another editor;
+- read a consistent settings-and-rules snapshot;
+- optionally provide initialization, import, history, and restore operations.
 
-Database-backed repositories should also expose a `PluginSchemaMigrationProvider` from `@i0c/plugin-api`. Schema history must be ordered, checksummed where the database supports it, and applied atomically when possible.
+When the database owns tables, also implement `PluginSchemaMigrationProvider`. Its update history must be ordered; where transactions exist, the structural change and version record should succeed or fail together.
 
-The generated plugin factory can be installed without changing WebUI application code:
+Register the manifest in `i0c.webui.manifests.ts` and the factory in `i0c.webui.config.ts`. One WebUI build selects one active rules store. Editors and API routes should not gain a database-specific branch.
 
-```ts
-dataRepository: {
-  enabledByDefault: true,
-  ...exampleDatabaseRepositoryPlugin,
-}
-```
+## Add an analytics database
 
-Add the manifest and its default-enabled state to the repository selection in `i0c.webui.manifests.ts`. Register exactly one active repository factory in `webUiPluginInstallations.dataRepository` in `i0c.webui.config.ts`. The WebUI continues to call the shared repository contract and does not need database-specific branches in editors or API routes.
-
-## Add an analytics store
-
-Create the package:
+Scaffold an analytics store:
 
 ```sh
 pnpm plugin:create --kind analytics-store --name example-database
 ```
 
-Implement the `I0cAnalyticsStore` contract exported by `@i0c/plugin-sdk`:
+Implement `I0cAnalyticsStore`, including:
 
-- ingest events idempotently;
-- provide overview, detail, automation, and entry-domain queries;
-- rebuild aggregates and enforce retention;
-- report health and whether the store is configured;
-- expose optional `schemaMigrations` for owned tables.
+- idempotent Runtime event ingestion;
+- overview, single-rule, entry-domain, and automation queries;
+- aggregate rebuild and data retention;
+- health and missing-configuration status;
+- updates for the store's own database structure.
 
-Add the manifest descriptor to `webUiPluginDescriptors.analyticsStores` in `i0c.webui.manifests.ts`, then add the matching factory installation to `webUiPluginInstallations.analyticsStores` in `i0c.webui.config.ts`. Multiple analytics stores may be compiled in, while instance configuration determines which installed store is enabled. Its configuration fields appear in WebUI only after its manifest is statically installed and declared in the default instance configuration.
+Add the manifest to the analytics-store list in `i0c.webui.manifests.ts`, and add the factory to `i0c.webui.config.ts`. A build may contain several analytics stores, with instance configuration choosing which one is enabled.
 
-```ts
-analyticsStores: [
-  {
-    enabledByDefault: false,
-    ...exampleDatabaseAnalyticsStorePlugin,
-  },
-]
+When one new database product supports both uses, prefer this shape:
+
+```text
+packages/database-example/       # Shared connection, transaction, and schema-update tools
+plugins/repository/example/      # Rules, settings, and revisions
+plugins/store/example/           # Analytics events and queries
 ```
 
-## Select the adapter
+Keep only genuinely shared database infrastructure in the common package. Do not merge the two business contracts into one large adapter.
 
-Installation and selection are separate:
+## Making the registered adapter usable
 
-- `i0c.runtime.config.ts` and `i0c.webui.config.ts` decide which code is bundled;
-- `i0c.runtime.manifests.ts` and `i0c.webui.manifests.ts` expose installed metadata to validation and WebUI;
-- bootstrap configuration selects infrastructure needed before remote configuration can be read;
-- instance configuration controls non-secret plugin settings and enablement;
-- deployment environment bindings provide secrets and provider-native objects.
+Root installation config puts code in the build, and the manifest list lets validation and the WebUI recognize it. If the application needs the adapter before it can open instance data, startup config must select it as well. After deployment, instance settings own public options and enabled state; the deployment environment still supplies real secrets.
 
-The current bootstrap provider unions list the built-in GitHub, PostgreSQL, and D1 choices. Replacing the implementation behind an existing slot does not change application core. Introducing a new selectable provider identifier also requires extending the shared bootstrap type, validation, defaults, and setup documentation. That is configuration-model work, not redirect or analytics business-logic work.
+Another implementation of an existing kind does not require application-core changes. A new database name also has to be understood by shared startup config, validation, and initialization, because the application must select it before it can read the instance document.
 
-## Validate and ship
+## Checks to run before finishing
 
-Run checks serially from the repository root:
+Check the plugin first:
 
 ```sh
 pnpm --filter <plugin-package-name> check
@@ -177,10 +143,12 @@ pnpm --filter <plugin-package-name> test
 pnpm plugins:check
 ```
 
-Then run the owning host build. Initialize a new database with `pnpm database:init`; use `pnpm database:update <provider> <purpose>` only for pending schema changes in an existing database. Deployment remains a separate, explicitly authorized operation.
+Then build the owning application. A Runtime platform needs its platform build; a rules or analytics database needs the WebUI lint and build. Initialize a new database with `pnpm database:init`; use the exact `pnpm database:update` command only when an existing database has a new structural change.
 
-Use the existing implementations as reference:
+Use current implementations as working references:
 
-- `plugins/runtime/cloudflare`, `plugins/runtime/vercel`, and `plugins/runtime/netlify` for platform adapters;
-- `plugins/repository/d1` and `plugins/repository/postgres` for rule/configuration repositories;
-- `plugins/store/d1` and `plugins/store/postgres` for analytics stores.
+- Runtime: `plugins/runtime/cloudflare`, `plugins/runtime/vercel`, `plugins/runtime/netlify`;
+- rules storage: `plugins/repository/postgres`, `plugins/repository/d1`;
+- analytics storage: `plugins/store/postgres`, `plugins/store/d1`.
+
+These commands check source and build output only. Database updates and external deployment still require their own confirmed targets.

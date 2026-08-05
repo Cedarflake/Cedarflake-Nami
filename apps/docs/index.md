@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: i0c.cc
-  text: Personal edge redirects, under your control
-  tagline: A database-backed control plane, provider-selectable Runtime, optional analytics, and compile-time extensions for personal use and engineering experiments.
+  text: A personal edge redirect experiment for Revaea
+  tagline: Manage rules in the WebUI and serve public requests through an edge Runtime. The project primarily serves Revaea and can also be self-deployed.
   image:
     src: /logo.webp
     alt: i0c.cc
@@ -14,16 +14,16 @@ hero:
       link: /guide/getting-started
 
 features:
-  - title: Choose one edge Runtime
-    details: Build the same routing core for Cloudflare Workers, Vercel Edge Functions, or Netlify Edge Functions.
+  - title: Project scope
+    details: i0c.cc is neither a hosted link service nor an enterprise redirect platform.
+    link: /guide/getting-started
+    linkText: Read the introduction
+  - title: Deploy an instance
+    details: A first deployment needs one WebUI, one database backend, and one Runtime. The other supported choices can wait.
     link: /deployment/choose-a-topology
-    linkText: Compare providers
-  - title: Keep data in PostgreSQL or D1
-    details: Edit configuration and rules immediately with optimistic revisions, immutable history, backup, and rollback.
-    link: /deployment/databases
-    linkText: Choose a database
-  - title: Extend at build time
-    details: Compose data sources, repositories, analytics, features, and platform adapters without dynamic remote code.
-    link: /plugins/architecture
-    linkText: Explore plugins
+    linkText: Choose a setup
+  - title: How it works
+    details: Follow a rule from storage and snapshot generation to the redirect or proxy response returned by the Runtime.
+    link: /guide/architecture
+    linkText: See how it works
 ---

@@ -1,59 +1,65 @@
 ---
-title: Choose a database
-description: Compare the PostgreSQL and Cloudflare D1 repository and analytics adapters.
+title: Prepare the database
+description: Create PostgreSQL or D1 storage and initialize the tables i0c.cc needs before the first deployment.
 ---
 
-# Choose a database
+# Prepare the database
 
-The WebUI has two storage slots:
+Only the WebUI connects to the database. It stores instance settings, redirect rules, revision history, and optional analytics; the Runtime never opens a database connection.
 
-- a data repository for instance configuration, rules, revisions, backups, and rollback;
-- an analytics store for events, rollups, retention, and queries.
+If you have not made a deliberate choice yet, use PostgreSQL. It is the repository default and one database is enough.
 
-The Runtime does not connect to either store.
+## Use PostgreSQL
 
-## PostgreSQL
+Create an empty database in Neon or another PostgreSQL service and copy its connection string. It usually looks like this:
 
-PostgreSQL is the checked-in default. One `DATABASE_URL` can back both plugin slots, while each plugin maintains its own versioned schema and schema-update command.
+```dotenv
+DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
+```
 
-Choose PostgreSQL when:
+Add the value to the WebUI deployment environment. The local shell that runs initialization must also be able to read the same value temporarily.
 
-- you already operate Neon or another managed PostgreSQL service;
-- the WebUI is deployed close to that database;
-- SQL inspection and conventional backup tooling are useful to you.
+After installing dependencies, run this from the repository root:
 
-The adapters use shared PostgreSQL primitives for connection and schema-migration behavior, while repository and analytics schemas remain separate concerns.
+```sh
+pnpm database:init
+```
 
-## Cloudflare D1
+The command prepares the rule-and-settings tables first, then the analytics tables. It only touches the database plugins selected by the current bootstrap configuration, and it is safe to run again when their schemas are already current.
 
-D1 uses the WebUI's server-only adapter and Cloudflare API credentials. Configure two database IDs:
+At this point the database structure exists, but the instance documents do not. The WebUI's first-run screen creates the first settings document and an empty rule set later.
 
-- `dataRepository`: instance configuration, rules, and revisions;
-- `analytics`: events and aggregate statistics.
+## Use Cloudflare D1
 
-Choose D1 when:
+D1 needs two empty databases:
 
-- you prefer Cloudflare-managed SQLite storage;
-- two small, isolated databases fit the workload;
-- API-based administration is acceptable for the WebUI deployment.
+- a rules database for settings, rules, and revisions;
+- an Analytics database for events and aggregates.
 
-The D1 adapters share atomic write and schema-migration primitives, but the two databases retain independent schemas and version histories.
+Create both in the Cloudflare dashboard, then note the Account ID and both Database IDs. Update `packages/config/src/defaults.ts`:
 
-## Other databases
+1. set `data.repository.provider` to `"d1"`;
+2. set `webui.analyticsStore.provider` to `"d1"`;
+3. fill in `webui.d1.accountId` and both `databaseIds`.
 
-PostgreSQL and D1 are the built-in implementations, not a closed database list. A new database normally provides a `data-repository` plugin for configuration and rules, an `analytics-store` plugin for statistics, and optionally one shared provider package for connection and schema-update primitives. See [Write an adapter](/plugins/adapters#add-a-data-repository).
+Give the WebUI and the local initialization command a token with read/write access to those D1 databases:
 
-## Provider choice does not migrate data
+```dotenv
+CLOUDFLARE_D1_API_TOKEN="your-d1-read-write-api-token"
+```
 
-Changing the bootstrap provider only changes where future reads and writes go. It does not copy PostgreSQL rows into D1 or copy D1 records into PostgreSQL.
+Then run the same command from the repository root:
 
-Before switching a populated instance:
+```sh
+pnpm database:init
+```
 
-1. stop or restrict writes;
-2. export and transform the current repository and analytics data;
-3. create and initialize the destination stores;
-4. import and verify counts and revisions;
-5. switch the bootstrap provider and redeploy;
-6. keep the source store available for rollback until acceptance is complete.
+The bundled WebUI reaches D1 through Cloudflare's server-side API. A future host that can inject native D1 bindings may use the same database contract through a custom adapter.
 
-i0c.cc currently ships schema updates, not an automatic cross-provider data-migration tool.
+## Initialization is never automatic
+
+`pnpm build`, application startup, and ordinary health checks do not create or update tables. Run `pnpm database:init` for a new deployment. When a later release adds schema changes to an existing instance, use the `pnpm database:update` commands described under [database updates](/operations/database).
+
+Switching between PostgreSQL and D1 does not copy existing data. It only changes where later reads and writes happen; moving a live instance requires a separate export, conversion, import, and verification process.
+
+Once the database is ready, continue with [deploy the WebUI](/deployment/webui).
