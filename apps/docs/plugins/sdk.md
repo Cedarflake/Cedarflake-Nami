@@ -1,22 +1,28 @@
 ---
 title: Plugin SDK
-description: Author a new compile-time plugin with the private workspace SDK.
+description: Use the repository SDK to scaffold, implement, register, and check one Runtime feature plugin.
 ---
 
 # Plugin SDK
 
-`@i0c/plugin-sdk` is the repository-internal authoring layer for compile-time plugins. It reduces repeated manifest, configuration, and installation wiring without turning the host into a dynamic loader.
+The quickest way to start a plugin is the generator at the repository root. This page uses `request-sampler` as an example and follows it from a new package to a Runtime installation.
 
-## Supported plugin kinds
+The generator uses `@i0c/plugin-sdk`, which collects the repeated parts of manifests, configuration checks, and host assembly. The plugin still owns its actual behavior and is still built together with the Runtime or WebUI.
 
-- `runtime-platform`
-- `data-source`
-- `data-repository`
-- `analytics-sink`
-- `analytics-store`
-- `feature`
+For a new platform or database, the manifest and configuration steps here still apply; [write an adapter](/plugins/adapters) covers the specific contracts.
 
-## Scaffold a package
+## What the SDK already handles
+
+- typed Manifest helpers for Runtime platforms, data sources, data repositories, analytics sinks, analytics stores, and Runtime Features;
+- bilingual plugin descriptions displayed by the WebUI;
+- configuration Schema, defaults, and resolved-value validation;
+- Runtime and WebUI installation helpers;
+- shared Repository and Analytics Store contracts;
+- a workspace scaffolder for a consistent package structure.
+
+An ordinary plugin should need only `@i0c/plugin-sdk`. `@i0c/plugin-api`, `@i0c/runtime-host`, and `@i0c/runtime-build` sit closer to the host and shared protocol and are not required just to finish a normal implementation.
+
+## 1. Scaffold a package
 
 From the repository root:
 
@@ -24,32 +30,151 @@ From the repository root:
 pnpm plugin:create --kind feature --name request-sampler
 ```
 
-The generator creates a package in the matching `plugins/<category>/` directory with a manifest, configuration definition, typed implementation skeleton, contract test, and bilingual README.
+Supported kinds are:
 
-It deliberately does not activate the plugin. Register the reviewed installation in `i0c.runtime.config.ts`, `i0c.webui.config.ts`, or the owning WebUI extension registry.
+```text
+runtime-platform
+data-source
+data-repository
+analytics-sink
+analytics-store
+feature
+```
 
-For a complete Runtime-platform, data-repository, or analytics-store workflow, see [Write an adapter](/plugins/adapters).
+The generator creates a package in the matching `plugins/<category>/` directory with a Manifest, configuration definition, typed implementation skeleton, contract test, and bilingual package documentation.
 
-## Authoring contract
+It deliberately does not activate the plugin. Installation remains an explicit, reviewable repository change.
 
-Use the SDK to define:
+## 2. Define the Manifest
 
-1. a typed manifest with bilingual summary text and capabilities;
-2. a configuration Schema, defaults, and resolver;
-3. a Runtime or WebUI plugin installation;
-4. contract tests for the selected extension slot.
+This example creates a Runtime Feature that can sample analytics events:
 
-The WebUI reads installed manifest configuration metadata and renders the generic settings editor. A plugin owns its fields and localized descriptions; the WebUI owns the visual controls and persistence flow.
+```ts
+import {
+  defineRuntimeFeatureManifest,
+} from "@i0c/plugin-sdk"
 
-## Boundaries
+export const manifest = defineRuntimeFeatureManifest({
+  id: "@i0c/feature-request-sampler",
+  name: "Request sampler",
+  version: "0.1.0",
+  description: {
+    summary: {
+      en: "Samples Runtime events before delivery.",
+      "zh-CN": "在 Runtime 事件投递前进行采样。",
+    },
+  },
+  capabilities: ["analytics:sampling"],
+})
+```
 
-- The SDK is private to this workspace and exports TypeScript source.
-- Plugins are installed before build and bundled with the host.
-- Remote instance configuration can configure or disable installed plugins, but cannot install code.
-- A new implementation inside an existing slot should not require application-core switches.
-- A genuinely new extension concept still requires a new shared protocol and host integration.
+The helper supplies the fixed Plugin API version, kind, slot, and host invariants, then validates the completed Manifest immediately.
 
-## Validate a plugin
+## 3. Define editable configuration
+
+```ts
+import {
+  definePluginConfiguration,
+} from "@i0c/plugin-sdk"
+
+interface RequestSamplerConfig {
+  rate: number
+}
+
+export const configuration = definePluginConfiguration<RequestSamplerConfig>({
+  version: 1,
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      rate: {
+        type: "number",
+        minimum: 0,
+        maximum: 1,
+      },
+    },
+    required: ["rate"],
+  },
+  defaults: {
+    rate: 1,
+  },
+  resolve(value) {
+    return {
+      rate: typeof value?.rate === "number" ? value.rate : 1,
+    }
+  },
+})
+```
+
+The SDK validates the Schema when the module loads. Defaults and every resolved configuration are checked against the same Schema, so the resolver cannot silently return a value rejected by the Manifest.
+
+Installed Manifest metadata also drives the WebUI's generic settings editor. The plugin owns field definitions and localized descriptions; the WebUI owns controls, validation feedback, and persistence.
+
+## 4. Define a Runtime plugin
+
+```ts
+import {
+  defineRuntimeFeaturePlugin,
+} from "@i0c/plugin-sdk/runtime"
+
+import { manifest } from "./manifest"
+
+export const requestSamplerPlugin = defineRuntimeFeaturePlugin({
+  manifest,
+  create() {
+    return {
+      id: manifest.id,
+      order: 100,
+      timeoutMs: 50,
+      failurePolicy: "continue",
+      hooks: {
+        onAnalyticsEvent(event) {
+          return event
+        },
+      },
+    }
+  },
+})
+```
+
+Runtime helpers verify that the Manifest belongs to the expected Runtime extension point before the host accepts the installation.
+
+## 5. Define a WebUI plugin
+
+For a WebUI-owned extension such as an Analytics Store:
+
+```ts
+import {
+  defineWebUiAnalyticsStorePlugin,
+} from "@i0c/plugin-sdk/webui"
+
+import { manifest } from "./manifest"
+
+export const analyticsStorePlugin = defineWebUiAnalyticsStorePlugin({
+  manifest,
+  async create(context) {
+    const connection = context.readEnvironment("DATABASE_URL")
+    return connection ? createStore(connection) : null
+  },
+})
+```
+
+WebUI helpers cover data repositories, analytics stores, and static extension registrations. An implementation returns its contract; the WebUI remains responsible for the surrounding application behavior.
+
+## 6. Register the installation
+
+Choose the registration point that owns the plugin:
+
+- Runtime installations: `i0c.runtime.config.ts`;
+- Runtime Manifests used by configuration validation: `i0c.runtime.manifests.ts`;
+- WebUI installations: `i0c.webui.config.ts`;
+- WebUI Manifests or static extension registrations: the matching WebUI root registry.
+
+Add the plugin package to the root workspace dependencies with pnpm. Do not add a host-core `switch` for another implementation of an existing extension slot.
+
+When creating a new provider identifier rather than another implementation of an existing provider, the Bootstrap selection model also needs to recognize that identifier.
+
+## 7. Validate the plugin
 
 ```sh
 pnpm --filter @i0c/plugin-sdk check
@@ -57,6 +182,19 @@ pnpm --filter @i0c/plugin-sdk test
 pnpm plugins:check
 ```
 
-After activating a plugin, also run the check and build for its Runtime or WebUI host.
+After activating a plugin, also run the owning host check and build. A Runtime plugin requires the applicable Runtime build; a WebUI plugin requires WebUI lint and build.
 
-For complete API examples, see the package-owned [Plugin SDK README](https://github.com/Revaea/i0c.cc/blob/main/packages/plugin-sdk/README.md).
+## Adapter-specific contracts
+
+- A Runtime Platform adapts its provider entrypoint to `RuntimeRequestHandler`.
+- A Data Repository implements `I0cDataRepository` for versioned configuration and redirect documents.
+- An Analytics Store implements `I0cAnalyticsStore` for ingestion, queries, aggregate rebuilds, and retention.
+- A database-backed adapter can expose `PluginSchemaMigrationProvider` for first-time initialization and later Schema updates.
+
+Continue with [write an adapter](/plugins/adapters) for the registration flow and current reference implementations.
+
+## SDK scope
+
+Remote instance configuration can only configure or disable installed code. Another implementation in an existing slot should not add dispatch logic to the application core; a new slot still requires shared-protocol and host changes.
+
+The SDK serves this workspace only. It does not provide public-package releases, independent compatibility guarantees, or third-party ecosystem support.

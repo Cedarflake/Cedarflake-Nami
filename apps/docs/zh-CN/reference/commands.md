@@ -5,7 +5,18 @@ description: 查找仓库用于开发、校验、数据库设置和部署的 pnp
 
 # 命令索引
 
-请在仓库根目录使用 `package.json` 声明的 pnpm 版本运行工作区命令。
+这是一张查表页。所有命令都从仓库根目录运行，并使用 `package.json` 固定的 pnpm 版本。常用入口放在前面，找不到时再往下看对应应用。
+
+| 常见任务 | 命令 |
+| --- | --- |
+| 启动 WebUI 开发环境 | `pnpm webui:dev` |
+| 启动文档站 | `pnpm docs:dev` |
+| 检查刚修改的文档 | `pnpm docs:check` |
+| 串行检查整个 Workspace | `pnpm check` |
+| 初始化第一次部署的数据库 | `pnpm database:init` |
+| 构建三个 Runtime 平台 | `pnpm runtime:build` |
+
+命令名包含 `deploy` 时会写入外部平台，不要把它当作构建或校验命令。
 
 ## 仓库检查
 
@@ -40,7 +51,7 @@ description: 查找仓库用于开发、校验、数据库设置和部署的 pnp
 | `pnpm runtime:dev:vc` | 启动 Vercel 开发工具 |
 | `pnpm runtime:dev:nf` | 启动 Netlify 开发工具 |
 
-`runtime:deploy:cf`、`runtime:deploy:vc` 和 `runtime:deploy:nf` 会写入外部平台，不能作为校验命令使用。
+`runtime:deploy:cf`、`runtime:deploy:vc` 和 `runtime:deploy:nf` 会写入外部平台。执行前还要确认当前登录账号和目标环境。
 
 ## 数据库初始化与 Schema 更新
 
