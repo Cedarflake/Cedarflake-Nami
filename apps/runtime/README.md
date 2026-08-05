@@ -218,4 +218,6 @@ Add the schema reference below to unlock autocomplete and validation in supporti
 }
 ```
 
-For the Chinese version, see [README.zh-CN.md](README.zh-CN.md).
+---
+
+English · [简体中文](README.zh-CN.md)

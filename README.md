@@ -65,8 +65,11 @@ Run `pnpm check` for the full workspace suite, or use the owner-specific command
 - [Command reference](apps/docs/reference/commands.md)
 - [Runtime package documentation](apps/runtime/README.md)
 - [WebUI package documentation](apps/webui/README.md)
-- [Chinese overview](README.zh-CN.md)
 
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE).
+
+---
+
+English · [简体中文](README.zh-CN.md)

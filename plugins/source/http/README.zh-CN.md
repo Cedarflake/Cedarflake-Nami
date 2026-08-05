@@ -32,3 +32,7 @@ pnpm --filter @i0c/plugin-http-snapshot-source test
 ```
 
 边缘 Runtime 部署不会共享 WebUI 登录会话，因此快照端点是公开读取端点。两份数据文档都不得保存 Secret 值；插件 Secret 值仍由部署绑定提供。
+
+---
+
+[English](README.md) · 简体中文

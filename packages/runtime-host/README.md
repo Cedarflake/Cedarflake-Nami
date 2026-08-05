@@ -12,3 +12,7 @@ pnpm --filter @i0c/runtime-host test
 ```
 
 Apache-2.0. See the repository root `LICENSE`.
+
+---
+
+English · [简体中文](README.zh-CN.md)

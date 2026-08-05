@@ -37,3 +37,7 @@ pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json
 - 快照读取在同一个可重复读事务中返回两个文档。
 - 每次初始化、保存、导入和恢复都会写入不可变历史；恢复旧内容会创建新的活动 revision。
 - 本包使用独立 Schema 历史表，不与 Analytics Schema 版本混用。
+
+---
+
+[English](README.md) · 简体中文

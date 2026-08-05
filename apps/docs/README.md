@@ -21,4 +21,6 @@ Create a separate Vercel project with `apps/docs` as its Root Directory. The che
 
 Attach `d.i0c.cc` only after the deployment is healthy. Project creation, deployment, domain attachment, and DNS changes remain explicit external operations.
 
-For the Chinese version, see [README.zh-CN.md](README.zh-CN.md).
+---
+
+English · [简体中文](README.zh-CN.md)

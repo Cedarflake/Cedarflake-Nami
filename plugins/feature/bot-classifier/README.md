@@ -8,3 +8,7 @@ The remote declaration may set `hookTimeoutMs` or disable the feature. No IP add
 pnpm --filter @i0c/plugin-feature-bot-classifier check
 pnpm --filter @i0c/plugin-feature-bot-classifier test
 ```
+
+---
+
+English · [简体中文](README.zh-CN.md)

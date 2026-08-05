@@ -7,3 +7,7 @@ PostgreSQL and D1 share the same analytics semantics, capability set, and behavi
 The plugin owns analytics tables and domain queries. Shared PostgreSQL client construction and migration-history enforcement lives in `@i0c/database-postgres`.
 
 Initialize a newly selected database with `pnpm database:init`. Apply later Analytics Schema revisions with `pnpm database:update postgres analytics`. Builds, application startup, and ordinary requests never update the schema automatically.
+
+---
+
+English · [简体中文](README.zh-CN.md)

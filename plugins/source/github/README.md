@@ -8,3 +8,7 @@ This official plugin provides two compile-time entries:
 The host selects and registers these entries explicitly. The plugin never reads undeclared secrets or loads executable code from the data branch.
 
 Repository location, branch, document paths, initial Raw URLs, and public revalidation belong to host bootstrap options because they are required before `config.json` can be read. The remote plugin declaration therefore has no locator fields; it only confirms that the mandatory installed Source and Repository remain enabled.
+
+---
+
+English · [简体中文](README.zh-CN.md)

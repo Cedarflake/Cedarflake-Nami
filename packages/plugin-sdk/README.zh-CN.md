@@ -174,3 +174,7 @@ pnpm plugins:check
 ```
 
 如果插件已经接入 Runtime 或 WebUI，仍需运行对应宿主的检查。
+
+---
+
+[English](README.md) · 简体中文

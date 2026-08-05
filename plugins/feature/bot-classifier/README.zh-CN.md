@@ -8,3 +8,7 @@
 pnpm --filter @i0c/plugin-feature-bot-classifier check
 pnpm --filter @i0c/plugin-feature-bot-classifier test
 ```
+
+---
+
+[English](README.md) · 简体中文

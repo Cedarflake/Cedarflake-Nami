@@ -7,3 +7,7 @@
 该包不包含平台 SDK、数据库驱动、React 组件或动态插件加载器。插件必须是由宿主在构建时明确选择的 workspace 或包依赖。
 
 插件配置 Schema 有意只支持一组经过校验的 JSON Schema 子集：`type`、`properties`、`required`、布尔值 `additionalProperties`、`items`、`enum`、`const`、`minimum`、`maximum`、`minLength`、`pattern`、`uniqueItems` 与 `uri` format。注册 Manifest 时会拒绝未支持的关键字或类型、非法正则表达式和非 JSON 字面量。
+
+---
+
+[English](README.md) · 简体中文

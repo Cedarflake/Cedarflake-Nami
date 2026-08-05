@@ -20,4 +20,6 @@ Runtime 与 WebUI 共用的数据契约和启动配置包。
 pnpm config:check
 ```
 
-英文版本见 [README.md](README.md)。
+---
+
+[English](README.md) · 简体中文

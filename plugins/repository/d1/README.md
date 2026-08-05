@@ -33,3 +33,7 @@ migration, and test infrastructure lives in `@i0c/database-d1`.
 pnpm --filter @i0c/plugin-data-repository-d1 check
 pnpm --filter @i0c/plugin-data-repository-d1 test
 ```
+
+---
+
+English · [简体中文](README.zh-CN.md)

@@ -32,3 +32,7 @@ pnpm --filter @i0c/plugin-http-snapshot-source test
 ```
 
 The endpoint is public because edge Runtime deployments do not share WebUI login sessions. Do not place secrets in either data document; plugin Secret values remain deployment bindings.
+
+---
+
+English · [简体中文](README.zh-CN.md)

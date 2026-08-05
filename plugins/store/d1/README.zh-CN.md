@@ -12,3 +12,7 @@ WebUI 宿主可以通过 `configureAnalyticsStoreBinding` 提供兼容的 `D1Dat
 pnpm --filter @i0c/plugin-analytics-store-d1 check
 pnpm --filter @i0c/plugin-analytics-store-d1 test
 ```
+
+---
+
+[English](README.md) · 简体中文

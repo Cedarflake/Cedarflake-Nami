@@ -21,4 +21,6 @@ pnpm docs:preview
 
 确认部署健康后再绑定 `d.i0c.cc`。创建项目、部署、绑定域名与修改 DNS 仍属于需要明确执行的外部操作。
 
-英文版本见 [README.md](README.md)。
+---
+
+[English](README.md) · 简体中文

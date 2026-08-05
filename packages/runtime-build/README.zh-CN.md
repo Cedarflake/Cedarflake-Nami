@@ -12,3 +12,7 @@ pnpm --filter @i0c/runtime-build test
 ```
 
 采用 Apache-2.0 许可证，详见仓库根目录的 `LICENSE`。
+
+---
+
+[English](README.md) · 简体中文

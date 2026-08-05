@@ -29,3 +29,7 @@ WebUI 宿主必须在首次使用 Repository 前，通过
 pnpm --filter @i0c/plugin-data-repository-d1 check
 pnpm --filter @i0c/plugin-data-repository-d1 test
 ```
+
+---
+
+[English](README.md) · 简体中文

@@ -48,3 +48,7 @@ Source declarations selected by the build.
   history. Restoring old content creates a new head revision.
 - This package has its own Schema history table and does not share Analytics
   Schema revisions.
+
+---
+
+English · [简体中文](README.zh-CN.md)

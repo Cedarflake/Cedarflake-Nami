@@ -159,3 +159,7 @@ WebUI 不会把原有非敏感环境变量作为覆盖值或回退值读取。Ve
 
 - 只有主动重新启用归档的 GitHub Repository 时，才需要 Repository OAuth 权限并受到公开目标限制。
 - 生产环境部署时务必将 `.env.local` 中的凭据配置到对应平台的环境变量管理中。
+
+---
+
+[English](README.md) · 简体中文

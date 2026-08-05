@@ -20,4 +20,6 @@ Run the package check from the repository root:
 pnpm config:check
 ```
 
-See [README.zh-CN.md](README.zh-CN.md) for the Chinese version.
+---
+
+English · [简体中文](README.zh-CN.md)

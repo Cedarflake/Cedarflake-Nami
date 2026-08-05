@@ -218,4 +218,6 @@ pnpm runtime:build:nf
 }
 ```
 
-英文版本见 [README.md](README.md)。
+---
+
+[English](README.md) · 简体中文

@@ -65,8 +65,11 @@ pnpm database:init
 - [命令索引](apps/docs/zh-CN/reference/commands.md)
 - [Runtime 包文档](apps/runtime/README.zh-CN.md)
 - [WebUI 包文档](apps/webui/README.zh-CN.md)
-- [English overview](README.md)
 
 ## 许可证
 
 Apache-2.0，详见 [LICENSE](LICENSE)。
+
+---
+
+[English](README.md) · 简体中文

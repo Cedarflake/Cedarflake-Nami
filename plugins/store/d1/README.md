@@ -12,3 +12,7 @@ The plugin owns analytics tables and domain queries. Shared D1 transport, migrat
 pnpm --filter @i0c/plugin-analytics-store-d1 check
 pnpm --filter @i0c/plugin-analytics-store-d1 test
 ```
+
+---
+
+English · [简体中文](README.zh-CN.md)

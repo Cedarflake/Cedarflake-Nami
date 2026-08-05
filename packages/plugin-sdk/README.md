@@ -174,3 +174,7 @@ pnpm plugins:check
 ```
 
 Host-specific checks are still required after activating a plugin in Runtime or WebUI.
+
+---
+
+English · [简体中文](README.zh-CN.md)

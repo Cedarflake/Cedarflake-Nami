@@ -10,3 +10,7 @@ pnpm --filter @i0c/plugin-catalog test
 ```
 
 完整架构见 [../../apps/docs/zh-CN/plugins/architecture.md](../../apps/docs/zh-CN/plugins/architecture.md)。
+
+---
+
+[English](README.md) · 简体中文
