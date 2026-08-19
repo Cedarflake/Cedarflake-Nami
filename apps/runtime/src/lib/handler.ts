@@ -9,7 +9,7 @@
  * 该模块作为控制器，负责协调配置加载、路由匹配（正则/前缀）以及响应处理。
  * 它与具体部署平台（Cloudflare/Vercel）解耦，通用性强。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import {

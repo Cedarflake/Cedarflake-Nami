@@ -12,9 +12,9 @@ Live previews:
 
 Deploy this package with `apps/runtime` as the project root.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Revaea/i0c.cc&root-directory=apps/runtime)
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Revaea/i0c.cc)
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Revaea/i0c.cc)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/Cedarflake/Cedarflake-Nami&root-directory=apps/runtime)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/Cedarflake/Cedarflake-Nami)
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Cedarflake/Cedarflake-Nami)
 
 If the platform detects multiple projects, choose `apps/runtime`.
 
@@ -142,7 +142,7 @@ Add the schema reference below to unlock autocomplete and validation in supporti
 
 ```jsonc
 {
-  "$schema": "https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json",
+  "$schema": "https://raw.githubusercontent.com/Cedarflake/Cedarflake-Nami/main/packages/config/redirects.schema.json",
   "Slots": {
     // ...
   }

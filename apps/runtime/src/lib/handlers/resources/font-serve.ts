@@ -7,7 +7,7 @@
  * [CN] Runtime 自有品牌页面的嵌入字体资源处理程序。
  * 在不依赖外部字体请求的情况下，提供与 WebUI 相同的 Inter Latin 子集。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import {

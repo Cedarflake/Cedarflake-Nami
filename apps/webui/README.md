@@ -4,7 +4,7 @@
 
 nami WebUI is a management panel based on Next.js 16, designed for online editing of `config.json` and `redirects.json` after logging in via GitHub OAuth. The checked-in deployment uses PostgreSQL for immediate, optimistic saves, atomic snapshots, immutable revision history, and rollback. The former GitHub Contents workflow remains an archived build-time alternative and is not enabled by default.
 
-This WebUI supports the personal [nami](https://github.com/Revaea/i0c.cc) workflow. It is maintained as an optional management surface rather than a general-purpose enterprise URL management product.
+This WebUI supports the personal [nami](https://github.com/Cedarflake/Cedarflake-Nami) workflow. It is maintained as an optional management surface rather than a general-purpose enterprise URL management product.
 
 Server-side Data Repository and Analytics Store factories are installed at build time through [../../nami.webui.config.ts](../../nami.webui.config.ts). Client-safe UI renderers use [webui.extensions.ts](webui.extensions.ts) so they remain in the client bundle. Workspace fixtures exercise both installation paths without adding factory mappings to WebUI host source; the production renderer list is intentionally empty.
 
@@ -157,7 +157,7 @@ The WebUI does not read former non-sensitive environment variables as overrides 
 - First-run database initialization without hand-written JSON or a seed command.
 - Immutable document history with Git-style line diffs, non-destructive rollback, and atomic JSON backup import/export.
 - Authenticated plugin status reporting for installed manifests, configuration state, capabilities, missing bindings, and selected-Store health.
-- Form behavior aligned with the schema (specification source: [https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json](https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json)).
+- Form behavior aligned with the schema (specification source: [https://raw.githubusercontent.com/Cedarflake/Cedarflake-Nami/main/packages/config/redirects.schema.json](https://raw.githubusercontent.com/Cedarflake/Cedarflake-Nami/main/packages/config/redirects.schema.json)).
 - GitHub Contents keeps local undo/redo until its explicit page-level save.
 - Saves through the selected versioned Repository and rejects stale revisions instead of overwriting newer content.
 - Shows a Repository result link after saves when the selected Repository provides one.

@@ -9,7 +9,7 @@
  * 核心引擎，负责将路由规则编译为正则、展平配置插槽（Slots），
  * 并针对请求路径执行实际的模式匹配。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import { DEFAULT_STATUS } from "../core/constants";

@@ -227,8 +227,8 @@ test("serializes platform cache writes so an older candidate cannot win", async 
 test("bypasses framework caching for authoritative config reads", async () => {
   const repository = createGitHubContentsRepository(
     {
-      owner: "Revaea",
-      repository: "i0c.cc",
+      owner: "Cedarflake",
+      repository: "Cedarflake-Nami",
       branch: "data",
       configPath: "config.json",
       redirectsPath: "redirects.json",
@@ -253,8 +253,8 @@ test("bypasses framework caching for authoritative config reads", async () => {
 test("attaches host cache tags to anonymous GitHub reads", async () => {
   const repository = createGitHubContentsRepository(
     {
-      owner: "Revaea",
-      repository: "i0c.cc",
+      owner: "Cedarflake",
+      repository: "Cedarflake-Nami",
       branch: "data",
       configPath: "config.json",
       redirectsPath: "redirects.json",
@@ -286,8 +286,8 @@ test("reads and writes versioned GitHub documents through the repository contrac
   let sha = "1"
   const repository = createGitHubContentsRepository(
     {
-      owner: "Revaea",
-      repository: "i0c.cc",
+      owner: "Cedarflake",
+      repository: "Cedarflake-Nami",
       branch: "data",
       configPath: "config.json",
       redirectsPath: "redirects.json",
@@ -305,7 +305,7 @@ test("reads and writes versioned GitHub documents through the repository contrac
           sha = "2"
           return Response.json({
             content: { sha },
-            commit: { html_url: "https://github.com/Revaea/i0c.cc/commit/2" },
+            commit: { html_url: "https://github.com/Cedarflake/Cedarflake-Nami/commit/2" },
           })
         }
 
@@ -336,7 +336,7 @@ test("reads and writes versioned GitHub documents through the repository contrac
     },
     expectedWriteResult: {
       revision: "2",
-      revisionUrl: "https://github.com/Revaea/i0c.cc/commit/2",
+      revisionUrl: "https://github.com/Cedarflake/Cedarflake-Nami/commit/2",
     },
     expectedAfter: {
       content: "after",
@@ -352,8 +352,8 @@ test("reads an atomic GitHub snapshot from one commit", async () => {
   const requestedRefs: string[] = []
   const repository = createGitHubContentsRepository(
     {
-      owner: "Revaea",
-      repository: "i0c.cc",
+      owner: "Cedarflake",
+      repository: "Cedarflake-Nami",
       branch: "data",
       configPath: "config.json",
       redirectsPath: "redirects.json",

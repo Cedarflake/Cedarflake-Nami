@@ -7,7 +7,7 @@
  * [CN] 路由目标解析回归测试。
  * 验证编译路由复用、字面量匹配以及目标查询参数与片段边界。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import assert from "node:assert/strict";

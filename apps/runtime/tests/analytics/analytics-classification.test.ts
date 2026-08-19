@@ -7,7 +7,7 @@
  * [CN] 匹配与未匹配 Runtime 流量的隐私安全分类测试。
  * 验证受控的机器人、探测、资源与设备类别，且不保留原始请求数据。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import assert from "node:assert/strict";

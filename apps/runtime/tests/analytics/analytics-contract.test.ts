@@ -7,7 +7,7 @@
  * [CN] Runtime 事件与 WebUI Collector 契约的跨项目测试。
  * 验证 V2 归一化、受控域名与分类字段，以及 V1 兼容性。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import assert from "node:assert/strict";

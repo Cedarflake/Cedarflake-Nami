@@ -7,7 +7,7 @@
  * [CN] Runtime 数据源编排。
  * 解析宿主选项，并将远程配置加载委托给选中的数据源插件。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import { defaultDataConfig } from "@nami/config";

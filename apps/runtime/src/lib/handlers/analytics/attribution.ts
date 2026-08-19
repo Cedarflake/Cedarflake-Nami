@@ -7,7 +7,7 @@
  * [CN] 短链接请求的签名渠道与上游归因。
  * 负责验证受限的 HMAC token、清理保留查询参数，并管理短期归因交接 Cookie。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import { analyticsProviderSchema } from "@nami/analytics-domain";

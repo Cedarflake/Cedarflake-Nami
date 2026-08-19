@@ -7,7 +7,7 @@
  * [CN] 根据已校验的远程插件声明构建有序 Runtime Feature 管线。
  * 将可选功能故障与重定向执行隔离。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import type { AnalyticsClassificationHookContext } from "@nami/analytics-domain/classification";

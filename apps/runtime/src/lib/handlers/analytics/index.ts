@@ -7,7 +7,7 @@
  * [CN] 编排请求归因、Analytics V2 事件收尾以及上游短链续跳。
  * 在保持重定向处理韧性的同时，将配置、载荷构建和投递委托给独立模块。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import {

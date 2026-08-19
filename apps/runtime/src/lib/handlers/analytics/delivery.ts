@@ -7,7 +7,7 @@
  * [CN] 统计 Sink 编排。
  * 选择配置的 Sink 插件，并将尽力而为的投递失败隔离在重定向流程之外。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import { PluginError } from "@nami/plugin-api";

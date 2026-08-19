@@ -16,8 +16,8 @@ function resolveDataRepositoryPluginId(
 export const bootstrapConfig: BootstrapConfig = {
   data: {
     github: {
-      owner: "Revaea",
-      repository: "i0c.cc",
+      owner: "Cedarflake",
+      repository: "Cedarflake-Nami",
       branch: "data",
       configPath: "config.json",
       redirectsPath: "redirects.json",
@@ -55,7 +55,7 @@ export const bootstrapConfig: BootstrapConfig = {
 }
 
 export const defaultDataConfig: DataConfig = {
-  $schema: "https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/config.schema.json",
+  $schema: "https://raw.githubusercontent.com/Cedarflake/Cedarflake-Nami/main/packages/config/config.schema.json",
   schemaVersion: 1,
   runtime: {
     canonicalOrigin: "https://i0c.cc",

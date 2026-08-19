@@ -62,7 +62,7 @@ Runtime 请求 https://image.example.com/a.jpg
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json",
+  "$schema": "https://raw.githubusercontent.com/Cedarflake/Cedarflake-Nami/main/packages/config/redirects.schema.json",
   "Slots": {
     "Main": {
       "/docs": {

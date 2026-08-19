@@ -8,7 +8,7 @@
  * [CN] 响应工厂。
  * 构造重定向与透明代理响应，包括请求头规范化、有界上游跳转以及代理候选失败分类。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import { DEFAULT_STATUS, HSTS_HEADER_VALUE } from "../core/constants";

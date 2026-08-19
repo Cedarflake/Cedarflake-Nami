@@ -7,7 +7,7 @@
  * [CN] 路由分发器回归测试。
  * 验证直接重定向、顺序代理回退和静态资源代理竞速行为。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import assert from "node:assert/strict";

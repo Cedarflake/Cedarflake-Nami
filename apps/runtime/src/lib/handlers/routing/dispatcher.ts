@@ -9,7 +9,7 @@
  * 负责解析已编译路由、协调代理回退与竞速，并返回匹配结果或最终代理失败元数据，
  * 不负责请求生命周期或分析事件收尾。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import {

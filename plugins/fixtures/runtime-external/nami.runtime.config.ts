@@ -30,9 +30,9 @@ export const runtimePluginInstallations = {
   dataSource: {
     bootstrapConfig: {
       dataConfigUrl:
-        "https://raw.githubusercontent.com/Revaea/i0c.cc/data/config.json",
+        "https://raw.githubusercontent.com/Cedarflake/Cedarflake-Nami/data/config.json",
       redirectsConfigUrl:
-        "https://raw.githubusercontent.com/Revaea/i0c.cc/data/redirects.json",
+        "https://raw.githubusercontent.com/Cedarflake/Cedarflake-Nami/data/redirects.json",
       dataConfigCacheTtlSeconds: 600,
       redirectsCacheTtlSeconds: 60,
       configFailureBackoffSeconds: 30,

@@ -9,7 +9,7 @@
  * 负责解析共享默认值、应用安全的请求头覆盖、合并中止信号，并执行可选请求体限制，
  * 避免路由代码与编辑器表示形式耦合。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import {

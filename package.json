@@ -5,9 +5,9 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Revaea/i0c.cc.git"
+    "url": "https://github.com/Cedarflake/Cedarflake-Nami.git"
   },
-  "homepage": "https://github.com/Revaea/i0c.cc",
+  "homepage": "https://github.com/Cedarflake/Cedarflake-Nami",
   "packageManager": "pnpm@11.17.0+sha512.cca3cea332ad254bb84145f966d19f4879615210346fc92c79a047f23a0d7b3cca3c3792f0076ba1f1831d277efbcf0a9119b31a9a60eca7fb3d6231f331ef72",
   "scripts": {
     "check": "pnpm assets:check && pnpm config:check && pnpm scripts:check && pnpm database:init:test && pnpm plugins:check && pnpm runtime:check && pnpm runtime:test && pnpm runtime:build && pnpm webui:test && pnpm webui:lint && pnpm webui:build && pnpm docs:check",

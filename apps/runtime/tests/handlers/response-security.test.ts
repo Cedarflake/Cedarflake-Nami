@@ -7,7 +7,7 @@
  * [CN] 代理响应安全回归测试。
  * 验证透明请求头转发、代理主机校验以及有界的上游重定向处理。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import assert from "node:assert/strict";

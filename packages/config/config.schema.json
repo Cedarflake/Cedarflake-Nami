@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/config.schema.json",
+  "$id": "https://raw.githubusercontent.com/Cedarflake/Cedarflake-Nami/main/packages/config/config.schema.json",
   "title": "nami instance configuration",
   "type": "object",
   "additionalProperties": false,

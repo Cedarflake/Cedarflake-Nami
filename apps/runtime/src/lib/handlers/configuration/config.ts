@@ -7,7 +7,7 @@
  * [CN] 远程数据启动地址解析。
  * 根据仓库维护的启动配置构建实例配置与重定向规则地址。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import { bootstrapConfig } from "@nami/config";

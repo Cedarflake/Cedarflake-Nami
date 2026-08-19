@@ -7,7 +7,7 @@
  * [CN] Runtime 插件目录投影与远程声明校验。
  * 将宿主注入的平台 Manifest 与平台无关的官方预设组合并校验。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import type { DataConfig, PluginInstanceConfig } from "@nami/config";

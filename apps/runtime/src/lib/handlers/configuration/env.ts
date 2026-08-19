@@ -7,7 +7,7 @@
  * [CN] Runtime 密钥绑定抽象层。
  * 在 Node.js 与边缘平台绑定中安全读取密钥值。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 declare const process: undefined | { env?: Record<string, string | undefined> };

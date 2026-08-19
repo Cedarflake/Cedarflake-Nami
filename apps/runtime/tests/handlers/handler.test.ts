@@ -7,7 +7,7 @@
  * [CN] Runtime 控制器响应回归测试。
  * 验证未匹配路由与代理耗尽路由会产生不同的 HTTP 响应。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import assert from "node:assert/strict";

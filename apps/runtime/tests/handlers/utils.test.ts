@@ -7,7 +7,7 @@
  * [CN] 请求路径推断回归测试。
  * 验证框架资源路径只接受同源代理来源页的影响。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import assert from "node:assert/strict";

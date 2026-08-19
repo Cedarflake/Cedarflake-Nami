@@ -7,7 +7,7 @@
  * [CN] 统计故障隔离的回归测试。
  * 验证本地统计处理异常不会替换 Runtime 已经生成的响应。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import assert from "node:assert/strict";

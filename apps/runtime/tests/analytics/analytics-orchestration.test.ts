@@ -7,7 +7,7 @@
  * [CN] Runtime 统计编排的端到端回归测试。
  * 验证配置解析以及实际投递的链接与运行时事件契约。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import assert from "node:assert/strict";

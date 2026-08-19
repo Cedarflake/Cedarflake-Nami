@@ -57,7 +57,7 @@ test("creates valid database-backed documents for selected Runtime providers", (
   );
   assert.deepEqual(JSON.parse(result.redirectsContent), {
     $schema:
-      "https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json",
+      "https://raw.githubusercontent.com/Cedarflake/Cedarflake-Nami/main/packages/config/redirects.schema.json",
     Slots: {},
   });
 });

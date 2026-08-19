@@ -9,7 +9,7 @@
  * 存储系统范围的常量值，如 HTTP 状态码、缓存 TTL 和响应头值，
  * 以维护单一事实来源并避免代码中出现魔法数字。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 export const HTTPS_REDIRECT_STATUS = 308;

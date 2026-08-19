@@ -1,6 +1,6 @@
 import { defineConfig } from "vitepress"
 
-const repositoryUrl = "https://github.com/Revaea/i0c.cc"
+const repositoryUrl = "https://github.com/Cedarflake/Cedarflake-Nami"
 const footerMessage = [
   ["Revaea", "https://revaea.com"],
   ["World", "https://story.revaea.com"],

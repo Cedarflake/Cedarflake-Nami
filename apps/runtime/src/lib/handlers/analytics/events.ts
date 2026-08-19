@@ -7,7 +7,7 @@
  * [CN] 管理 Analytics V2 事件契约、请求分类以及确定性的事件构建。
  * 将链接与运行时载荷塑形从投递和请求编排中分离。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import {

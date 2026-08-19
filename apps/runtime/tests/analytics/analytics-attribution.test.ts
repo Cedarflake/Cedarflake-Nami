@@ -7,7 +7,7 @@
  * [CN] 签名渠道与上游统计归因的契约测试。
  * 覆盖与 WebUI 兼容的 token 格式、受众边界、参数清理与内部交接。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import { createHmac } from "node:crypto";

@@ -62,7 +62,7 @@ Here is a compact example:
 
 ```json
 {
-  "$schema": "https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json",
+  "$schema": "https://raw.githubusercontent.com/Cedarflake/Cedarflake-Nami/main/packages/config/redirects.schema.json",
   "Slots": {
     "Main": {
       "/docs": {

@@ -7,7 +7,7 @@
  * [CN] Runtime 配置加载缓存测试。
  * 验证并发下载去重以及内存 TTL 内复用已解析配置。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import assert from "node:assert/strict";

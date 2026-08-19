@@ -5,7 +5,7 @@
  *
  * [CN] 所有 Runtime 适配器共用的自包含 404 资源。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import { interLatinVariableFontPath } from "@/assets/inter-font";

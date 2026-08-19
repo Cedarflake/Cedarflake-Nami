@@ -74,7 +74,7 @@ export function createInitialDocuments(
   const parsedConfig = parseDataConfig(configContent);
   const redirects = {
     $schema:
-      "https://raw.githubusercontent.com/Revaea/i0c.cc/main/packages/config/redirects.schema.json",
+      "https://raw.githubusercontent.com/Cedarflake/Cedarflake-Nami/main/packages/config/redirects.schema.json",
     Slots: {},
   };
   const redirectsValidation = validateRedirectsConfig(redirects);

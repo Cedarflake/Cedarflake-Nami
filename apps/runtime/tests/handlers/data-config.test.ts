@@ -7,7 +7,7 @@
  * [CN] 共享实例配置契约测试。
  * 在 Runtime 与 WebUI 消费远程数据前验证其配置结构。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import assert from "node:assert/strict";

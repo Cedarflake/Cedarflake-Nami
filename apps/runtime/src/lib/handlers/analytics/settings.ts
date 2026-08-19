@@ -7,7 +7,7 @@
  * [CN] 解析并校验 Runtime 统计配置与归因签名密钥。
  * 集中组合版本化公开配置、平台密钥绑定以及投递资格判断。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import type { JsonObject } from "@nami/plugin-api";

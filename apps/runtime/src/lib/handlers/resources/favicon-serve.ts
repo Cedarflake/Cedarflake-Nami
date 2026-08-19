@@ -7,7 +7,7 @@
  * [CN] 嵌入式图标资源处理程序。
  * 直接从内存解码并提供嵌入的 Base64 图标（Favicon）。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import { base64Icon } from "@/assets/favicon"; 

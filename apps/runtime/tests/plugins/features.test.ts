@@ -7,7 +7,7 @@
  * [CN] Runtime Feature 宿主配置测试。
  * 验证远程插件启停会改变实际装配的 Feature 管线。
  *
- * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
+ * @see {@link https://github.com/Cedarflake/Cedarflake-Nami} for repository info.
  */
 
 import assert from "node:assert/strict";
