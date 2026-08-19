@@ -6,6 +6,7 @@ const repositoryRoot = fileURLToPath(new URL("../../", import.meta.url))
 
 const sourceFiles = {
   favicon: "assets/brand/favicon.ico",
+  faviconWebp: "assets/brand/favicon.webp",
   webuiWordmark: "assets/brand/webui-wordmark.webp",
   wordmark: "assets/brand/wordmark.webp",
 } as const
@@ -18,6 +19,10 @@ interface BinaryOutput {
 }
 
 const binaryOutputs: readonly BinaryOutput[] = [
+  {
+    destination: "apps/docs/public/favicon.webp",
+    source: "faviconWebp",
+  },
   {
     destination: "apps/docs/public/favicon.ico",
     source: "favicon",

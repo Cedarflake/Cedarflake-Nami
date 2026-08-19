@@ -6,6 +6,7 @@ This directory is the source of truth for checked-in nami brand images.
 | --- | --- |
 | `wordmark.webp` | General nami wordmark used by the repository README |
 | `webui-wordmark.webp` | WebUI-specific README wordmark |
+| `favicon.webp` | High-resolution product artwork used by the documentation homepage |
 | `favicon.ico` | Canonical product icon used in application navigation, site favicons, and QR codes |
 
 Replace a source file without changing its filename, then run these commands from the repository root:
