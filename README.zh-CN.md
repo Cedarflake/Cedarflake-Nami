@@ -1,4 +1,4 @@
-# <img src="./assets/brand/wordmark.webp" alt="Nami" width="420">
+# <img src="./assets/brand/wordmark.webp" alt="Nami" width="980">
 
 Nami 是一个个人边缘重定向实验项目，包含数据库驱动的控制面、可选 Runtime 平台、可选统计与编译期扩展。
 

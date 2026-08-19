@@ -1,4 +1,4 @@
-<img src="../../assets/brand/webui-wordmark.webp" alt="Nami" width="720">
+# Nami WebUI
 
 ## 项目简介
 
