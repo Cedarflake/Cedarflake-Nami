@@ -20,9 +20,9 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@i0c/webui-config": ["../../i0c.webui.config.ts"],
-      "@i0c/webui-extensions": ["./webui.extensions.ts"],
-      "@i0c/webui-manifests": ["../../i0c.webui.manifests.ts"]
+      "@nami/webui-config": ["../../nami.webui.config.ts"],
+      "@nami/webui-extensions": ["./webui.extensions.ts"],
+      "@nami/webui-manifests": ["../../nami.webui.manifests.ts"]
     }
   },
   "include": [
@@ -32,9 +32,9 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
-    "../../i0c.runtime.manifests.ts",
-    "../../i0c.webui.config.ts",
-    "../../i0c.webui.manifests.ts"
+    "../../nami.runtime.manifests.ts",
+    "../../nami.webui.config.ts",
+    "../../nami.webui.manifests.ts"
   ],
   "exclude": ["node_modules"]
 }

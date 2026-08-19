@@ -3,7 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import {
   analyticsEventSchema,
   type AnalyticsWireEvent,
-} from "@i0c/analytics-domain/events";
+} from "@nami/analytics-domain/events";
 
 const maximumBodyBytes = 16 * 1024;
 const signatureWindowSeconds = 5 * 60;

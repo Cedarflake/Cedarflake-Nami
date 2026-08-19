@@ -1,1 +1,1 @@
-export * from "@i0c/analytics-domain/types";
+export * from "@nami/analytics-domain/types";

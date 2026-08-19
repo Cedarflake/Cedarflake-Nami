@@ -10,12 +10,12 @@
  * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
  */
 
-import { defaultDataConfig } from "@i0c/config";
-import type { DataConfig } from "@i0c/config";
-import type { JsonObject } from "@i0c/plugin-api";
+import { defaultDataConfig } from "@nami/config";
+import type { DataConfig } from "@nami/config";
+import type { JsonObject } from "@nami/plugin-api";
 import {
   runtimePluginInstallations as defaultRuntimePluginInstallations
-} from "@i0c/runtime-config";
+} from "@nami/runtime-config";
 
 import { runtimePluginLogger } from "@/plugins/logger";
 import { createRuntimeFeaturePipeline } from "@/plugins/features";

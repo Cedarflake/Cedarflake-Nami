@@ -1,12 +1,12 @@
 import {
   PLUGIN_API_VERSION,
   type PluginManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import { postgresDataRepositoryPluginConfigSchema } from "./config"
 
 export const postgresDataRepositoryManifest = {
-  id: "@i0c/data-repository-postgres",
+  id: "@nami/data-repository-postgres",
   name: "PostgreSQL data repository",
   version: "0.1.0",
   apiVersion: PLUGIN_API_VERSION,

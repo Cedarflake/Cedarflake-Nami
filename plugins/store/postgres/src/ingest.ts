@@ -1,8 +1,8 @@
 import type {
   CanonicalAnalyticsEvent,
   CanonicalAnalyticsLinkEvent,
-} from "@i0c/analytics-domain/events"
-import type { PostgresTransactionSql } from "@i0c/database-postgres"
+} from "@nami/analytics-domain/events"
+import type { PostgresTransactionSql } from "@nami/database-postgres"
 
 import { getDatabase } from "./database";
 

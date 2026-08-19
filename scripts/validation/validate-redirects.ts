@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url"
 import Ajv, { type AnySchema, type ErrorObject } from "ajv"
 import addFormats from "ajv-formats"
 
-import { validateRedirectsConfig } from "@i0c/config"
+import { validateRedirectsConfig } from "@nami/config"
 
 interface RedirectSource {
   label: string

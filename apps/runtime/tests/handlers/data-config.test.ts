@@ -16,7 +16,7 @@ import test from "node:test";
 import {
   defaultDataConfig,
   validateDataConfig
-} from "@i0c/config";
+} from "@nami/config";
 
 test("accepts the checked-in default data configuration", () => {
   const result = validateDataConfig(defaultDataConfig);
@@ -55,7 +55,7 @@ test("accepts namespaced plugin configuration and secret binding names", () => {
   const result = validateDataConfig({
     ...defaultDataConfig,
     plugins: {
-      "@i0c/analytics-http": {
+      "@nami/analytics-http": {
         enabled: true,
         config: {
           retryAttempts: 2
@@ -74,7 +74,7 @@ test("rejects invalid plugin secret binding names", () => {
   const result = validateDataConfig({
     ...defaultDataConfig,
     plugins: {
-      "@i0c/analytics-http": {
+      "@nami/analytics-http": {
         enabled: true,
         secrets: {
           writeKey: "plain-text-secret"
@@ -87,7 +87,7 @@ test("rejects invalid plugin secret binding names", () => {
   if (result.status === "invalid") {
     assert.equal(
       result.issues[0]?.path,
-      "/plugins/@i0c~1analytics-http/secrets/writeKey"
+      "/plugins/@nami~1analytics-http/secrets/writeKey"
     );
   }
 });

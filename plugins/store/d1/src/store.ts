@@ -1,4 +1,4 @@
-import { resolveQueryRange, type QueryRange } from "@i0c/analytics-domain/range"
+import { resolveQueryRange, type QueryRange } from "@nami/analytics-domain/range"
 import {
   resolveAnalyticsEntryDomainCutoff,
   type AnalyticsAggregateRebuildInput,
@@ -7,18 +7,18 @@ import {
   type AnalyticsRetentionScope,
   type AnalyticsStoreDetailInput,
   type AnalyticsStoreQueryInput,
-} from "@i0c/analytics-domain/store"
+} from "@nami/analytics-domain/store"
 import type {
   AnalyticsAutomationOverview,
   AnalyticsDetail,
   AnalyticsEntryDomainOption,
   AnalyticsOverview,
   AnalyticsScope,
-} from "@i0c/analytics-domain/types"
+} from "@nami/analytics-domain/types"
 import type {
   AnalyticsStore,
   PluginSchemaMigrationProvider,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import {
   createAutomationDelivery,

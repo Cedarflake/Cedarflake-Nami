@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { DataRepositoryManagement, DataRepositorySetupState } from "@i0c/config";
+import type { DataRepositoryManagement, DataRepositorySetupState } from "@nami/config";
 
 import { getAppDataRepositoryManagement } from "@/lib/data/documents";
 

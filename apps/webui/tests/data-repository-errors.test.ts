@@ -5,7 +5,7 @@ import {
   DataDocumentNotFoundError,
   DataRepositoryConflictError,
   DataRepositoryInitializationError,
-} from "@i0c/config";
+} from "@nami/config";
 
 import { createDataRepositoryErrorResponse } from "../src/lib/data/errors";
 

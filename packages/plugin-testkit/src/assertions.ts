@@ -11,7 +11,7 @@ import {
   type DataRepositorySnapshot,
   type DataRepositoryWriteInput,
   type DataRepositoryWriteResult,
-} from "@i0c/config"
+} from "@nami/config"
 import {
   type AnalyticsSink,
   type AnalyticsStore,
@@ -27,7 +27,7 @@ import {
   type RuntimePlatformPlugin,
   type VersionedDataRepository,
   validatePluginManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 export function assertPluginManifest(manifest: PluginManifest): void {
   const result = validatePluginManifest(manifest)

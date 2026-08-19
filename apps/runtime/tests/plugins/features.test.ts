@@ -13,10 +13,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { AnalyticsClassificationHookContext } from "@i0c/analytics-domain/classification";
-import { defaultDataConfig } from "@i0c/config";
-import { BOT_CLASSIFIER_PLUGIN_ID } from "@i0c/plugin-feature-bot-classifier/manifest";
-import { runtimePluginInstallations } from "@i0c/runtime-config";
+import type { AnalyticsClassificationHookContext } from "@nami/analytics-domain/classification";
+import { defaultDataConfig } from "@nami/config";
+import { BOT_CLASSIFIER_PLUGIN_ID } from "@nami/plugin-feature-bot-classifier/manifest";
+import { runtimePluginInstallations } from "@nami/runtime-config";
 
 import { createRuntimeFeaturePipeline } from "../../src/plugins/features";
 

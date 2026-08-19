@@ -1,4 +1,4 @@
-import { defineRuntimePlatformManifest } from "@i0c/plugin-sdk"
+import { defineRuntimePlatformManifest } from "@nami/plugin-sdk"
 
 export const externalRuntimeManifest = defineRuntimePlatformManifest({
   id: "@example/runtime-external",

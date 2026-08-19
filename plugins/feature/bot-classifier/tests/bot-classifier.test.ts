@@ -4,7 +4,7 @@ import test from "node:test"
 import {
   assertPluginManifest,
   assertRuntimeFeatureEventContract,
-} from "@i0c/plugin-testkit"
+} from "@nami/plugin-testkit"
 
 import { defaultBotClassifierConfig } from "../src/config"
 import { botClassifierManifest } from "../src/manifest"

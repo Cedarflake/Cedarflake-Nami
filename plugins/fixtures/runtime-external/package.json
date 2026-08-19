@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/runtime-fixture-external",
+  "name": "@nami/runtime-fixture-external",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -17,15 +17,15 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
-    "@i0c/analytics-domain": "workspace:*",
-    "@i0c/plugin-api": "workspace:*",
-    "@i0c/plugin-sdk": "workspace:*"
+    "@nami/analytics-domain": "workspace:*",
+    "@nami/plugin-api": "workspace:*",
+    "@nami/plugin-sdk": "workspace:*"
   },
   "devDependencies": {
-    "@i0c/plugin-analytics-sink-http": "workspace:*",
-    "@i0c/plugin-feature-bot-classifier": "workspace:*",
-    "@i0c/plugin-github-data": "workspace:*",
-    "@i0c/plugin-testkit": "workspace:*",
+    "@nami/plugin-analytics-sink-http": "workspace:*",
+    "@nami/plugin-feature-bot-classifier": "workspace:*",
+    "@nami/plugin-github-data": "workspace:*",
+    "@nami/plugin-testkit": "workspace:*",
     "@types/node": "^25.5.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"

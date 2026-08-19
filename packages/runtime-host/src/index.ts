@@ -2,11 +2,11 @@ import type {
   RuntimePlatformContext,
   RuntimePlatformManifest,
   RuntimePlatformPlugin,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 import {
   arePluginManifestsEquivalent,
   validatePluginManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 export interface RuntimeHostContext extends RuntimePlatformContext {
   platformPluginId: string

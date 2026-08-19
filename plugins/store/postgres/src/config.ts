@@ -1,5 +1,5 @@
-import { ANALYTICS_RAW_EVENT_RETENTION_DAYS } from "@i0c/analytics-domain/store"
-import type { JsonObject } from "@i0c/plugin-api"
+import { ANALYTICS_RAW_EVENT_RETENTION_DAYS } from "@nami/analytics-domain/store"
+import type { JsonObject } from "@nami/plugin-api"
 
 export interface PostgresAnalyticsStoreConfig {
   maxConnections: number

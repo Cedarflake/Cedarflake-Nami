@@ -10,7 +10,7 @@ import {
   type PluginSchemaMigrationPlan,
   type PluginSchemaMigrationProvider,
   type PluginSchemaMigrationStatus,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import {
   createPostgresClient,

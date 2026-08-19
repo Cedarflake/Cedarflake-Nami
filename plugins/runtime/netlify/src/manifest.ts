@@ -1,12 +1,12 @@
 import {
   PLUGIN_API_VERSION,
   type RuntimePlatformManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import { netlifyRuntimePluginConfigSchema } from "./config"
 
 export const netlifyRuntimeManifest = {
-  id: "@i0c/runtime-netlify",
+  id: "@nami/runtime-netlify",
   name: "Netlify Runtime",
   version: "0.1.0",
   apiVersion: PLUGIN_API_VERSION,

@@ -1,4 +1,4 @@
-CREATE TABLE i0c_data_document (
+CREATE TABLE nami_data_document (
   kind TEXT PRIMARY KEY,
   content TEXT NOT NULL,
   revision INTEGER NOT NULL DEFAULT 1,

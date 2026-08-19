@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/plugin-analytics-store-postgres",
+  "name": "@nami/plugin-analytics-store-postgres",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -19,12 +19,12 @@
     "schema:update": "tsx scripts/update-schema.ts"
   },
   "dependencies": {
-    "@i0c/analytics-domain": "workspace:*",
-    "@i0c/database-postgres": "workspace:*",
-    "@i0c/plugin-api": "workspace:*"
+    "@nami/analytics-domain": "workspace:*",
+    "@nami/database-postgres": "workspace:*",
+    "@nami/plugin-api": "workspace:*"
   },
   "devDependencies": {
-    "@i0c/plugin-testkit": "workspace:*",
+    "@nami/plugin-testkit": "workspace:*",
     "@types/node": "^25.5.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"

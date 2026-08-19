@@ -10,13 +10,13 @@
  * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
  */
 
-import { analyticsProviderSchema } from "@i0c/analytics-domain";
+import { analyticsProviderSchema } from "@nami/analytics-domain";
 
 import { normalisePath, safeDecode } from "../core/utils";
 import type { AnalyticsProvider } from "../core/types";
 
-export const ANALYTICS_ATTRIBUTION_QUERY_PARAM = "_i0c_via";
-export const ANALYTICS_ATTRIBUTION_COOKIE = "__Host-i0c-attribution";
+export const ANALYTICS_ATTRIBUTION_QUERY_PARAM = "_nami_via";
+export const ANALYTICS_ATTRIBUTION_COOKIE = "__Host-nami-attribution";
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -27,7 +27,7 @@ const CLOCK_SKEW_SECONDS = 60;
 const COOKIE_MAX_AGE_SECONDS = 300;
 const MAX_CAMPAIGN_LIFETIME_SECONDS = 365 * 24 * 60 * 60;
 const MAX_UPSTREAM_LIFETIME_SECONDS = 5 * 60;
-const ATTRIBUTION_KEY_CONTEXT = "i0c.cc/analytics-attribution/v1";
+const ATTRIBUTION_KEY_CONTEXT = "nami/analytics-attribution/v1";
 
 const importedAttributionKeys = new WeakMap<ArrayBuffer, Promise<CryptoKey>>();
 

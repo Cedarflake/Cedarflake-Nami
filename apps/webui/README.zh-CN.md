@@ -1,10 +1,12 @@
+<img src="../../assets/brand/webui-wordmark.webp" alt="nami" width="720">
+
 ## 项目简介
 
-i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OAuth 登录后在线编辑 `config.json` 与 `redirects.json`。仓库当前默认使用 PostgreSQL，实现即时乐观保存、原子快照、不可变版本历史与回滚。原有 GitHub Contents 流程保留为归档的构建期替代方案，默认不启用。
+nami WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OAuth 登录后在线编辑 `config.json` 与 `redirects.json`。仓库当前默认使用 PostgreSQL，实现即时乐观保存、原子快照、不可变版本历史与回滚。原有 GitHub Contents 流程保留为归档的构建期替代方案，默认不启用。
 
-这个 WebUI 服务于个人 [i0c.cc](https://github.com/Revaea/i0c.cc) 工作流，作为可选的管理界面维护，不定位为通用的企业级链接管理产品。
+这个 WebUI 服务于个人 [nami](https://github.com/Revaea/i0c.cc) 工作流，作为可选的管理界面维护，不定位为通用的企业级链接管理产品。
 
-服务端 Data Repository 与 Analytics Store 工厂通过 [../../i0c.webui.config.ts](../../i0c.webui.config.ts) 在构建期安装。客户端安全的 UI Renderer 使用 [webui.extensions.ts](webui.extensions.ts)，确保它们留在客户端 Bundle。workspace fixture 会覆盖两条安装链，无需在 WebUI 宿主源码中增加工厂映射；生产 Renderer 清单目前有意保持为空。
+服务端 Data Repository 与 Analytics Store 工厂通过 [../../nami.webui.config.ts](../../nami.webui.config.ts) 在构建期安装。客户端安全的 UI Renderer 使用 [webui.extensions.ts](webui.extensions.ts)，确保它们留在客户端 Bundle。workspace fixture 会覆盖两条安装链，无需在 WebUI 宿主源码中增加工厂映射；生产 Renderer 清单目前有意保持为空。
 
 该项目默认提供可视化规则编辑和独立的设置界面：
 
@@ -42,7 +44,7 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
 
 3. 在 GitHub 创建 OAuth App，回调地址填写 `http(s)://<localhost:3000 或你的域名>/api/auth/callback/github`，并配置 `GITHUB_CLIENT_ID`、`GITHUB_CLIENT_SECRET`。默认 scope 为 `read:user user:email`；PostgreSQL 控制面不需要 Repository 权限。
 
-4. 生成一个至少 32 个随机字节的 `I0C_SECRET`，并在 WebUI 与每个平台的 Runtime 中配置相同值。NextAuth 通常会自动推断请求地址；仅当自托管代理未正确转发地址时，才设置可选的 `NEXTAUTH_URL` 覆盖值。
+4. 生成一个至少 32 个随机字节的 `NAMI_SECRET`，并在 WebUI 与每个平台的 Runtime 中配置相同值。NextAuth 通常会自动推断请求地址；仅当自托管代理未正确转发地址时，才设置可选的 `NEXTAUTH_URL` 覆盖值。
 
    - 使用 OpenSSL：
      ```bash
@@ -60,9 +62,9 @@ i0c.cc WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OA
    pnpm webui:dev
    ```
 
-6. 打开 [http://localhost:3000](http://localhost:3000) 或部署域名。数据库为空时，WebUI 会进入初始化页面。登录 GitHub、输入共享的 `I0C_SECRET`、选择已部署的 Runtime 适配器与公开地址，然后原子创建初始 `config.json` 和空的 `redirects.json`。当前 GitHub 账号会成为首位管理者。
+6. 打开 [http://localhost:3000](http://localhost:3000) 或部署域名。数据库为空时，WebUI 会进入初始化页面。登录 GitHub、输入共享的 `NAMI_SECRET`、选择已部署的 Runtime 适配器与公开地址，然后原子创建初始 `config.json` 和空的 `redirects.json`。当前 GitHub 账号会成为首位管理者。
 
-7. 初始化完成后继续保留 `I0C_SECRET`，它还用于签名 WebUI 会话和 Runtime 统计事件。
+7. 初始化完成后继续保留 `NAMI_SECRET`，它还用于签名 WebUI 会话和 Runtime 统计事件。
 
 ## Data Repository
 
@@ -75,7 +77,7 @@ D1 使用 [../../plugins/repository/d1/migrations](../../plugins/repository/d1/m
 `seed` 命令继续用于受控的非交互初始化或导入，但不再属于正常部署流程：
 
 ```bash
-pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
+pnpm --filter @nami/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
 ```
 
 使用数据库文档时，还要在同一份启动配置中选择 HTTP Runtime Source，并指向 `https://<webui-domain>/api/runtime/snapshot`。这个公开端点会返回一份带 ETag、经过校验的配置与规则 revision，且不包含 Secret 值。边缘 Runtime 只读取该端点，不会获得数据库连接信息或 binding。
@@ -92,7 +94,7 @@ GitHub Contents 与 GitHub Raw 继续保留在 workspace 中，作为归档的�
 
    ```dotenv
    DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
-   I0C_SECRET="replace-with-the-shared-instance-secret"
+   NAMI_SECRET="replace-with-the-shared-instance-secret"
    ```
 
 2. 在仓库根目录更新 PostgreSQL 统计 Schema：
@@ -106,7 +108,7 @@ GitHub Contents 与 GitHub Raw 继续保留在 workspace 中，作为归档的�
 3. 配置每个 Runtime 部署，将签名后的事件发送到 WebUI：
 
    ```dotenv
-   I0C_SECRET="the-same-value-as-the-WebUI-I0C_SECRET"
+   NAMI_SECRET="the-same-value-as-the-WebUI-NAMI_SECRET"
    ```
 
 收集端地址和统计 source ID 来自 `data/config.json`。source ID 必须是共享的基础域名，而不是平台名称。使用 `i0c.cc` 时，`i0c.cc`、`www.i0c.cc`、`api.i0c.cc`、`vc.i0c.cc`、`nf.i0c.cc` 可以分别统计，无需再维护一份域名列表。命名空间之外的域名会存为 `unknown`。
@@ -119,7 +121,7 @@ GitHub Contents 与 GitHub Raw 继续保留在 workspace 中，作为归档的�
 
 Runtime 会发送匹配流量对应的配置规则路径、入口域名、平台、结果、受控的流量与机器人分类、国家代码、来源域名和延迟，但不会发送 IP、完整 User-Agent、查询参数、目标地址、完整来源 URL 或原始未匹配路径。浏览器来源、显式签名渠道和验证后的内部短链接来源属于相互独立的维度。
 
-需要生成渠道链接时，已登录的客户端可以调用 `POST /api/analytics/campaigns`，传入 Runtime 地址、统计 ID、渠道 ID 和 1–365 天有效期。返回的签名 `_i0c_via` 参数会绑定精确域名和归一化路径，并由 Runtime 在规则处理前删除。
+需要生成渠道链接时，已登录的客户端可以调用 `POST /api/analytics/campaigns`，传入 Runtime 地址、统计 ID、渠道 ID 和 1–365 天有效期。返回的签名 `_nami_via` 参数会绑定精确域名和归一化路径，并由 Runtime 在规则处理前删除。
 
 数据库地址和实例密钥必须仅保存在服务端。统计事件写入后，WebUI 会在后台低频安排数据保留，不再暴露维护端点，也不需要另一项部署密钥。原始事件、幂等收据和上游声明在 181 天后过期，小时与天级聚合继续保留。免费方案的额度和休眠策略可能变化，生产使用前请检查服务商的最新限制。
 

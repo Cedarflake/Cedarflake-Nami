@@ -1,6 +1,6 @@
-import type { AnalyticsProvider } from "@i0c/analytics-domain"
-import type { AnalyticsClassificationHookContext } from "@i0c/analytics-domain/classification"
-import type { DataConfig, RedirectsConfig } from "@i0c/config"
+import type { AnalyticsProvider } from "@nami/analytics-domain"
+import type { AnalyticsClassificationHookContext } from "@nami/analytics-domain/classification"
+import type { DataConfig, RedirectsConfig } from "@nami/config"
 import {
   validatePluginManifest,
   type AnalyticsSink,
@@ -10,7 +10,7 @@ import {
   type RuntimeCache,
   type RuntimeDataSource,
   type RuntimeFeatureRegistration,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 export interface RuntimeDataSourceServices {
   cache?: RuntimeCache

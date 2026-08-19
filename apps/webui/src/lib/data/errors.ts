@@ -4,7 +4,7 @@ import {
   DataDocumentNotFoundError,
   DataRepositoryConflictError,
   DataRepositoryInitializationError,
-} from "@i0c/config";
+} from "@nami/config";
 
 export function createDataRepositoryErrorResponse(
   error: unknown,

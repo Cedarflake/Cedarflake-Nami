@@ -1,8 +1,8 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
-import type { BootstrapConfig } from "@i0c/config"
-import type { PluginSchemaMigrationProvider } from "@i0c/plugin-api"
+import type { BootstrapConfig } from "@nami/config"
+import type { PluginSchemaMigrationProvider } from "@nami/plugin-api"
 
 import {
   initializeDatabases,

@@ -30,9 +30,9 @@ interface AppLayoutProviderProps {
 const defaultSidebarWidth = 320;
 const defaultContentWidth = 1152;
 const defaultLayoutMode: AppLayoutMode = "original";
-const sidebarWidthStorageKey = "i0c.cc:webui:sidebar-width";
-const contentWidthStorageKey = "i0c.cc:webui:content-width";
-const layoutModeStorageKey = "i0c.cc:webui:layout-mode";
+const sidebarWidthStorageKey = "nami:webui:sidebar-width";
+const contentWidthStorageKey = "nami:webui:content-width";
+const layoutModeStorageKey = "nami:webui:layout-mode";
 
 const AppLayoutContext = createContext<AppLayoutContextValue | null>(null);
 

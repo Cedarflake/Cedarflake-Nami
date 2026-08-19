@@ -3,7 +3,7 @@
 import { useMemo, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 
-import type { DataConfig, RobotsPolicy, WebUiAccessMode } from "@i0c/config";
+import type { DataConfig, RobotsPolicy, WebUiAccessMode } from "@nami/config";
 
 import { PluginStatusPanel } from "@/components/plugins/plugin-status-panel";
 import { DataManagementPanel } from "@/components/settings/data-management-panel";
@@ -256,7 +256,7 @@ export function InstanceSettingsEditor({
                     canonicalOrigin: event.target.value as `https://${string}`,
                   })
                 }
-                placeholder="https://i0c.cc"
+                placeholder="https://example.com"
                 inputMode="url"
                 autoCapitalize="none"
                 autoCorrect="off"
@@ -335,7 +335,7 @@ export function InstanceSettingsEditor({
                     ingestEndpoint: event.target.value as `https://${string}`,
                   })
                 }
-                placeholder="https://u.i0c.cc/api/analytics/events"
+                placeholder="https://console.example.com/api/analytics/events"
                 inputMode="url"
                 autoCapitalize="none"
                 autoCorrect="off"
@@ -354,7 +354,7 @@ export function InstanceSettingsEditor({
                 onChange={(event) =>
                   updateAnalytics({ sourceId: event.target.value.toLowerCase() })
                 }
-                placeholder="i0c.cc"
+                placeholder="example.com"
                 autoCapitalize="none"
                 autoCorrect="off"
                 spellCheck={false}

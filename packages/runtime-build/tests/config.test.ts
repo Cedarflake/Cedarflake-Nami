@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
-import { PLUGIN_API_VERSION } from "@i0c/plugin-api"
+import { PLUGIN_API_VERSION } from "@nami/plugin-api"
 
 import {
   assertRuntimePlatformModuleMatchesInstallation,
@@ -60,15 +60,15 @@ test("rejects duplicate providers", () => {
 
 test("rejects a platform ID reserved by the Runtime host", () => {
   assert.throws(() => defineRuntimeInstallationConfig({
-    reservedPluginIds: ["@i0c/github-raw-source"],
+    reservedPluginIds: ["@nami/github-raw-source"],
     platforms: [{
       ...externalPlatform,
       manifest: {
         ...externalPlatform.manifest,
-        id: "@i0c/github-raw-source",
+        id: "@nami/github-raw-source",
       },
     }],
-  }), /plugin ID @i0c\/github-raw-source is duplicated/)
+  }), /plugin ID @nami\/github-raw-source is duplicated/)
 })
 
 test("rejects a non-platform manifest in a Runtime installation", () => {

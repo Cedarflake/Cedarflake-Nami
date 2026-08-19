@@ -10,18 +10,18 @@
  * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
  */
 
-import type { DataConfig, PluginInstanceConfig } from "@i0c/config";
-import { installedPluginIds } from "@i0c/plugin-catalog";
-import { PluginError, StaticPluginRegistry } from "@i0c/plugin-api";
+import type { DataConfig, PluginInstanceConfig } from "@nami/config";
+import { installedPluginIds } from "@nami/plugin-catalog";
+import { PluginError, StaticPluginRegistry } from "@nami/plugin-api";
 import {
   listDefaultRuntimePluginIds,
   listRuntimePluginManifests,
   type RuntimePluginInstallations
-} from "@i0c/runtime-host/installations";
+} from "@nami/runtime-host/installations";
 import type {
   ResolvedPluginConfiguration,
   RuntimePlatformManifest
-} from "@i0c/plugin-api";
+} from "@nami/plugin-api";
 
 export interface RuntimePlatformSelection {
   platformPluginId?: string;
@@ -49,7 +49,7 @@ export function resolveRuntimePluginConfigurations(
   const result = registry.resolve("runtime", declarations);
   if (result.status === "invalid") {
     throw new PluginError(
-      "@i0c/runtime-host",
+      "@nami/runtime-host",
       "PLUGIN_CONFIG_INVALID",
       result.issues.map((issue) => `${issue.path}: ${issue.message}`).join("\n"),
       { details: { platformPluginId: platform.platformPluginId } }

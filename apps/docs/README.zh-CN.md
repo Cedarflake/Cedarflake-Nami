@@ -1,6 +1,6 @@
-# i0c.cc 文档站
+# nami 文档站
 
-i0c.cc 双语使用、部署、运维与扩展文档的 VitePress 源码。
+nami 双语使用、部署、运维与扩展文档的 VitePress 源码。
 
 在仓库根目录运行：
 

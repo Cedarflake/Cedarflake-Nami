@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/plugin-data-repository-d1",
+  "name": "@nami/plugin-data-repository-d1",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -37,12 +37,12 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
-    "@i0c/config": "workspace:*",
-    "@i0c/database-d1": "workspace:*",
-    "@i0c/plugin-api": "workspace:*"
+    "@nami/config": "workspace:*",
+    "@nami/database-d1": "workspace:*",
+    "@nami/plugin-api": "workspace:*"
   },
   "devDependencies": {
-    "@i0c/plugin-testkit": "workspace:*",
+    "@nami/plugin-testkit": "workspace:*",
     "@types/node": "^25.5.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"

@@ -1,11 +1,11 @@
 ---
 title: Plugin architecture
-description: How i0c.cc keeps platform, database, and analytics implementations outside the application core.
+description: How nami keeps platform, database, and analytics implementations outside the application core.
 ---
 
 # Plugin architecture
 
-i0c.cc uses a plugin layer to separate platform and storage implementations. The same routing code runs on Cloudflare, Vercel, and Netlify, while rules may live in PostgreSQL, D1, or GitHub. Wiring those implementations directly into the applications would require Runtime changes for every platform and WebUI changes for every database.
+nami uses a plugin layer to separate platform and storage implementations. The same routing code runs on Cloudflare, Vercel, and Netlify, while rules may live in PostgreSQL, D1, or GitHub. Wiring those implementations directly into the applications would require Runtime changes for every platform and WebUI changes for every database.
 
 The applications now depend on a small set of stable contracts, and each implementation lives in its own workspace package. “Plugin” in this repository means one of those packages assembled at build time. It does not mean an extension downloaded from the WebUI.
 
@@ -18,7 +18,7 @@ Root installation config decides which factories enter a build. Only then can th
 PostgreSQL rule storage is a useful example:
 
 1. `plugins/repository/postgres` implements the rules-storage contract;
-2. `i0c.webui.config.ts` installs it in the WebUI;
+2. `nami.webui.config.ts` installs it in the WebUI;
 3. startup config selects PostgreSQL;
 4. the deployment environment provides `DATABASE_URL`;
 5. WebUI code reads and writes through the shared interface without branching on the database in every API route.
@@ -49,7 +49,7 @@ An extension belongs in the plugin layer when different deployments may choose d
 
 Some choices must exist before an application can read its instance document. The WebUI has to know whether that document is in PostgreSQL or D1; the Runtime has to know where its first snapshot comes from. Those values belong to startup config.
 
-After the instance document is available, the WebUI can edit cache intervals, access lists, and plugin switches. Actual secrets stay with the deployment provider; documents contain binding names such as `I0C_SECRET` and `DATABASE_URL`.
+After the instance document is available, the WebUI can edit cache intervals, access lists, and plugin switches. Actual secrets stay with the deployment provider; documents contain binding names such as `NAMI_SECRET` and `DATABASE_URL`.
 
 Each layer therefore owns one job:
 
@@ -61,9 +61,9 @@ Putting all three in one remote document creates a loop: the application would n
 
 ## Packages used while writing a plugin
 
-Most implementations start with `@i0c/plugin-sdk`, which provides typed helpers for manifests, configuration, and Runtime or WebUI plugins. `@i0c/plugin-testkit` checks that an implementation follows the existing contracts.
+Most implementations start with `@nami/plugin-sdk`, which provides typed helpers for manifests, configuration, and Runtime or WebUI plugins. `@nami/plugin-testkit` checks that an implementation follows the existing contracts.
 
-`@i0c/plugin-api`, `@i0c/runtime-host`, and `@i0c/runtime-build` sit closer to the host. A normal plugin should not import internal files from `apps/runtime` or `apps/webui`; if that seems necessary, the shared contract probably needs one explicit capability first.
+`@nami/plugin-api`, `@nami/runtime-host`, and `@nami/runtime-build` sit closer to the host. A normal plugin should not import internal files from `apps/runtime` or `apps/webui`; if that seems necessary, the shared contract probably needs one explicit capability first.
 
 PostgreSQL and D1 each have a small shared database package for connection, transaction, and schema-update code used by more than one plugin. Rule and analytics behavior still stays in the owning plugins.
 
@@ -73,6 +73,6 @@ For an existing extension point, add a package, register its manifest, add its f
 
 The application core should not learn another plugin ID. A genuinely new kind of extension, rather than another implementation of an existing one, still needs a protocol and host change.
 
-The current scope is source-level modularity within i0c.cc. It does not include a marketplace, runtime package loading, or an untrusted-code sandbox, and there is no plan to publish the SDK and plugins as public packages.
+The current scope is source-level modularity within nami. It does not include a marketplace, runtime package loading, or an untrusted-code sandbox, and there is no plan to publish the SDK and plugins as public packages.
 
 Continue with the [plugin SDK](/plugins/sdk) when you are ready to write code. For a new platform or database, go directly to [write an adapter](/plugins/adapters).

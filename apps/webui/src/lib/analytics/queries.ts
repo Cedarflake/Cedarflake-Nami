@@ -2,7 +2,7 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 
-import { normalizeAnalyticsTimeZone } from "@i0c/analytics-domain/range";
+import { normalizeAnalyticsTimeZone } from "@nami/analytics-domain/range";
 
 import { getEffectiveDataConfig } from "@/lib/configuration/data-config";
 

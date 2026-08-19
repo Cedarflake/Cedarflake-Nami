@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/plugin-catalog",
+  "name": "@nami/plugin-catalog",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,18 +16,18 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
-    "@i0c/plugin-api": "workspace:*",
-    "@i0c/plugin-analytics-sink-http": "workspace:*",
-    "@i0c/plugin-analytics-store-d1": "workspace:*",
-    "@i0c/plugin-analytics-store-postgres": "workspace:*",
-    "@i0c/plugin-data-repository-d1": "workspace:*",
-    "@i0c/plugin-data-repository-postgres": "workspace:*",
-    "@i0c/plugin-feature-bot-classifier": "workspace:*",
-    "@i0c/plugin-github-data": "workspace:*",
-    "@i0c/plugin-http-snapshot-source": "workspace:*",
-    "@i0c/plugin-runtime-cloudflare": "workspace:*",
-    "@i0c/plugin-runtime-netlify": "workspace:*",
-    "@i0c/plugin-runtime-vercel": "workspace:*"
+    "@nami/plugin-api": "workspace:*",
+    "@nami/plugin-analytics-sink-http": "workspace:*",
+    "@nami/plugin-analytics-store-d1": "workspace:*",
+    "@nami/plugin-analytics-store-postgres": "workspace:*",
+    "@nami/plugin-data-repository-d1": "workspace:*",
+    "@nami/plugin-data-repository-postgres": "workspace:*",
+    "@nami/plugin-feature-bot-classifier": "workspace:*",
+    "@nami/plugin-github-data": "workspace:*",
+    "@nami/plugin-http-snapshot-source": "workspace:*",
+    "@nami/plugin-runtime-cloudflare": "workspace:*",
+    "@nami/plugin-runtime-netlify": "workspace:*",
+    "@nami/plugin-runtime-vercel": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

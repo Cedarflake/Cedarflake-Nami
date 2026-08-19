@@ -1,12 +1,12 @@
-<img src="./public/img/E617F59CDD7A58032DC2B01D78A97986.webp" alt="i0c.cc" width="720">
+<img src="../../assets/brand/webui-wordmark.webp" alt="nami" width="720">
 
 ## Project Overview
 
-i0c.cc WebUI is a management panel based on Next.js 16, designed for online editing of `config.json` and `redirects.json` after logging in via GitHub OAuth. The checked-in deployment uses PostgreSQL for immediate, optimistic saves, atomic snapshots, immutable revision history, and rollback. The former GitHub Contents workflow remains an archived build-time alternative and is not enabled by default.
+nami WebUI is a management panel based on Next.js 16, designed for online editing of `config.json` and `redirects.json` after logging in via GitHub OAuth. The checked-in deployment uses PostgreSQL for immediate, optimistic saves, atomic snapshots, immutable revision history, and rollback. The former GitHub Contents workflow remains an archived build-time alternative and is not enabled by default.
 
-This WebUI supports the personal [i0c.cc](https://github.com/Revaea/i0c.cc) workflow. It is maintained as an optional management surface rather than a general-purpose enterprise URL management product.
+This WebUI supports the personal [nami](https://github.com/Revaea/i0c.cc) workflow. It is maintained as an optional management surface rather than a general-purpose enterprise URL management product.
 
-Server-side Data Repository and Analytics Store factories are installed at build time through [../../i0c.webui.config.ts](../../i0c.webui.config.ts). Client-safe UI renderers use [webui.extensions.ts](webui.extensions.ts) so they remain in the client bundle. Workspace fixtures exercise both installation paths without adding factory mappings to WebUI host source; the production renderer list is intentionally empty.
+Server-side Data Repository and Analytics Store factories are installed at build time through [../../nami.webui.config.ts](../../nami.webui.config.ts). Client-safe UI renderers use [webui.extensions.ts](webui.extensions.ts) so they remain in the client bundle. Workspace fixtures exercise both installation paths without adding factory mappings to WebUI host source; the production renderer list is intentionally empty.
 
 This project provides two rule-editing modes and a separate settings surface:
 
@@ -45,7 +45,7 @@ This project provides two rule-editing modes and a separate settings surface:
 
 3. Create a GitHub OAuth App with callback URL `http(s)://<localhost:3000 or your domain>/api/auth/callback/github`. Configure `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET`. The default OAuth scope is `read:user user:email`; Repository permissions are not required by the PostgreSQL control plane.
 
-4. Generate one `I0C_SECRET` value of at least 32 random bytes and configure the same value on the WebUI and every Runtime provider. NextAuth normally infers the request origin; set the optional `NEXTAUTH_URL` override only when a self-hosted proxy does not forward it correctly.
+4. Generate one `NAMI_SECRET` value of at least 32 random bytes and configure the same value on the WebUI and every Runtime provider. NextAuth normally infers the request origin; set the optional `NEXTAUTH_URL` override only when a self-hosted proxy does not forward it correctly.
 
    - Using OpenSSL:
      ```bash
@@ -63,9 +63,9 @@ This project provides two rule-editing modes and a separate settings surface:
    pnpm webui:dev
    ```
 
-6. Open [http://localhost:3000](http://localhost:3000) or your deployment. When the database is empty, the WebUI enters its setup page. Sign in with GitHub, enter the shared `I0C_SECRET`, choose the deployed Runtime adapters and public origins, then create the initial `config.json` and empty `redirects.json` atomically. The signed-in GitHub account becomes the first manager.
+6. Open [http://localhost:3000](http://localhost:3000) or your deployment. When the database is empty, the WebUI enters its setup page. Sign in with GitHub, enter the shared `NAMI_SECRET`, choose the deployed Runtime adapters and public origins, then create the initial `config.json` and empty `redirects.json` atomically. The signed-in GitHub account becomes the first manager.
 
-7. Keep `I0C_SECRET` configured after initialization because it also signs WebUI sessions and Runtime analytics events.
+7. Keep `NAMI_SECRET` configured after initialization because it also signs WebUI sessions and Runtime analytics events.
 
 ## Data repository
 
@@ -78,7 +78,7 @@ D1 owns independent schema migrations in [../../plugins/repository/d1/migrations
 The `seed` command remains available for controlled non-interactive initialization or import, but it is not part of the normal deployment flow:
 
 ```bash
-pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
+pnpm --filter @nami/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
 ```
 
 For database-backed documents, also select the HTTP Runtime Source in the same bootstrap configuration and point it at `https://<webui-domain>/api/runtime/snapshot`. The public endpoint returns one validated config-and-rules revision with an ETag; it contains no Secret values. Edge Runtime deployments fetch this endpoint and never receive the database connection or binding.
@@ -95,7 +95,7 @@ The repository also contains a complete D1 Store that passes the same analytics 
 
    ```dotenv
    DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
-   I0C_SECRET="replace-with-the-shared-instance-secret"
+   NAMI_SECRET="replace-with-the-shared-instance-secret"
    ```
 
 2. Update the PostgreSQL analytics schema from the repository root:
@@ -109,7 +109,7 @@ The repository also contains a complete D1 Store that passes the same analytics 
 3. Configure every runtime deployment to send signed events to the WebUI:
 
    ```dotenv
-   I0C_SECRET="the-same-value-as-the-WebUI-I0C_SECRET"
+   NAMI_SECRET="the-same-value-as-the-WebUI-NAMI_SECRET"
    ```
 
 The collector endpoint and analytics source ID come from `data/config.json`. The source ID must be the shared base hostname, not a provider name. With `i0c.cc`, `i0c.cc`, `www.i0c.cc`, `api.i0c.cc`, `vc.i0c.cc`, and `nf.i0c.cc` can be reported independently without configuring a second domain list. Hostnames outside that namespace are stored as `unknown`.
@@ -122,7 +122,7 @@ Object-form rules use a stable per-rule `analyticsId`, so renaming a short path 
 
 The Runtime sends the configured rule path for matched traffic, entry domain, provider, result, bounded traffic and bot classifications, country code, referrer hostname, and latency. It does not send IP addresses, full User-Agent strings, query strings, destination URLs, full referrer URLs, or raw unmatched paths. Browser referrers, explicit signed campaigns, and verified internal short-link sources are separate dimensions.
 
-For campaign links, an authenticated client can call `POST /api/analytics/campaigns` with a Runtime URL, analytics ID, campaign ID, and 1–365 day lifetime. The returned signed `_i0c_via` parameter is bound to the exact host and normalized path, then removed by the Runtime before rule processing.
+For campaign links, an authenticated client can call `POST /api/analytics/campaigns` with a Runtime URL, analytics ID, campaign ID, and 1–365 day lifetime. The returned signed `_nami_via` parameter is bound to the exact host and normalized path, then removed by the Runtime before rule processing.
 
 Keep the database URL and instance secret server-only. After analytics ingestion, the WebUI
 periodically schedules retention in the background without a public maintenance endpoint or

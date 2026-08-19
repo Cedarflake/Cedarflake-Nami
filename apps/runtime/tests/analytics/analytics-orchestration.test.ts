@@ -13,8 +13,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { defaultDataConfig } from "@i0c/config";
-import { HTTP_ANALYTICS_SINK_PLUGIN_ID } from "@i0c/plugin-analytics-sink-http/manifest";
+import { defaultDataConfig } from "@nami/config";
+import { HTTP_ANALYTICS_SINK_PLUGIN_ID } from "@nami/plugin-analytics-sink-http/manifest";
 
 import {
   finalizeMatchedAnalytics,
@@ -123,7 +123,7 @@ test("uses versioned analytics settings and reads only the Runtime write key bin
     envBindings: {
       ANALYTICS_ENDPOINT: "https://ignored.example/events",
       ANALYTICS_SOURCE_ID: "ignored.example",
-      I0C_SECRET: analyticsWriteKey
+      NAMI_SECRET: analyticsWriteKey
     }
   });
 
@@ -157,13 +157,13 @@ test("uses the HTTP sink plugin declaration for enablement, config, and secret m
             maximumDeliveryAttempts: 1
           },
           secrets: {
-            writeKey: "CUSTOM_I0C_SECRET"
+            writeKey: "CUSTOM_NAMI_SECRET"
           }
         }
       }
     },
     envBindings: {
-      CUSTOM_I0C_SECRET: analyticsWriteKey
+      CUSTOM_NAMI_SECRET: analyticsWriteKey
     }
   });
 

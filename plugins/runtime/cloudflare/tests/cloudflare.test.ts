@@ -6,7 +6,7 @@ import {
   assertPluginManifest,
   assertRuntimePlatformContract,
   assertRuntimePlatformPlugin,
-} from "@i0c/plugin-testkit"
+} from "@nami/plugin-testkit"
 
 import { cloudflareRuntimeManifest } from "../src/manifest"
 import { createCloudflareAdapter, runtimePlatformPlugin } from "../src/runtime"
@@ -19,8 +19,8 @@ test("declares a valid manifest and adapts Cloudflare requests", async () => {
     async (_request, context) => {
       assert.equal(context.provider, "cloudflare")
       assert.equal(context.country, "CN")
-      assert.equal(context.envBindings?.I0C_SECRET, "test-key")
-      assert.equal(context.readEnvironment?.("I0C_SECRET"), "test-key")
+      assert.equal(context.envBindings?.NAMI_SECRET, "test-key")
+      assert.equal(context.readEnvironment?.("NAMI_SECRET"), "test-key")
       assert.equal(typeof context.waitUntil, "function")
       return new Response("ok")
     },
@@ -39,7 +39,7 @@ test("declares a valid manifest and adapts Cloudflare requests", async () => {
     adapter,
     args: [
       request,
-      { I0C_SECRET: "test-key" },
+      { NAMI_SECRET: "test-key" },
       executionContext,
     ],
     expectedStatus: 200,

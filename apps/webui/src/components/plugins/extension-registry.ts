@@ -1,9 +1,9 @@
-import { StaticWebUiExtensionRegistry } from "@i0c/plugin-api";
-import type { WebUiExtensionRegistration } from "@i0c/plugin-api";
+import { StaticWebUiExtensionRegistry } from "@nami/plugin-api";
+import type { WebUiExtensionRegistration } from "@nami/plugin-api";
 import {
   webUiExtensionInstallations,
   type WebUiExtensionRenderer,
-} from "@i0c/webui-extensions";
+} from "@nami/webui-extensions";
 
 export function createWebUiExtensionRegistry(
   installations: readonly WebUiExtensionRegistration<WebUiExtensionRenderer>[]

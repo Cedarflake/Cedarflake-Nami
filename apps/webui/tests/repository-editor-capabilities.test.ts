@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { d1DataRepositoryManifest } from "@i0c/plugin-data-repository-d1/manifest";
-import { postgresDataRepositoryManifest } from "@i0c/plugin-data-repository-postgres/manifest";
-import { githubContentsRepositoryManifest } from "@i0c/plugin-github-data/manifest";
+import { d1DataRepositoryManifest } from "@nami/plugin-data-repository-d1/manifest";
+import { postgresDataRepositoryManifest } from "@nami/plugin-data-repository-postgres/manifest";
+import { githubContentsRepositoryManifest } from "@nami/plugin-github-data/manifest";
 
 import { resolveDataRepositoryEditorCapabilities } from "../src/lib/data/editor-capabilities";
 

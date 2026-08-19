@@ -3,22 +3,22 @@ import fs from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { validateDataConfig } from "@i0c/config"
+import { validateDataConfig } from "@nami/config"
 import {
   validateInstalledPluginDeclarations,
   validateRuntimeRequiredPluginDeclarations,
   validateWebUiRequiredPluginDeclarations,
-} from "@i0c/plugin-catalog"
+} from "@nami/plugin-catalog"
 
 import {
   runtimePlatformManifests,
   runtimePluginManifests,
   runtimePluginDescriptors,
-} from "../../i0c.runtime.manifests"
+} from "../../nami.runtime.manifests"
 import {
   webUiPluginDescriptors,
   webUiPluginManifests,
-} from "../../i0c.webui.manifests"
+} from "../../nami.webui.manifests"
 
 const installedHostPluginManifests = [
   ...runtimePluginManifests,

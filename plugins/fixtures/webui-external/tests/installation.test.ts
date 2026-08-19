@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
-import { StaticWebUiExtensionRegistry } from "@i0c/plugin-api"
+import { StaticWebUiExtensionRegistry } from "@nami/plugin-api"
 
 import { webUiExtensionInstallations } from "../webui.extensions"
 

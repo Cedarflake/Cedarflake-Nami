@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
-import type { ProxyOptions } from "@i0c/config";
+import type { ProxyOptions } from "@nami/config";
 
 import { DropdownSelect } from "@/components/ui/controls/dropdown-select";
 import {

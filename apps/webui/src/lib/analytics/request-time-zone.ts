@@ -2,7 +2,7 @@ import "server-only"
 
 import { cookies } from "next/headers"
 
-import { normalizeAnalyticsTimeZone } from "@i0c/analytics-domain/range"
+import { normalizeAnalyticsTimeZone } from "@nami/analytics-domain/range"
 
 import { analyticsTimeZoneCookieName } from "./time-zone-cookie"
 

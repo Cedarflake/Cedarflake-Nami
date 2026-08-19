@@ -4,7 +4,7 @@ import {
   type JsonObject,
   type PluginConfigurationManifest,
   type PluginConfigurationUiManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 export interface PluginConfigurationDefinition<TConfig extends object> {
   readonly defaults?: Readonly<TConfig>

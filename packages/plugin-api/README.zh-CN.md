@@ -1,6 +1,6 @@
 # 插件 API
 
-`@i0c/plugin-api` 定义 i0c.cc 宿主与插件共用的稳定编译期协议。
+`@nami/plugin-api` 定义 nami 宿主与插件共用的稳定编译期协议。
 
 它负责插件 Manifest、宿主与插槽声明、能力、配置元数据、Secret 要求、初始化服务、健康检查、迁移协议，以及 Runtime 和 WebUI 使用的类型化扩展边界。
 

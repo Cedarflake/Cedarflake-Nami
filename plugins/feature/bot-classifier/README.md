@@ -5,8 +5,8 @@ Classifies bounded Runtime analytics events through the `onAnalyticsEvent` featu
 The remote declaration may set `hookTimeoutMs` or disable the feature. No IP address, full User-Agent, query string, destination, or raw unmatched path is retained.
 
 ```bash
-pnpm --filter @i0c/plugin-feature-bot-classifier check
-pnpm --filter @i0c/plugin-feature-bot-classifier test
+pnpm --filter @nami/plugin-feature-bot-classifier check
+pnpm --filter @nami/plugin-feature-bot-classifier test
 ```
 
 ---

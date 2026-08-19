@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/plugin-sdk",
+  "name": "@nami/plugin-sdk",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -29,11 +29,11 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
-    "@i0c/analytics-domain": "workspace:*",
-    "@i0c/config": "workspace:*",
-    "@i0c/plugin-api": "workspace:*",
-    "@i0c/runtime-build": "workspace:*",
-    "@i0c/runtime-host": "workspace:*"
+    "@nami/analytics-domain": "workspace:*",
+    "@nami/config": "workspace:*",
+    "@nami/plugin-api": "workspace:*",
+    "@nami/runtime-build": "workspace:*",
+    "@nami/runtime-host": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

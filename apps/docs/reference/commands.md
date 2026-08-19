@@ -69,8 +69,8 @@ A command containing `deploy` writes to an external provider. Do not use one as 
 | --- | --- |
 | `pnpm plugin:create --kind <kind> --name <name>` | Scaffold a workspace plugin |
 | `pnpm plugins:boundaries` | Check dependency boundaries |
-| `pnpm --filter @i0c/plugin-sdk check` | Type-check the SDK |
-| `pnpm --filter @i0c/plugin-sdk test` | Test the SDK |
+| `pnpm --filter @nami/plugin-sdk check` | Type-check the SDK |
+| `pnpm --filter @nami/plugin-sdk test` | Test the SDK |
 
 ## Documentation
 

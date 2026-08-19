@@ -16,4 +16,4 @@ export {
   classifyAnalyticsRequest,
   classifyAnalyticsResource,
   classifyAnalyticsTraffic,
-} from "@i0c/plugin-feature-bot-classifier/runtime";
+} from "@nami/plugin-feature-bot-classifier/runtime";

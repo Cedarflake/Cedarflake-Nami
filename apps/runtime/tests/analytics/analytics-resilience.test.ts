@@ -56,7 +56,7 @@ function createAnalyticsContext(hasDelivery: boolean): AnalyticsRequestContext {
       delivery: hasDelivery
         ? {
           endpoint: "https://u.i0c.cc/api/analytics/events",
-          pluginId: "@i0c/analytics-sink-http",
+          pluginId: "@nami/analytics-sink-http",
           sourceId: "i0c.cc",
           writeKey: "0123456789abcdef0123456789abcdef"
         }
@@ -106,7 +106,7 @@ test("keeps redirects available when a non-critical feature hook fails", async (
       async emit() {}
     },
     runtimeFeatures: [{
-      id: "@i0c/test-failing-feature",
+      id: "@nami/test-failing-feature",
       order: 1,
       timeoutMs: 50,
       failurePolicy: "continue",

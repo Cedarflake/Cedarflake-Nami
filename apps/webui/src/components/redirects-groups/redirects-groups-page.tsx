@@ -1,4 +1,4 @@
-import { webUiPluginInstallations } from "@i0c/webui-config";
+import { webUiPluginInstallations } from "@nami/webui-config";
 
 import { RedirectsGroupsManager } from "@/components/redirects-groups";
 import { resolveDataRepositoryEditorCapabilities } from "@/lib/data/editor-capabilities";

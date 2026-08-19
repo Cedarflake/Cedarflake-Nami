@@ -23,7 +23,7 @@ https://your-webui.example.com/api/auth/callback/github
 
 ## 2. 准备实例密钥
 
-WebUI 和所有 Runtime 要使用同一个 `I0C_SECRET`。可以用 Node.js 生成：
+WebUI 和所有 Runtime 要使用同一个 `NAMI_SECRET`。可以用 Node.js 生成：
 
 ```sh
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
@@ -33,7 +33,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 ## 3. 创建 Vercel 项目
 
-连接你的 i0c.cc 仓库或 Fork，并使用这些项目设置：
+连接你的 nami 仓库或 Fork，并使用这些项目设置：
 
 ```text
 Root Directory: apps/webui
@@ -52,7 +52,7 @@ PostgreSQL 默认部署需要：
 DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
 GITHUB_CLIENT_ID="your-client-id"
 GITHUB_CLIENT_SECRET="your-client-secret"
-I0C_SECRET="the-secret-generated-above"
+NAMI_SECRET="the-secret-generated-above"
 ```
 
 如果选择 D1，再加入：

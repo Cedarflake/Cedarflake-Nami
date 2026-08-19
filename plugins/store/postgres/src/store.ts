@@ -2,11 +2,11 @@ import type {
   AnalyticsAutomationOverview,
   AnalyticsDetail,
   AnalyticsOverview,
-} from "@i0c/analytics-domain/types"
+} from "@nami/analytics-domain/types"
 import type {
   AnalyticsStore,
   PluginSchemaMigrationProvider,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import type { PostgresAnalyticsStoreConfig } from "./config"
 import {

@@ -17,13 +17,13 @@ import {
   type DataRepositorySnapshot,
   type DataRepositoryWriteInput,
   type DataRepositoryWriteResult,
-} from "@i0c/config"
+} from "@nami/config"
 import {
   createPostgresClient,
   type PostgresSql,
   type PostgresTransactionSql,
-} from "@i0c/database-postgres"
-import type { AtomicVersionedDataRepository } from "@i0c/plugin-api"
+} from "@nami/database-postgres"
+import type { AtomicVersionedDataRepository } from "@nami/plugin-api"
 
 import {
   resolvePostgresDataRepositoryConnectionOptions,
@@ -99,7 +99,7 @@ export function createPostgresDataRepository(
         )
         const rows = await transaction<DataDocumentRow[]>`
           SELECT kind, content, revision, checksum, updated_at
-          FROM i0c_data_document
+          FROM nami_data_document
           WHERE kind IN ('config', 'redirects')
           ORDER BY kind ASC
         `
@@ -132,9 +132,9 @@ export function createPostgresDataRepository(
       async inspectSetupState() {
         const [table] = await sql<TableExistsRow[]>`
           SELECT
-            TO_REGCLASS('i0c_data_document') IS NOT NULL
+            TO_REGCLASS('nami_data_document') IS NOT NULL
               AS document_table_exists,
-            TO_REGCLASS('i0c_data_document_revision') IS NOT NULL
+            TO_REGCLASS('nami_data_document_revision') IS NOT NULL
               AS revision_table_exists
         `
         if (
@@ -145,7 +145,7 @@ export function createPostgresDataRepository(
         }
         const rows = await sql<DataDocumentKindRow[]>`
           SELECT kind
-          FROM i0c_data_document
+          FROM nami_data_document
           WHERE kind IN ('config', 'redirects')
           ORDER BY kind ASC
         `
@@ -191,7 +191,7 @@ async function writeDocument(
   return sql.begin(async (transaction) => {
     const rows = input.expectedRevision === "0"
       ? await transaction<DataDocumentRow[]>`
-          INSERT INTO i0c_data_document (
+          INSERT INTO nami_data_document (
             kind,
             content,
             revision,
@@ -203,7 +203,7 @@ async function writeDocument(
           RETURNING kind, content, revision, checksum, updated_at
         `
       : await transaction<DataDocumentRow[]>`
-          UPDATE i0c_data_document
+          UPDATE nami_data_document
           SET
             content = ${input.content},
             revision = revision + 1,
@@ -240,11 +240,11 @@ async function initializeDocuments(
   assertActorGitHubUserId(input.actorGitHubUserId)
   return sql.begin(async (transaction) => {
     await transaction.unsafe(
-      "LOCK TABLE i0c_data_document IN SHARE ROW EXCLUSIVE MODE",
+      "LOCK TABLE nami_data_document IN SHARE ROW EXCLUSIVE MODE",
     )
     const existing = await transaction<DataDocumentKindRow[]>`
       SELECT kind
-      FROM i0c_data_document
+      FROM nami_data_document
       WHERE kind IN ('config', 'redirects')
       FOR UPDATE
     `
@@ -255,7 +255,7 @@ async function initializeDocuments(
     }
 
     const rows = await transaction<DataDocumentRow[]>`
-      INSERT INTO i0c_data_document (
+      INSERT INTO nami_data_document (
         kind,
         content,
         revision,
@@ -360,7 +360,7 @@ async function listRevisions(
           created_at,
           content,
           created_at AS updated_at
-        FROM i0c_data_document_revision
+        FROM nami_data_document_revision
         WHERE kind = ${input.kind}
         ORDER BY revision DESC
         LIMIT ${limit}
@@ -375,7 +375,7 @@ async function listRevisions(
           created_at,
           content,
           created_at AS updated_at
-        FROM i0c_data_document_revision
+        FROM nami_data_document_revision
         WHERE
           kind = ${input.kind}
           AND revision < ${input.beforeRevision}::BIGINT
@@ -401,7 +401,7 @@ async function readRevision(
       created_at,
       content,
       created_at AS updated_at
-    FROM i0c_data_document_revision
+    FROM nami_data_document_revision
     WHERE
       kind = ${kind}
       AND revision = ${revision}::BIGINT
@@ -434,7 +434,7 @@ async function restoreRevision(
         created_at,
         content,
         created_at AS updated_at
-      FROM i0c_data_document_revision
+      FROM nami_data_document_revision
       WHERE
         kind = ${input.kind}
         AND revision = ${input.revision}::BIGINT
@@ -465,7 +465,7 @@ async function updateExistingDocument(
   expectedRevision: string,
 ): Promise<DataDocumentRow> {
   const rows = await sql<DataDocumentRow[]>`
-    UPDATE i0c_data_document
+    UPDATE nami_data_document
     SET
       content = ${content},
       revision = revision + 1,
@@ -490,7 +490,7 @@ async function throwWriteConflict(
 ): Promise<never> {
   const [current] = await sql<RevisionRow[]>`
     SELECT revision
-    FROM i0c_data_document
+    FROM nami_data_document
     WHERE kind = ${kind}
   `
   if (!current) {
@@ -510,7 +510,7 @@ async function insertRevision(
   actorGitHubUserId: string | undefined,
 ): Promise<void> {
   await sql`
-    INSERT INTO i0c_data_document_revision (
+    INSERT INTO nami_data_document_revision (
       kind,
       revision,
       content,
@@ -617,7 +617,7 @@ async function readDocument(
 ): Promise<DataDocument> {
   const [row] = await sql<DataDocumentRow[]>`
     SELECT kind, content, revision, checksum, updated_at
-    FROM i0c_data_document
+    FROM nami_data_document
     WHERE kind = ${kind}
   `
   if (!row) {

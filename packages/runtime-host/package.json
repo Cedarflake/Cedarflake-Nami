@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/runtime-host",
+  "name": "@nami/runtime-host",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -25,9 +25,9 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
-    "@i0c/analytics-domain": "workspace:*",
-    "@i0c/config": "workspace:*",
-    "@i0c/plugin-api": "workspace:*"
+    "@nami/analytics-domain": "workspace:*",
+    "@nami/config": "workspace:*",
+    "@nami/plugin-api": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

@@ -1,6 +1,6 @@
 # HTTP 原子快照数据源
 
-`@i0c/plugin-http-snapshot-source` 从 HTTPS 端点读取一份经过校验的 Runtime 快照。快照中的 `config.json` 与 `redirects.json` 来自同一个 Repository 版本，因此一次 Runtime 请求不会混用不同保存批次的两份文档。
+`@nami/plugin-http-snapshot-source` 从 HTTPS 端点读取一份经过校验的 Runtime 快照。快照中的 `config.json` 与 `redirects.json` 来自同一个 Repository 版本，因此一次 Runtime 请求不会混用不同保存批次的两份文档。
 
 内置 WebUI 会在下面的端点发布快照：
 
@@ -27,8 +27,8 @@ Runtime 必须先知道这些字段才能加载远程实例配置，因此它们
 从仓库根目录运行：
 
 ```bash
-pnpm --filter @i0c/plugin-http-snapshot-source check
-pnpm --filter @i0c/plugin-http-snapshot-source test
+pnpm --filter @nami/plugin-http-snapshot-source check
+pnpm --filter @nami/plugin-http-snapshot-source test
 ```
 
 边缘 Runtime 部署不会共享 WebUI 登录会话，因此快照端点是公开读取端点。两份数据文档都不得保存 Secret 值；插件 Secret 值仍由部署绑定提供。

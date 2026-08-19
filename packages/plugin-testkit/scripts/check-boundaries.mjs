@@ -144,7 +144,7 @@ function checkEntryBoundary(packageRoot, exportName, entryPath) {
 
 for (const filePath of collectFiles(path.join(pluginApiRoot, "src"))) {
   for (const specifier of getImports(filePath)) {
-    if (specifier.startsWith("@i0c/") || specifier.includes("apps/")) {
+    if (specifier.startsWith("@nami/") || specifier.includes("apps/")) {
       addIssue(filePath, `plugin-api cannot import ${specifier}`)
     }
   }
@@ -155,19 +155,19 @@ for (const packageRoot of collectPackageRoots(pluginsRoot)) {
   const packageJson = readJson(packageJsonPath)
   const dependencies = packageJson.dependencies ?? {}
 
-  if (!("@i0c/plugin-api" in dependencies)) {
-    addIssue(packageJsonPath, "plugin packages must depend on @i0c/plugin-api")
+  if (!("@nami/plugin-api" in dependencies)) {
+    addIssue(packageJsonPath, "plugin packages must depend on @nami/plugin-api")
   }
 
-  if ("@i0c/plugin-testkit" in dependencies) {
-    addIssue(packageJsonPath, "@i0c/plugin-testkit must be a development dependency")
+  if ("@nami/plugin-testkit" in dependencies) {
+    addIssue(packageJsonPath, "@nami/plugin-testkit must be a development dependency")
   }
 
   for (const dependency of Object.keys(dependencies)) {
     if (
-      dependency.startsWith("@i0c/plugin-")
-      && dependency !== "@i0c/plugin-api"
-      && dependency !== "@i0c/plugin-sdk"
+      dependency.startsWith("@nami/plugin-")
+      && dependency !== "@nami/plugin-api"
+      && dependency !== "@nami/plugin-sdk"
     ) {
       addIssue(
         packageJsonPath,
@@ -195,8 +195,8 @@ for (const packageRoot of collectPackageRoots(pluginsRoot)) {
   for (const filePath of collectFiles(path.join(packageRoot, "src"))) {
     for (const specifier of getImports(filePath)) {
       if (
-        specifier === "i0c-redirect-worker" ||
-        specifier === "i0c.cc-webui" ||
+        specifier === "nami-runtime" ||
+        specifier === "nami-webui" ||
         specifier.startsWith("@/") ||
         specifier.includes("apps/runtime") ||
         specifier.includes("apps/webui")

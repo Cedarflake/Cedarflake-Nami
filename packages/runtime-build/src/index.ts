@@ -5,7 +5,7 @@ import type { Plugin } from "esbuild"
 import { build } from "tsup"
 import type { Options } from "tsup"
 
-import type { RuntimePlatformManifest } from "@i0c/plugin-api"
+import type { RuntimePlatformManifest } from "@nami/plugin-api"
 
 import type { RuntimePlatformInstallation } from "./config"
 
@@ -72,9 +72,9 @@ function createRuntimeConfigModulePlugin(
   options: RuntimePlatformBuildOptions,
 ): Plugin {
   return {
-    name: "i0c-runtime-config",
+    name: "nami-runtime-config",
     setup(buildContext) {
-      buildContext.onResolve({ filter: /^@i0c\/runtime-config$/ }, () => ({
+      buildContext.onResolve({ filter: /^@nami\/runtime-config$/ }, () => ({
         path: options.runtimeConfigFile,
       }))
     },
@@ -90,7 +90,7 @@ function createRuntimePlatformModulePlugin(
   const runtimeModule = JSON.stringify(options.platform.runtimeModule)
 
   return {
-    name: "i0c-runtime-platform",
+    name: "nami-runtime-platform",
     setup(buildContext) {
       buildContext.onLoad(
         { filter: /virtual-runtime-platform\.ts$/ },

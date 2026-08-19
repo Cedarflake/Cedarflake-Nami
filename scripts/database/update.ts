@@ -3,7 +3,7 @@ import process from "node:process"
 import {
   assertBootstrapConfigCompatibility,
   bootstrapConfig,
-} from "@i0c/config"
+} from "@nami/config"
 
 import {
   createConfiguredSchemaMigrationProvider,

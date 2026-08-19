@@ -9,7 +9,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts")
 function createNextConfig(phase: string): NextConfig {
   return {
     reactCompiler: phase !== PHASE_DEVELOPMENT_SERVER,
-    transpilePackages: ["@i0c/config"],
+    transpilePackages: ["@nami/config"],
     turbopack: {
       root: path.resolve(process.cwd(), "../.."),
     },

@@ -5,13 +5,13 @@ description: 先判断错误来自浏览器、Runtime、WebUI、数据库还是�
 
 # 按现象排查问题
 
-i0c.cc 的 WebUI、Runtime 和数据库各自部署。遇到错误时，先看当前页面或响应究竟是谁返回的，通常能省掉很多无效重启。
+nami 的 WebUI、Runtime 和数据库各自部署。遇到错误时，先看当前页面或响应究竟是谁返回的，通常能省掉很多无效重启。
 
 ## 先花一分钟确认错误来自哪里
 
 | 看到的现象 | 先检查哪里 |
 | --- | --- |
-| i0c.cc 自己的 404 页面 | 请求已经到达 Runtime，只是没有规则匹配 |
+| nami 自己的 404 页面 | 请求已经到达 Runtime，只是没有规则匹配 |
 | Cloudflare、Vercel 或 Netlify 自带的 404 | 域名、项目根目录或平台路由配置 |
 | Runtime 返回 500 或 Bad Gateway | Runtime 日志、快照加载、适配器和反代上游 |
 | WebUI 页面或 `/api/config` 返回 500 | WebUI 服务端日志和数据库连接 |
@@ -27,7 +27,7 @@ i0c.cc 的 WebUI、Runtime 和数据库各自部署。遇到错误时，先看�
 1. 确认路径以 `/` 开头，并且匹配类型符合预期；
 2. 等待设置页中的规则缓存时间，默认是 60 秒；
 3. 检查 `bootstrapConfig.data.source.snapshotUrl` 是否指向你自己的 WebUI；
-4. 确认 WebUI 与 Runtime 使用相同的 `I0C_SECRET`；
+4. 确认 WebUI 与 Runtime 使用相同的 `NAMI_SECRET`；
 5. 查看 Runtime 日志中最近一次快照刷新是否成功。
 
 永久跳转还可能被浏览器缓存。若 `curl -I` 已经正确而浏览器仍跳到旧地址，先换无痕窗口测试。
@@ -57,7 +57,7 @@ D1 报缺表时，还要确认规则数据库和统计数据库的 Database ID �
 
 ## 统计端点返回 401
 
-WebUI 无法验证 Runtime 的事件签名。检查所有部署的 `I0C_SECRET` 是否完全相同，并确认没有把环境变量名称误当成密钥值。密钥轮换后，WebUI 和每个 Runtime 都要一起更新。
+WebUI 无法验证 Runtime 的事件签名。检查所有部署的 `NAMI_SECRET` 是否完全相同，并确认没有把环境变量名称误当成密钥值。密钥轮换后，WebUI 和每个 Runtime 都要一起更新。
 
 ## 统计端点返回 405
 
@@ -69,7 +69,7 @@ WebUI 无法验证 Runtime 的事件签名。检查所有部署的 `I0C_SECRET` 
 
 1. 该平台适配器和 HTTP 统计投递插件是否启用；
 2. 外部平台是否已经部署包含这些设置的新版本；
-3. `I0C_SECRET` 是否与 WebUI 一致；
+3. `NAMI_SECRET` 是否与 WebUI 一致；
 4. Runtime 后台投递日志是否出现网络或签名错误；
 5. 统计页是否筛选了另一个入口域名。
 
@@ -77,7 +77,7 @@ WebUI 无法验证 Runtime 的事件签名。检查所有部署的 `I0C_SECRET` 
 
 ## 切换 GitHub 账号后登录失败
 
-先看 Auth.js 在 WebUI 服务端记录的具体错误。核对 OAuth App 的回调地址，并只清理当前 i0c.cc 实例自己的 Session。浏览器关于 GitHub Manifest 图标的警告通常与 OAuth 回调无关。
+先看 Auth.js 在 WebUI 服务端记录的具体错误。核对 OAuth App 的回调地址，并只清理当前 nami 实例自己的 Session。浏览器关于 GitHub Manifest 图标的警告通常与 OAuth 回调无关。
 
 如果需要读取受组织 OAuth 限制保护的仓库，还要在组织设置中允许该 OAuth App；默认数据库控制面只读取用户身份，不需要仓库内容权限。
 

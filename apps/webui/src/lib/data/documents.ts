@@ -3,13 +3,13 @@ import type {
   DataRepositoryManagement,
   DataRepositoryWriteInput,
   DataRepositoryWriteResult,
-} from "@i0c/config";
-import { webUiPluginInstallations } from "@i0c/webui-config";
+} from "@nami/config";
+import { webUiPluginInstallations } from "@nami/webui-config";
 
 import type { AppDataRepository } from "./repository";
 
-export const APP_DATA_CONFIG_CACHE_TAG = "i0c:data-config";
-export const APP_DATA_SNAPSHOT_CACHE_TAG = "i0c:data-snapshot";
+export const APP_DATA_CONFIG_CACHE_TAG = "nami:data-config";
+export const APP_DATA_SNAPSHOT_CACHE_TAG = "nami:data-snapshot";
 
 export type DataDocumentUpdateInput = Omit<
   DataRepositoryWriteInput,

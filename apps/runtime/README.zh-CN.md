@@ -1,4 +1,4 @@
-# i0c.cc Runtime
+# nami Runtime
 
 面向 Cloudflare Workers、Vercel Edge Functions、Netlify Edge Functions 等 fetch 兼容边缘平台的可选式重定向运行时。它会强制 HTTPS、返回 favicon，并通过所选 Data Source 加载非敏感实例配置与重定向规则。部署时选择适合的平台适配器即可，三个平台不要求同时运行。
 
@@ -33,16 +33,16 @@
 部署完成后：
 
 - 非敏感配置或规则变化时，通过所选 WebUI Repository 保存 `config.json` 或 `redirects.json`。默认 Git 方案使用 `data` 分支；内置 Source 会在对应缓存时间结束后获取有效更新，不需要重新构建。
-- 在 WebUI 和每个平台的 Runtime 中设置相同的 `I0C_SECRET`。
+- 在 WebUI 和每个平台的 Runtime 中设置相同的 `NAMI_SECRET`。
 - 更新公共重定向逻辑后重新执行包构建，然后再部署。
 
 ## 选择适配器
 
 - Runtime 宿主：[src/entry.ts](src/entry.ts)
-- 已安装 Runtime 插件与平台：[../../i0c.runtime.config.ts](../../i0c.runtime.config.ts)
+- 已安装 Runtime 插件与平台：[../../nami.runtime.config.ts](../../nami.runtime.config.ts)
 - 构建装配：[../../packages/runtime-build](../../packages/runtime-build)
 
-需要自定义平台或 Runtime Feature？在 workspace 中新增提供 Manifest 与类型化工厂或 `./installation` 入口的包，再把它加入 `i0c.runtime.config.ts` 即可。Runtime 宿主源码和官方 Catalog 不需要增加插件专属改动。外部 fixture 会构建自定义平台与 Feature，并在生成产物中验证 Feature 标记。当前契约证明的是源码 workspace 内的接入能力；共享插件包尚未作为公共 npm SDK 发布。程序化消费者仍可从 [src/lib/handler.ts](src/lib/handler.ts) 引入 `handleRedirectRequest`。稳定的插件 Manifest 与适配器契约位于 [../../packages/plugin-api](../../packages/plugin-api)。
+需要自定义平台或 Runtime Feature？在 workspace 中新增提供 Manifest 与类型化工厂或 `./installation` 入口的包，再把它加入 `nami.runtime.config.ts` 即可。Runtime 宿主源码和官方 Catalog 不需要增加插件专属改动。外部 fixture 会构建自定义平台与 Feature，并在生成产物中验证 Feature 标记。当前契约证明的是源码 workspace 内的接入能力；共享插件包尚未作为公共 npm SDK 发布。程序化消费者仍可从 [src/lib/handler.ts](src/lib/handler.ts) 引入 `handleRedirectRequest`。稳定的插件 Manifest 与适配器契约位于 [../../packages/plugin-api](../../packages/plugin-api)。
 
 每次构建只注入所选 Runtime 适配器，并通过同一份根安装配置装配 Data Source、Analytics Sink 与 Feature。远程声明会控制可选插件的启停、配置和 Secret 绑定名称。已安装包与所选 Source 的初始连接设置必须在读取 `config.json` 前可用，因此仍属于启动配置。包结构与故障边界详见 [../docs/zh-CN/plugins/architecture.md](../docs/zh-CN/plugins/architecture.md)。
 
@@ -86,13 +86,13 @@ source: {
 
 只有版本化收集端地址、source ID 均有效并设置下面的密钥时，才会启用统计事件投递：
 
-- `I0C_SECRET`：用于签名统计投递的共享实例密钥。WebUI 和每个平台的 Runtime 必须使用相同值。
+- `NAMI_SECRET`：用于签名统计投递的共享实例密钥。WebUI 和每个平台的 Runtime 必须使用相同值。
 
 本地占位值见 [.env.example](.env.example)。内置 Runtime 不再从环境中读取其他配置项。
 
 匹配成功的重定向和代理事件会全量发送；未匹配和系统结果按 10% 抽样，使任意机器人和探测流量可以分析，又不必上报每个 404。Cloudflare、Vercel、Netlify 分别使用平台的后台执行能力。收集端故障只会记录日志，不会改变重定向响应；当前属于尽力投递，没有重试队列。每次请求都使用 HMAC-SHA256 签名，签名放在 `X-Analytics-Signature`，签名时间戳放在 `X-Analytics-Timestamp`。
 
-事件会分别记录实际入口域名和适配器平台。入口域名必须是配置的 source 域名或其子域名，其他域名归为 `unknown`。浏览器来源域名、签名渠道 ID 和验证后的内部短链接来源保持为相互独立的归因维度。受控短链接续跳使用短期签名 `_i0c_via` token，并在规则处理前删除。
+事件会分别记录实际入口域名和适配器平台。入口域名必须是配置的 source 域名或其子域名，其他域名归为 `unknown`。浏览器来源域名、签名渠道 ID 和验证后的内部短链接来源保持为相互独立的归因维度。受控短链接续跳使用短期签名 `_nami_via` token，并在规则处理前删除。
 
 分类只在边缘端本地生成受控的流量、机器人、置信度、资源、设备、匹配、结果和探测类别。因此，即使机器人访问 `redirects.json` 之外的路径，也能进入抽样 Runtime 分析。事件不会发送 IP、完整 User-Agent、完整来源 URL、查询参数、目标地址或原始未匹配路径。匹配事件只包含配置中的规则路径和稳定统计 ID。旧规则没有 `analyticsId` 时，Runtime 会生成确定性的兼容 ID。通过 WebUI 保存的显式对象规则会持久化 UUID；字符串简写规则在转换成对象格式前继续使用兼容 ID。
 

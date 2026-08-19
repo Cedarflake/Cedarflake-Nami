@@ -1,10 +1,10 @@
 import "server-only";
 
-import type { DataConfig, PluginInstanceConfig } from "@i0c/config";
-import { installedPluginManifests } from "@i0c/plugin-catalog";
-import type { PluginManifest } from "@i0c/plugin-api";
+import type { DataConfig, PluginInstanceConfig } from "@nami/config";
+import { installedPluginManifests } from "@nami/plugin-catalog";
+import type { PluginManifest } from "@nami/plugin-api";
 
-import { runtimePlatformManifests } from "../../../../../i0c.runtime.manifests";
+import { runtimePlatformManifests } from "../../../../../nami.runtime.manifests";
 
 import {
   getAnalyticsStore,
@@ -19,12 +19,12 @@ import type {
   WebUiPluginStatusSnapshot,
 } from "./status-types";
 
-const POSTGRES_ANALYTICS_STORE_PLUGIN_ID = "@i0c/analytics-store-postgres";
-const D1_ANALYTICS_STORE_PLUGIN_ID = "@i0c/analytics-store-d1";
+const POSTGRES_ANALYTICS_STORE_PLUGIN_ID = "@nami/analytics-store-postgres";
+const D1_ANALYTICS_STORE_PLUGIN_ID = "@nami/analytics-store-d1";
 const compatibilityEnabledPluginIds = new Set([
   ...runtimePlatformManifests.map((manifest) => manifest.id),
-  "@i0c/analytics-sink-http",
-  "@i0c/feature-bot-classifier",
+  "@nami/analytics-sink-http",
+  "@nami/feature-bot-classifier",
 ]);
 const HEALTH_CHECK_TIMEOUT_MS = 3_000;
 

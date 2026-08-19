@@ -9,5 +9,5 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "i0c.runtime.config.ts"]
+  "include": ["src/**/*.ts", "tests/**/*.ts", "nami.runtime.config.ts"]
 }

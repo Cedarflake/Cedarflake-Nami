@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/analytics-domain",
+  "name": "@nami/analytics-domain",
   "version": "0.1.0",
   "private": true,
   "type": "module",

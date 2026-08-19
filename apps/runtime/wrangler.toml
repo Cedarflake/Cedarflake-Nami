@@ -1,5 +1,5 @@
 # wrangler.toml
-name = 'i0c'
+name = 'nami'
 main = "dist/platforms/cloudflare.js"
 compatibility_date = "2025-12-14"
 

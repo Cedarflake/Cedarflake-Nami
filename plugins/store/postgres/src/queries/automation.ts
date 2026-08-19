@@ -4,12 +4,12 @@ import type {
   AnalyticsAutomationSeriesPoint,
   AnalyticsAutomationTotals,
   AnalyticsBotBreakdowns,
-} from "@i0c/analytics-domain/types"
-import { resolveSeriesBucket } from "@i0c/analytics-domain/range"
+} from "@nami/analytics-domain/types"
+import { resolveSeriesBucket } from "@nami/analytics-domain/range"
 import {
   ANALYTICS_AUTOMATION_LINK_LIMIT,
   ANALYTICS_DIMENSION_LIMIT,
-} from "@i0c/analytics-domain/store"
+} from "@nami/analytics-domain/store"
 
 import { getDatabase } from "../database"
 import type { ResolvedQueryScope } from "../scope"

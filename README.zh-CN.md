@@ -1,6 +1,6 @@
-# i0c.cc
+# <img src="./assets/brand/wordmark.webp" alt="nami" width="420">
 
-i0c.cc 是一个个人边缘重定向实验项目，包含数据库驱动的控制面、可选 Runtime 平台、可选统计与编译期扩展。
+nami 是一个个人边缘重定向实验项目，包含数据库驱动的控制面、可选 Runtime 平台、可选统计与编译期扩展。
 
 它面向个人使用和工程实验，不是托管短链接服务，也不以企业级重定向平台为目标。
 
@@ -51,6 +51,13 @@ pnpm database:init
 ```
 
 `pnpm check` 会运行完整工作区检查，也可以使用下方文档中的所有者专用命令。数据库初始化、Schema 更新和平台部署属于显式外部操作，不会随构建或检查执行。
+
+品牌图片源文件位于 [`assets/brand`](assets/brand)。替换源文件后，使用以下命令同步并检查 Runtime、WebUI 与文档站的派生文件：
+
+```bash
+pnpm assets:sync
+pnpm assets:check
+```
 
 ## 文档
 

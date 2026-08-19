@@ -14,7 +14,7 @@ import type {
   DataDocumentKind,
   DataDocumentRevision,
   DataDocumentRevisionSummary,
-} from "@i0c/config";
+} from "@nami/config";
 
 import {
   Button,

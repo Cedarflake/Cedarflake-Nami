@@ -1,8 +1,8 @@
 import Ajv, { type AnySchema, type ValidateFunction } from "ajv";
 import addFormats from "ajv-formats";
 
-import { validateRedirectsConfig } from "@i0c/config";
-import redirectsSchema from "@i0c/config/redirects.schema.json";
+import { validateRedirectsConfig } from "@nami/config";
+import redirectsSchema from "@nami/config/redirects.schema.json";
 
 export interface RedirectConfigValidationIssue {
   message: string;

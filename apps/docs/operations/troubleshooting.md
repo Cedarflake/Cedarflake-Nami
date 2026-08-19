@@ -11,7 +11,7 @@ The WebUI, Runtime, and database are deployed separately. When something fails, 
 
 | What you see | Check here first |
 | --- | --- |
-| The i0c.cc 404 page | The request reached the Runtime, but no rule matched |
+| The nami 404 page | The request reached the Runtime, but no rule matched |
 | A Cloudflare, Vercel, or Netlify 404 page | Domain binding, project root, or provider routing |
 | A Runtime 500 or Bad Gateway | Runtime logs, snapshot loading, the adapter, and any proxy upstream |
 | A WebUI page or `/api/config` returns 500 | WebUI server logs and the database connection |
@@ -27,7 +27,7 @@ The Runtime probably has not loaded the new snapshot yet:
 1. make sure the path begins with `/` and uses the expected match type;
 2. wait for the rule cache interval shown in settings, which is 60 seconds by default;
 3. confirm that `bootstrapConfig.data.source.snapshotUrl` points to your WebUI;
-4. confirm that the WebUI and Runtime use the same `I0C_SECRET`;
+4. confirm that the WebUI and Runtime use the same `NAMI_SECRET`;
 5. inspect the Runtime log for its latest snapshot refresh.
 
 Permanent redirects may also be cached by the browser. If `curl -I` is correct but the browser is not, test in a private window.
@@ -57,7 +57,7 @@ For D1, also confirm that the rules and analytics Database IDs were not swapped.
 
 ## The analytics endpoint returns 401
 
-The WebUI could not verify the Runtime event signature. Every deployment must use the exact same `I0C_SECRET`. Also check that a binding name was not entered where the secret value belongs. Rotate the WebUI and every Runtime together.
+The WebUI could not verify the Runtime event signature. Every deployment must use the exact same `NAMI_SECRET`. Also check that a binding name was not entered where the secret value belongs. Rotate the WebUI and every Runtime together.
 
 ## The analytics endpoint returns 405
 
@@ -69,7 +69,7 @@ Check these in order:
 
 1. the platform adapter and HTTP analytics delivery plugin are enabled;
 2. the external provider is running a build that contains the current settings;
-3. `I0C_SECRET` matches the WebUI;
+3. `NAMI_SECRET` matches the WebUI;
 4. background delivery logs show no network or signature error;
 5. the analytics page is not filtered to another entry domain.
 
@@ -77,7 +77,7 @@ Platforms can share one analytics source ID while still recording separate entry
 
 ## GitHub sign-in fails after switching accounts
 
-Read the concrete Auth.js error in the WebUI server log. Verify the OAuth callback URL, and clear only the session for this i0c.cc instance. Browser warnings about GitHub's manifest icon are usually unrelated to the callback.
+Read the concrete Auth.js error in the WebUI server log. Verify the OAuth callback URL, and clear only the session for this nami instance. Browser warnings about GitHub's manifest icon are usually unrelated to the callback.
 
 If the WebUI must access a repository protected by organization OAuth restrictions, approve the OAuth App in that organization. The default database-backed control plane only reads user identity and does not need repository content access.
 

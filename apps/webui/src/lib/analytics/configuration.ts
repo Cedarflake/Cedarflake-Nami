@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { DataConfig } from "@i0c/config";
+import type { DataConfig } from "@nami/config";
 
 import { getEffectiveDataConfig } from "@/lib/configuration/data-config";
 import { readInstanceSecret } from "@/lib/configuration/instance-secret";

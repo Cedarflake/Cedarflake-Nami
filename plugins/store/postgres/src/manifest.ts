@@ -1,11 +1,11 @@
 import {
   PLUGIN_API_VERSION,
   type PluginManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import { postgresAnalyticsStoreConfigSchema } from "./config"
 
-export const POSTGRES_ANALYTICS_STORE_PLUGIN_ID = "@i0c/analytics-store-postgres"
+export const POSTGRES_ANALYTICS_STORE_PLUGIN_ID = "@nami/analytics-store-postgres"
 
 export const postgresAnalyticsStoreManifest = {
   id: POSTGRES_ANALYTICS_STORE_PLUGIN_ID,

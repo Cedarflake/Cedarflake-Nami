@@ -15,8 +15,8 @@ import {
   type DataRepositorySnapshot,
   type DataRepositoryWriteInput,
   type DataRepositoryWriteResult,
-} from "@i0c/config"
-import type { AtomicVersionedDataRepository } from "@i0c/plugin-api"
+} from "@nami/config"
+import type { AtomicVersionedDataRepository } from "@nami/plugin-api"
 
 import type { D1Database, D1PreparedStatement, D1Result } from "./d1"
 import { d1All, d1Batch } from "./d1"
@@ -128,7 +128,7 @@ async function writeDocument(
   const updatedAt = clock().toISOString()
   const mutation = input.expectedRevision === "0"
     ? database.prepare(`
-        INSERT INTO i0c_data_document (
+        INSERT INTO nami_data_document (
           kind,
           content,
           revision,
@@ -140,7 +140,7 @@ async function writeDocument(
         ON CONFLICT (kind) DO NOTHING
       `).bind(kind, input.content, checksum, updatedAt, mutationId)
     : database.prepare(`
-        UPDATE i0c_data_document
+        UPDATE nami_data_document
         SET
           content = ?,
           revision = revision + 1,
@@ -189,7 +189,7 @@ async function initializeDocuments(
 
   const results = await d1Batch(database, [
     database.prepare(`
-      INSERT INTO i0c_data_document (
+      INSERT INTO nami_data_document (
         kind,
         content,
         revision,
@@ -200,14 +200,14 @@ async function initializeDocuments(
       SELECT 'config', ?, 1, ?, ?, ?
       WHERE NOT EXISTS (
         SELECT 1
-        FROM i0c_data_document
+        FROM nami_data_document
         WHERE kind IN ('config', 'redirects')
       )
       UNION ALL
       SELECT 'redirects', ?, 1, ?, ?, ?
       WHERE NOT EXISTS (
         SELECT 1
-        FROM i0c_data_document
+        FROM nami_data_document
         WHERE kind IN ('config', 'redirects')
       )
     `).bind(
@@ -253,7 +253,7 @@ async function importSnapshot(
 
   const results = await d1Batch(database, [
     database.prepare(`
-      UPDATE i0c_data_document
+      UPDATE nami_data_document
       SET
         content = CASE kind
           WHEN 'config' THEN ?
@@ -270,12 +270,12 @@ async function importSnapshot(
         kind IN ('config', 'redirects')
         AND EXISTS (
           SELECT 1
-          FROM i0c_data_document
+          FROM nami_data_document
           WHERE kind = 'config' AND revision = ?
         )
         AND EXISTS (
           SELECT 1
-          FROM i0c_data_document
+          FROM nami_data_document
           WHERE kind = 'redirects' AND revision = ?
         )
     `).bind(
@@ -334,16 +334,16 @@ async function restoreRevision(
 
   const results = await d1Batch(database, [
     database.prepare(`
-      UPDATE i0c_data_document
+      UPDATE nami_data_document
       SET
         content = (
           SELECT content
-          FROM i0c_data_document_revision
+          FROM nami_data_document_revision
           WHERE kind = ? AND revision = ?
         ),
         checksum = (
           SELECT checksum
-          FROM i0c_data_document_revision
+          FROM nami_data_document_revision
           WHERE kind = ? AND revision = ?
         ),
         revision = revision + 1,
@@ -354,7 +354,7 @@ async function restoreRevision(
         AND revision = ?
         AND EXISTS (
           SELECT 1
-          FROM i0c_data_document_revision
+          FROM nami_data_document_revision
           WHERE kind = ? AND revision = ?
         )
     `).bind(
@@ -401,7 +401,7 @@ async function inspectSetupState(
     FROM sqlite_master
     WHERE
       type = 'table'
-      AND name IN ('i0c_data_document', 'i0c_data_document_revision')
+      AND name IN ('nami_data_document', 'nami_data_document_revision')
     ORDER BY name ASC
   `))
   if (tables.length !== 2) {
@@ -410,7 +410,7 @@ async function inspectSetupState(
 
   const rows = await d1All<DataDocumentKindRow>(database.prepare(`
     SELECT kind
-    FROM i0c_data_document
+    FROM nami_data_document
     WHERE kind IN ('config', 'redirects')
     ORDER BY kind ASC
   `))
@@ -451,7 +451,7 @@ async function listRevisions(
           content,
           created_at AS updated_at,
           '' AS mutation_id
-        FROM i0c_data_document_revision
+        FROM nami_data_document_revision
         WHERE kind = ?
         ORDER BY revision DESC
         LIMIT ?
@@ -467,7 +467,7 @@ async function listRevisions(
           content,
           created_at AS updated_at,
           '' AS mutation_id
-        FROM i0c_data_document_revision
+        FROM nami_data_document_revision
         WHERE kind = ? AND revision < ?
         ORDER BY revision DESC
         LIMIT ?
@@ -500,7 +500,7 @@ async function readDocument(
 ): Promise<DataDocument> {
   const rows = await d1All<DataDocumentRow>(database.prepare(`
     SELECT kind, content, revision, checksum, updated_at, mutation_id
-    FROM i0c_data_document
+    FROM nami_data_document
     WHERE kind = ?
   `).bind(kind))
   const row = rows[0]
@@ -515,7 +515,7 @@ async function readSnapshot(
 ): Promise<DataRepositorySnapshot> {
   const rows = await d1All<DataDocumentRow>(database.prepare(`
     SELECT kind, content, revision, checksum, updated_at, mutation_id
-    FROM i0c_data_document
+    FROM nami_data_document
     WHERE kind IN ('config', 'redirects')
     ORDER BY kind ASC
   `))
@@ -538,7 +538,7 @@ async function readSnapshotAtRevisions(
       checksum,
       created_at AS updated_at,
       '' AS mutation_id
-    FROM i0c_data_document_revision
+    FROM nami_data_document_revision
     WHERE
       (kind = 'config' AND revision = ?)
       OR (kind = 'redirects' AND revision = ?)
@@ -569,7 +569,7 @@ async function requireRevisionRow(
       content,
       created_at AS updated_at,
       '' AS mutation_id
-    FROM i0c_data_document_revision
+    FROM nami_data_document_revision
     WHERE kind = ? AND revision = ?
   `).bind(kind, toRevisionBinding(revision)))
   const row = rows[0]
@@ -587,7 +587,7 @@ function createRevisionInsert(
   ...values: readonly unknown[]
 ): D1PreparedStatement {
   return database.prepare(`
-    INSERT INTO i0c_data_document_revision (
+    INSERT INTO nami_data_document_revision (
       kind,
       revision,
       content,
@@ -604,7 +604,7 @@ function createRevisionInsert(
       ?,
       ?,
       updated_at
-    FROM i0c_data_document
+    FROM nami_data_document
     WHERE ${predicate}
     ORDER BY kind ASC
   `).bind(operation, actorGitHubUserId ?? null, ...values)
@@ -624,7 +624,7 @@ async function assertExpectedRevision(
 ): Promise<void> {
   const rows = await d1All<{ revision: number | string }>(database.prepare(`
     SELECT revision
-    FROM i0c_data_document
+    FROM nami_data_document
     WHERE kind = ?
   `).bind(kind))
   const current = rows[0]

@@ -1,6 +1,6 @@
 import GitHubProvider from "next-auth/providers/github";
 
-import { bootstrapConfig } from "@i0c/config";
+import { bootstrapConfig } from "@nami/config";
 
 import { requireInstanceSecret } from "@/lib/configuration/instance-secret";
 

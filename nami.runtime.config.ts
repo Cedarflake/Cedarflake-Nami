@@ -2,43 +2,43 @@ import {
   assertBootstrapConfigCompatibility,
   bootstrapConfig,
   defaultDataConfig,
-} from "@i0c/config"
-import { defineRuntimeInstallationConfig } from "@i0c/runtime-build/config"
+} from "@nami/config"
+import { defineRuntimeInstallationConfig } from "@nami/runtime-build/config"
 import {
   resolveHttpAnalyticsSinkConfig,
-} from "@i0c/plugin-analytics-sink-http/config"
+} from "@nami/plugin-analytics-sink-http/config"
 import {
   createHttpAnalyticsSink,
-} from "@i0c/plugin-analytics-sink-http/runtime"
+} from "@nami/plugin-analytics-sink-http/runtime"
 import {
   resolveBotClassifierConfig,
-} from "@i0c/plugin-feature-bot-classifier/config"
+} from "@nami/plugin-feature-bot-classifier/config"
 import {
   createBotClassifierFeature,
-} from "@i0c/plugin-feature-bot-classifier/runtime"
+} from "@nami/plugin-feature-bot-classifier/runtime"
 import {
   githubRawSourcePlugin,
-} from "@i0c/plugin-github-data/runtime"
+} from "@nami/plugin-github-data/runtime"
 import {
   resolveGitHubRawSourceBootstrapConfig,
-} from "@i0c/plugin-github-data/config"
+} from "@nami/plugin-github-data/config"
 import {
   resolveHttpSnapshotSourceBootstrapConfig,
-} from "@i0c/plugin-http-snapshot-source/config"
+} from "@nami/plugin-http-snapshot-source/config"
 import {
   httpSnapshotSourcePlugin,
-} from "@i0c/plugin-http-snapshot-source/runtime"
-import type { JsonObject } from "@i0c/plugin-api"
-import { cloudflareRuntimeInstallation } from "@i0c/plugin-runtime-cloudflare/installation"
-import { netlifyRuntimeInstallation } from "@i0c/plugin-runtime-netlify/installation"
-import { vercelRuntimeInstallation } from "@i0c/plugin-runtime-vercel/installation"
+} from "@nami/plugin-http-snapshot-source/runtime"
+import type { JsonObject } from "@nami/plugin-api"
+import { cloudflareRuntimeInstallation } from "@nami/plugin-runtime-cloudflare/installation"
+import { netlifyRuntimeInstallation } from "@nami/plugin-runtime-netlify/installation"
+import { vercelRuntimeInstallation } from "@nami/plugin-runtime-vercel/installation"
 import {
   defineRuntimePluginInstallations,
   type RuntimeAnalyticsSinkContext,
   type RuntimeAnalyticsSinkEvent,
-} from "@i0c/runtime-host/installations"
+} from "@nami/runtime-host/installations"
 
-import { runtimePluginDescriptors } from "./i0c.runtime.manifests"
+import { runtimePluginDescriptors } from "./nami.runtime.manifests"
 
 const githubTarget = bootstrapConfig.data.github
 const githubBaseUrl = `https://raw.githubusercontent.com/${githubTarget.owner}/${githubTarget.repository}/${githubTarget.branch}`
@@ -47,10 +47,10 @@ const dataSourceSelection = createRuntimeDataSourceSelection()
 
 export const runtimePluginInstallations = defineRuntimePluginInstallations({
   bundlePackages: [
-    "@i0c/plugin-analytics-sink-http",
-    "@i0c/plugin-feature-bot-classifier",
-    "@i0c/plugin-github-data",
-    "@i0c/plugin-http-snapshot-source",
+    "@nami/plugin-analytics-sink-http",
+    "@nami/plugin-feature-bot-classifier",
+    "@nami/plugin-github-data",
+    "@nami/plugin-http-snapshot-source",
   ],
   dataSource: {
     ...runtimePluginDescriptors.dataSource,
@@ -85,7 +85,7 @@ export const runtimePluginInstallations = defineRuntimePluginInstallations({
   ],
 })
 
-export { runtimePluginManifests } from "./i0c.runtime.manifests"
+export { runtimePluginManifests } from "./nami.runtime.manifests"
 
 export const runtimeInstallationConfig = /* @__PURE__ */ defineRuntimeInstallationConfig({
   platforms: [
@@ -95,7 +95,7 @@ export const runtimeInstallationConfig = /* @__PURE__ */ defineRuntimeInstallati
   ],
 })
 
-export { runtimePlatformManifests } from "./i0c.runtime.manifests"
+export { runtimePlatformManifests } from "./nami.runtime.manifests"
 
 interface RuntimeDataSourceSelection {
   bootstrapConfig: JsonObject

@@ -1,5 +1,5 @@
-import type { RuntimeRequestHandler } from "@i0c/plugin-api"
-import { defineRuntimePlatformPlugin } from "@i0c/plugin-sdk/runtime"
+import type { RuntimeRequestHandler } from "@nami/plugin-api"
+import { defineRuntimePlatformPlugin } from "@nami/plugin-sdk/runtime"
 
 import { externalRuntimeManifest } from "./manifest"
 

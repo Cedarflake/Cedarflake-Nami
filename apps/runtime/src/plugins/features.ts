@@ -10,10 +10,10 @@
  * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
  */
 
-import type { AnalyticsClassificationHookContext } from "@i0c/analytics-domain/classification";
-import type { DataConfig } from "@i0c/config";
-import { PluginError, RuntimeFeaturePipeline } from "@i0c/plugin-api";
-import type { RuntimeFeatureRegistration } from "@i0c/plugin-api";
+import type { AnalyticsClassificationHookContext } from "@nami/analytics-domain/classification";
+import type { DataConfig } from "@nami/config";
+import { PluginError, RuntimeFeaturePipeline } from "@nami/plugin-api";
+import type { RuntimeFeatureRegistration } from "@nami/plugin-api";
 
 import type {
   RuntimeAnalyticsFeaturePipeline,

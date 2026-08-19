@@ -8,7 +8,7 @@ import {
   proxyOptionLimits,
   type ProxyHeaderOverrides,
   type ProxyOptions,
-} from "@i0c/config";
+} from "@nami/config";
 
 import { Button } from "@/components/ui/controls/button";
 import { DropdownSelect } from "@/components/ui/controls/dropdown-select";

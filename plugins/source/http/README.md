@@ -1,6 +1,6 @@
 # HTTP Snapshot Data Source
 
-`@i0c/plugin-http-snapshot-source` loads one validated Runtime snapshot from an HTTPS endpoint. The snapshot contains `config.json` and `redirects.json` at the same repository revision, so a Runtime request never combines documents from different saves.
+`@nami/plugin-http-snapshot-source` loads one validated Runtime snapshot from an HTTPS endpoint. The snapshot contains `config.json` and `redirects.json` at the same repository revision, so a Runtime request never combines documents from different saves.
 
 The built-in WebUI publishes the snapshot at:
 
@@ -27,8 +27,8 @@ The source deduplicates concurrent loads, revalidates with ETags, applies a boun
 Run the package checks from the repository root:
 
 ```bash
-pnpm --filter @i0c/plugin-http-snapshot-source check
-pnpm --filter @i0c/plugin-http-snapshot-source test
+pnpm --filter @nami/plugin-http-snapshot-source check
+pnpm --filter @nami/plugin-http-snapshot-source test
 ```
 
 The endpoint is public because edge Runtime deployments do not share WebUI login sessions. Do not place secrets in either data document; plugin Secret values remain deployment bindings.

@@ -1,17 +1,17 @@
 import {
   validatePluginManifest,
   type RuntimePlatformPlugin,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 import {
   type RuntimeAnalyticsSinkInstallation,
   type RuntimeDataSourceInstallation,
   type RuntimeFeatureInstallation,
-} from "@i0c/runtime-host/installations"
+} from "@nami/runtime-host/installations"
 
 export {
   defineRuntimeInstallationConfig,
   defineRuntimePlatformInstallation,
-} from "@i0c/runtime-build/config"
+} from "@nami/runtime-build/config"
 export {
   defineRuntimePluginInstallations,
   listDefaultRuntimePluginIds,
@@ -20,7 +20,7 @@ export {
   type RuntimeAnalyticsSinkContext,
   type RuntimeAnalyticsSinkEvent,
   type RuntimePluginInstallations,
-} from "@i0c/runtime-host/installations"
+} from "@nami/runtime-host/installations"
 
 export type RuntimeDataSourcePlugin = Pick<
   RuntimeDataSourceInstallation,

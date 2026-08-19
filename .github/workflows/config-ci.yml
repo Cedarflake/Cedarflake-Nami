@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - .github/workflows/config-ci.yml
-      - i0c.runtime.config.ts
+      - nami.runtime.config.ts
       - packages/config/**
       - packages/plugin-api/**
       - packages/plugin-catalog/**
@@ -26,7 +26,7 @@ on:
       - main
     paths:
       - .github/workflows/config-ci.yml
-      - i0c.runtime.config.ts
+      - nami.runtime.config.ts
       - packages/config/**
       - packages/plugin-api/**
       - packages/plugin-catalog/**
@@ -82,4 +82,4 @@ jobs:
         run: pnpm database:init:test
 
       - name: Test installed plugin configuration
-        run: pnpm --filter @i0c/plugin-catalog test
+        run: pnpm --filter @nami/plugin-catalog test

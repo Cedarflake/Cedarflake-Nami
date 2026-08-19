@@ -1,11 +1,11 @@
 import {
   PLUGIN_API_VERSION,
   type PluginManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import { httpAnalyticsSinkConfigSchema } from "./config"
 
-export const HTTP_ANALYTICS_SINK_PLUGIN_ID = "@i0c/analytics-sink-http"
+export const HTTP_ANALYTICS_SINK_PLUGIN_ID = "@nami/analytics-sink-http"
 
 export const httpAnalyticsSinkManifest = {
   id: HTTP_ANALYTICS_SINK_PLUGIN_ID,
@@ -63,7 +63,7 @@ export const httpAnalyticsSinkManifest = {
     writeKey: {
       required: true,
       sensitive: true,
-      defaultBinding: "I0C_SECRET",
+      defaultBinding: "NAMI_SECRET",
       description: "HMAC key shared with the analytics collector.",
       label: {
         en: "Analytics write key binding",

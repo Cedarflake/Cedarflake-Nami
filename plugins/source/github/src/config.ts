@@ -1,5 +1,5 @@
-import type { DataSourceTarget } from "@i0c/config"
-import type { JsonObject } from "@i0c/plugin-api"
+import type { DataSourceTarget } from "@nami/config"
+import type { JsonObject } from "@nami/plugin-api"
 
 export interface GitHubRawSourceBootstrapConfig {
   dataConfigUrl?: string

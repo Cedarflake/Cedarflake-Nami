@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { DataDocumentKind, DataRepositoryManagement } from "@i0c/config";
+import type { DataDocumentKind, DataRepositoryManagement } from "@nami/config";
 
 import { getAppDataRepositoryManagement } from "./documents";
 

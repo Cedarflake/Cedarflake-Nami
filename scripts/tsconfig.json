@@ -8,5 +8,5 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["database/**/*.ts", "validation/**/*.ts"]
+  "include": ["assets/**/*.ts", "database/**/*.ts", "validation/**/*.ts"]
 }

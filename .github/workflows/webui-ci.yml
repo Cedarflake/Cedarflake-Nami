@@ -6,10 +6,10 @@ on:
       - main
     paths:
       - .github/workflows/webui-ci.yml
-      - i0c.runtime.config.ts
-      - i0c.runtime.manifests.ts
-      - i0c.webui.config.ts
-      - i0c.webui.manifests.ts
+      - nami.runtime.config.ts
+      - nami.runtime.manifests.ts
+      - nami.webui.config.ts
+      - nami.webui.manifests.ts
       - apps/webui/**
       - packages/config/**
       - packages/database-d1/**
@@ -32,10 +32,10 @@ on:
       - main
     paths:
       - .github/workflows/webui-ci.yml
-      - i0c.runtime.config.ts
-      - i0c.runtime.manifests.ts
-      - i0c.webui.config.ts
-      - i0c.webui.manifests.ts
+      - nami.runtime.config.ts
+      - nami.runtime.manifests.ts
+      - nami.webui.config.ts
+      - nami.webui.manifests.ts
       - apps/webui/**
       - packages/config/**
       - packages/database-d1/**
@@ -71,7 +71,7 @@ jobs:
       # Build-only placeholders; these are not valid credentials.
       GITHUB_CLIENT_ID: ci-client-id
       GITHUB_CLIENT_SECRET: ci-client-secret
-      I0C_SECRET: ci-instance-secret-not-for-production
+      NAMI_SECRET: ci-instance-secret-not-for-production
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

@@ -1,6 +1,6 @@
 "use client";
 
-import { defaultDataConfig } from "@i0c/config";
+import { defaultDataConfig } from "@nami/config";
 import { createContext, useContext, type ReactNode } from "react";
 
 interface RuntimeSettingsContextValue {

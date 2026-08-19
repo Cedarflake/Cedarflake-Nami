@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import type { RuntimeDataSnapshot } from "@i0c/config";
+import type { RuntimeDataSnapshot } from "@nami/config";
 
 import {
   createRuntimeSnapshotEtag,

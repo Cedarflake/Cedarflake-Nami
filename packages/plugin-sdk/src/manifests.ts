@@ -4,7 +4,7 @@ import {
   type PluginDescriptionManifest,
   type PluginManifest,
   type RuntimePlatformManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 export interface PluginBilingualText {
   readonly [locale: string]: string

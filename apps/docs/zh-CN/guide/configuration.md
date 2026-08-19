@@ -56,12 +56,12 @@ description: 按 WebUI 中实际看到的分类管理 Runtime、统计、访问�
 ```json
 {
   "secrets": {
-    "writeKey": "I0C_SECRET"
+    "writeKey": "NAMI_SECRET"
   }
 }
 ```
 
-这句话的意思是“运行时从 `I0C_SECRET` 读取密钥”，而不是把真实密钥存进数据库。密钥值仍然只放在 WebUI、Runtime 或数据库平台的环境设置中。
+这句话的意思是“运行时从 `NAMI_SECRET` 读取密钥”，而不是把真实密钥存进数据库。密钥值仍然只放在 WebUI、Runtime 或数据库平台的环境设置中。
 
 ## 哪些选项不在设置页
 

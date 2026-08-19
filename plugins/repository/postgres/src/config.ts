@@ -1,4 +1,4 @@
-import type { JsonObject } from "@i0c/config"
+import type { JsonObject } from "@nami/config"
 
 export const postgresDataRepositoryPluginConfigSchema = {
   type: "object",

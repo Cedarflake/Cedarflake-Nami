@@ -5,7 +5,7 @@ description: Look up which values belong to the WebUI or Runtime environment and
 
 # Environment variables and secrets
 
-Early versions of i0c.cc kept several non-secret settings in environment variables, which made every edit a multi-provider chore. Only secrets and provider-injected values remain there; domains, cache intervals, access lists, and plugin switches live in the WebUI or startup config.
+Early versions of nami kept several non-secret settings in environment variables, which made every edit a multi-provider chore. Only secrets and provider-injected values remain there; domains, cache intervals, access lists, and plugin switches live in the WebUI or startup config.
 
 For a value that changes regularly and is not a credential, add a settings or configuration surface instead of another environment variable.
 
@@ -15,7 +15,7 @@ For a value that changes regularly and is not a credential, add a settings or co
 | --- | --- | --- |
 | `GITHUB_CLIENT_ID` | Always | GitHub OAuth Client ID |
 | `GITHUB_CLIENT_SECRET` | Always | GitHub OAuth Client Secret |
-| `I0C_SECRET` | Always | Sessions, first initialization, snapshot, analytics, and attribution signatures |
+| `NAMI_SECRET` | Always | Sessions, first initialization, snapshot, analytics, and attribution signatures |
 | `DATABASE_URL` | PostgreSQL stores rules or analytics | Server-only PostgreSQL connection string |
 | `CLOUDFLARE_D1_API_TOKEN` | The WebUI reaches D1 through the Cloudflare API | Server-only D1 read/write token |
 | `NEXTAUTH_URL` | Auth.js cannot infer the public address | Override the public WebUI URL; normally unnecessary |
@@ -26,7 +26,7 @@ The WebUI is the only application that connects to a database. Do not give `DATA
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `I0C_SECRET` | Yes | Verify WebUI snapshots and sign analytics and attribution events |
+| `NAMI_SECRET` | Yes | Verify WebUI snapshots and sign analytics and attribution events |
 
 The Runtime and WebUI values must match exactly and contain at least 32 characters. If Cloudflare, Vercel, and Netlify are all deployed, each uses that same value.
 
@@ -59,7 +59,7 @@ These already have a better configuration surface:
 
 The first four are editable in WebUI settings. D1 IDs and database types must be known before editable data can be opened, so they stay in repository startup configuration. They are not secrets, but changing them requires a rebuild.
 
-## Rotate `I0C_SECRET`
+## Rotate `NAMI_SECRET`
 
 Treat rotation as one maintenance operation rather than a WebUI-only edit:
 

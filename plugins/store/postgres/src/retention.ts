@@ -1,7 +1,7 @@
 import type {
   AnalyticsRetentionResult,
   AnalyticsRetentionScope,
-} from "@i0c/analytics-domain/store"
+} from "@nami/analytics-domain/store"
 
 import { getDatabase } from "./database";
 import type { PostgresAnalyticsStoreConfig } from "./config"

@@ -6,7 +6,7 @@ without coupling the Runtime to PostgreSQL.
 
 The plugin owns its document schema, transactions, and domain queries. Shared
 PostgreSQL client construction and migration-history enforcement lives in
-`@i0c/database-postgres`.
+`@nami/database-postgres`.
 
 ## Requirements
 
@@ -21,11 +21,11 @@ PostgreSQL client construction and migration-history enforcement lives in
 ## Commands
 
 ```bash
-pnpm --filter @i0c/plugin-data-repository-postgres check
-pnpm --filter @i0c/plugin-data-repository-postgres test
+pnpm --filter @nami/plugin-data-repository-postgres check
+pnpm --filter @nami/plugin-data-repository-postgres test
 pnpm database:init
 pnpm database:update postgres repository
-pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
+pnpm --filter @nami/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
 ```
 
 The initialization, Schema-update, and seed commands mutate the configured

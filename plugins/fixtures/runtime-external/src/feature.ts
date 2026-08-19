@@ -1,7 +1,7 @@
-import type { AnalyticsClassificationHookContext } from "@i0c/analytics-domain/classification"
-import type { RuntimeFeatureRegistration } from "@i0c/plugin-api"
-import { defineRuntimeFeatureManifest } from "@i0c/plugin-sdk"
-import { defineRuntimeFeaturePlugin } from "@i0c/plugin-sdk/runtime"
+import type { AnalyticsClassificationHookContext } from "@nami/analytics-domain/classification"
+import type { RuntimeFeatureRegistration } from "@nami/plugin-api"
+import { defineRuntimeFeatureManifest } from "@nami/plugin-sdk"
+import { defineRuntimeFeaturePlugin } from "@nami/plugin-sdk/runtime"
 
 export const externalRuntimeFeatureManifest = defineRuntimeFeatureManifest({
   id: "@example/runtime-feature-external",

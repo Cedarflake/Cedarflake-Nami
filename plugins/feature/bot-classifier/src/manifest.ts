@@ -1,11 +1,11 @@
 import {
   PLUGIN_API_VERSION,
   type PluginManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import { botClassifierConfigSchema } from "./config"
 
-export const BOT_CLASSIFIER_PLUGIN_ID = "@i0c/feature-bot-classifier"
+export const BOT_CLASSIFIER_PLUGIN_ID = "@nami/feature-bot-classifier"
 
 export const botClassifierManifest = {
   id: BOT_CLASSIFIER_PLUGIN_ID,

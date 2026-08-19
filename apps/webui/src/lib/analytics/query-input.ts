@@ -1,4 +1,4 @@
-import { normalizeAnalyticsTimeZone } from "@i0c/analytics-domain/range";
+import { normalizeAnalyticsTimeZone } from "@nami/analytics-domain/range";
 
 import {
   analyticsRanges,

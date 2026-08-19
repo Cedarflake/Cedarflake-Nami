@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/database-postgres",
+  "name": "@nami/database-postgres",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,7 +16,7 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
-    "@i0c/plugin-api": "workspace:*",
+    "@nami/plugin-api": "workspace:*",
     "postgres": "^3.4.9"
   },
   "devDependencies": {

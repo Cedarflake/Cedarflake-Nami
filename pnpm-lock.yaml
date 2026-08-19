@@ -35,67 +35,67 @@ importers:
 
   .:
     devDependencies:
-      '@i0c/analytics-domain':
+      '@nami/analytics-domain':
         specifier: workspace:*
         version: link:packages/analytics-domain
-      '@i0c/config':
+      '@nami/config':
         specifier: workspace:*
         version: link:packages/config
-      '@i0c/database-d1':
+      '@nami/database-d1':
         specifier: workspace:*
         version: link:packages/database-d1
-      '@i0c/database-postgres':
+      '@nami/database-postgres':
         specifier: workspace:*
         version: link:packages/database-postgres
-      '@i0c/plugin-analytics-sink-http':
+      '@nami/plugin-analytics-sink-http':
         specifier: workspace:*
         version: link:plugins/sink/http
-      '@i0c/plugin-analytics-store-d1':
+      '@nami/plugin-analytics-store-d1':
         specifier: workspace:*
         version: link:plugins/store/d1
-      '@i0c/plugin-analytics-store-postgres':
+      '@nami/plugin-analytics-store-postgres':
         specifier: workspace:*
         version: link:plugins/store/postgres
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:packages/plugin-api
-      '@i0c/plugin-catalog':
+      '@nami/plugin-catalog':
         specifier: workspace:*
         version: link:packages/plugin-catalog
-      '@i0c/plugin-data-repository-d1':
+      '@nami/plugin-data-repository-d1':
         specifier: workspace:*
         version: link:plugins/repository/d1
-      '@i0c/plugin-data-repository-postgres':
+      '@nami/plugin-data-repository-postgres':
         specifier: workspace:*
         version: link:plugins/repository/postgres
-      '@i0c/plugin-feature-bot-classifier':
+      '@nami/plugin-feature-bot-classifier':
         specifier: workspace:*
         version: link:plugins/feature/bot-classifier
-      '@i0c/plugin-github-data':
+      '@nami/plugin-github-data':
         specifier: workspace:*
         version: link:plugins/source/github
-      '@i0c/plugin-http-snapshot-source':
+      '@nami/plugin-http-snapshot-source':
         specifier: workspace:*
         version: link:plugins/source/http
-      '@i0c/plugin-runtime-cloudflare':
+      '@nami/plugin-runtime-cloudflare':
         specifier: workspace:*
         version: link:plugins/runtime/cloudflare
-      '@i0c/plugin-runtime-netlify':
+      '@nami/plugin-runtime-netlify':
         specifier: workspace:*
         version: link:plugins/runtime/netlify
-      '@i0c/plugin-runtime-vercel':
+      '@nami/plugin-runtime-vercel':
         specifier: workspace:*
         version: link:plugins/runtime/vercel
-      '@i0c/plugin-sdk':
+      '@nami/plugin-sdk':
         specifier: workspace:*
         version: link:packages/plugin-sdk
-      '@i0c/runtime-build':
+      '@nami/runtime-build':
         specifier: workspace:*
         version: link:packages/runtime-build
-      '@i0c/runtime-fixture-external':
+      '@nami/runtime-fixture-external':
         specifier: workspace:*
         version: link:plugins/fixtures/runtime-external
-      '@i0c/runtime-host':
+      '@nami/runtime-host':
         specifier: workspace:*
         version: link:packages/runtime-host
       '@types/node':
@@ -122,37 +122,37 @@ importers:
 
   apps/runtime:
     dependencies:
-      '@i0c/analytics-domain':
+      '@nami/analytics-domain':
         specifier: workspace:*
         version: link:../../packages/analytics-domain
-      '@i0c/config':
+      '@nami/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@i0c/plugin-analytics-sink-http':
+      '@nami/plugin-analytics-sink-http':
         specifier: workspace:*
         version: link:../../plugins/sink/http
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../packages/plugin-api
-      '@i0c/plugin-catalog':
+      '@nami/plugin-catalog':
         specifier: workspace:*
         version: link:../../packages/plugin-catalog
-      '@i0c/plugin-feature-bot-classifier':
+      '@nami/plugin-feature-bot-classifier':
         specifier: workspace:*
         version: link:../../plugins/feature/bot-classifier
-      '@i0c/plugin-github-data':
+      '@nami/plugin-github-data':
         specifier: workspace:*
         version: link:../../plugins/source/github
-      '@i0c/plugin-http-snapshot-source':
+      '@nami/plugin-http-snapshot-source':
         specifier: workspace:*
         version: link:../../plugins/source/http
-      '@i0c/plugin-sdk':
+      '@nami/plugin-sdk':
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
-      '@i0c/runtime-build':
+      '@nami/runtime-build':
         specifier: workspace:*
         version: link:../../packages/runtime-build
-      '@i0c/runtime-host':
+      '@nami/runtime-host':
         specifier: workspace:*
         version: link:../../packages/runtime-host
     devDependencies:
@@ -174,37 +174,37 @@ importers:
 
   apps/webui:
     dependencies:
-      '@i0c/analytics-domain':
+      '@nami/analytics-domain':
         specifier: workspace:*
         version: link:../../packages/analytics-domain
-      '@i0c/config':
+      '@nami/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@i0c/database-d1':
+      '@nami/database-d1':
         specifier: workspace:*
         version: link:../../packages/database-d1
-      '@i0c/plugin-analytics-store-d1':
+      '@nami/plugin-analytics-store-d1':
         specifier: workspace:*
         version: link:../../plugins/store/d1
-      '@i0c/plugin-analytics-store-postgres':
+      '@nami/plugin-analytics-store-postgres':
         specifier: workspace:*
         version: link:../../plugins/store/postgres
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../packages/plugin-api
-      '@i0c/plugin-catalog':
+      '@nami/plugin-catalog':
         specifier: workspace:*
         version: link:../../packages/plugin-catalog
-      '@i0c/plugin-data-repository-d1':
+      '@nami/plugin-data-repository-d1':
         specifier: workspace:*
         version: link:../../plugins/repository/d1
-      '@i0c/plugin-data-repository-postgres':
+      '@nami/plugin-data-repository-postgres':
         specifier: workspace:*
         version: link:../../plugins/repository/postgres
-      '@i0c/plugin-github-data':
+      '@nami/plugin-github-data':
         specifier: workspace:*
         version: link:../../plugins/source/github
-      '@i0c/plugin-sdk':
+      '@nami/plugin-sdk':
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
       '@visx/axis':
@@ -317,7 +317,7 @@ importers:
 
   packages/database-d1:
     dependencies:
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
     devDependencies:
@@ -333,7 +333,7 @@ importers:
 
   packages/database-postgres:
     dependencies:
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
       postgres:
@@ -358,40 +358,40 @@ importers:
 
   packages/plugin-catalog:
     dependencies:
-      '@i0c/plugin-analytics-sink-http':
+      '@nami/plugin-analytics-sink-http':
         specifier: workspace:*
         version: link:../../plugins/sink/http
-      '@i0c/plugin-analytics-store-d1':
+      '@nami/plugin-analytics-store-d1':
         specifier: workspace:*
         version: link:../../plugins/store/d1
-      '@i0c/plugin-analytics-store-postgres':
+      '@nami/plugin-analytics-store-postgres':
         specifier: workspace:*
         version: link:../../plugins/store/postgres
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
-      '@i0c/plugin-data-repository-d1':
+      '@nami/plugin-data-repository-d1':
         specifier: workspace:*
         version: link:../../plugins/repository/d1
-      '@i0c/plugin-data-repository-postgres':
+      '@nami/plugin-data-repository-postgres':
         specifier: workspace:*
         version: link:../../plugins/repository/postgres
-      '@i0c/plugin-feature-bot-classifier':
+      '@nami/plugin-feature-bot-classifier':
         specifier: workspace:*
         version: link:../../plugins/feature/bot-classifier
-      '@i0c/plugin-github-data':
+      '@nami/plugin-github-data':
         specifier: workspace:*
         version: link:../../plugins/source/github
-      '@i0c/plugin-http-snapshot-source':
+      '@nami/plugin-http-snapshot-source':
         specifier: workspace:*
         version: link:../../plugins/source/http
-      '@i0c/plugin-runtime-cloudflare':
+      '@nami/plugin-runtime-cloudflare':
         specifier: workspace:*
         version: link:../../plugins/runtime/cloudflare
-      '@i0c/plugin-runtime-netlify':
+      '@nami/plugin-runtime-netlify':
         specifier: workspace:*
         version: link:../../plugins/runtime/netlify
-      '@i0c/plugin-runtime-vercel':
+      '@nami/plugin-runtime-vercel':
         specifier: workspace:*
         version: link:../../plugins/runtime/vercel
     devDependencies:
@@ -407,19 +407,19 @@ importers:
 
   packages/plugin-sdk:
     dependencies:
-      '@i0c/analytics-domain':
+      '@nami/analytics-domain':
         specifier: workspace:*
         version: link:../analytics-domain
-      '@i0c/config':
+      '@nami/config':
         specifier: workspace:*
         version: link:../config
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
-      '@i0c/runtime-build':
+      '@nami/runtime-build':
         specifier: workspace:*
         version: link:../runtime-build
-      '@i0c/runtime-host':
+      '@nami/runtime-host':
         specifier: workspace:*
         version: link:../runtime-host
     devDependencies:
@@ -435,10 +435,10 @@ importers:
 
   packages/plugin-testkit:
     dependencies:
-      '@i0c/config':
+      '@nami/config':
         specifier: workspace:*
         version: link:../config
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
     devDependencies:
@@ -457,7 +457,7 @@ importers:
       '@esbuild-plugins/tsconfig-paths':
         specifier: ^0.1.2
         version: 0.1.2(esbuild@0.28.1)(supports-color@10.2.2)(typescript@6.0.2)
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
       esbuild:
@@ -479,13 +479,13 @@ importers:
 
   packages/runtime-host:
     dependencies:
-      '@i0c/analytics-domain':
+      '@nami/analytics-domain':
         specifier: workspace:*
         version: link:../analytics-domain
-      '@i0c/config':
+      '@nami/config':
         specifier: workspace:*
         version: link:../config
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
     devDependencies:
@@ -501,14 +501,14 @@ importers:
 
   plugins/feature/bot-classifier:
     dependencies:
-      '@i0c/analytics-domain':
+      '@nami/analytics-domain':
         specifier: workspace:*
         version: link:../../../packages/analytics-domain
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../../packages/plugin-api
     devDependencies:
-      '@i0c/plugin-testkit':
+      '@nami/plugin-testkit':
         specifier: workspace:*
         version: link:../../../packages/plugin-testkit
       '@types/node':
@@ -523,26 +523,26 @@ importers:
 
   plugins/fixtures/runtime-external:
     dependencies:
-      '@i0c/analytics-domain':
+      '@nami/analytics-domain':
         specifier: workspace:*
         version: link:../../../packages/analytics-domain
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../../packages/plugin-api
-      '@i0c/plugin-sdk':
+      '@nami/plugin-sdk':
         specifier: workspace:*
         version: link:../../../packages/plugin-sdk
     devDependencies:
-      '@i0c/plugin-analytics-sink-http':
+      '@nami/plugin-analytics-sink-http':
         specifier: workspace:*
         version: link:../../sink/http
-      '@i0c/plugin-feature-bot-classifier':
+      '@nami/plugin-feature-bot-classifier':
         specifier: workspace:*
         version: link:../../feature/bot-classifier
-      '@i0c/plugin-github-data':
+      '@nami/plugin-github-data':
         specifier: workspace:*
         version: link:../../source/github
-      '@i0c/plugin-testkit':
+      '@nami/plugin-testkit':
         specifier: workspace:*
         version: link:../../../packages/plugin-testkit
       '@types/node':
@@ -557,10 +557,10 @@ importers:
 
   plugins/fixtures/webui-external:
     dependencies:
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../../packages/plugin-api
-      '@i0c/plugin-sdk':
+      '@nami/plugin-sdk':
         specifier: workspace:*
         version: link:../../../packages/plugin-sdk
     devDependencies:
@@ -576,17 +576,17 @@ importers:
 
   plugins/repository/d1:
     dependencies:
-      '@i0c/config':
+      '@nami/config':
         specifier: workspace:*
         version: link:../../../packages/config
-      '@i0c/database-d1':
+      '@nami/database-d1':
         specifier: workspace:*
         version: link:../../../packages/database-d1
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../../packages/plugin-api
     devDependencies:
-      '@i0c/plugin-testkit':
+      '@nami/plugin-testkit':
         specifier: workspace:*
         version: link:../../../packages/plugin-testkit
       '@types/node':
@@ -601,17 +601,17 @@ importers:
 
   plugins/repository/postgres:
     dependencies:
-      '@i0c/config':
+      '@nami/config':
         specifier: workspace:*
         version: link:../../../packages/config
-      '@i0c/database-postgres':
+      '@nami/database-postgres':
         specifier: workspace:*
         version: link:../../../packages/database-postgres
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../../packages/plugin-api
     devDependencies:
-      '@i0c/plugin-testkit':
+      '@nami/plugin-testkit':
         specifier: workspace:*
         version: link:../../../packages/plugin-testkit
       '@types/node':
@@ -626,17 +626,17 @@ importers:
 
   plugins/runtime/cloudflare:
     dependencies:
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../../packages/plugin-api
-      '@i0c/runtime-build':
+      '@nami/runtime-build':
         specifier: workspace:*
         version: link:../../../packages/runtime-build
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260329.1
         version: 4.20260329.1
-      '@i0c/plugin-testkit':
+      '@nami/plugin-testkit':
         specifier: workspace:*
         version: link:../../../packages/plugin-testkit
       '@types/node':
@@ -651,14 +651,14 @@ importers:
 
   plugins/runtime/netlify:
     dependencies:
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../../packages/plugin-api
-      '@i0c/runtime-build':
+      '@nami/runtime-build':
         specifier: workspace:*
         version: link:../../../packages/runtime-build
     devDependencies:
-      '@i0c/plugin-testkit':
+      '@nami/plugin-testkit':
         specifier: workspace:*
         version: link:../../../packages/plugin-testkit
       '@types/node':
@@ -673,17 +673,17 @@ importers:
 
   plugins/runtime/vercel:
     dependencies:
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../../packages/plugin-api
-      '@i0c/runtime-build':
+      '@nami/runtime-build':
         specifier: workspace:*
         version: link:../../../packages/runtime-build
       '@vercel/functions':
         specifier: ^3.7.5
         version: 3.7.5(ws@8.21.0)
     devDependencies:
-      '@i0c/plugin-testkit':
+      '@nami/plugin-testkit':
         specifier: workspace:*
         version: link:../../../packages/plugin-testkit
       '@types/node':
@@ -698,11 +698,11 @@ importers:
 
   plugins/sink/http:
     dependencies:
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../../packages/plugin-api
     devDependencies:
-      '@i0c/plugin-testkit':
+      '@nami/plugin-testkit':
         specifier: workspace:*
         version: link:../../../packages/plugin-testkit
       '@types/node':
@@ -717,14 +717,14 @@ importers:
 
   plugins/source/github:
     dependencies:
-      '@i0c/config':
+      '@nami/config':
         specifier: workspace:*
         version: link:../../../packages/config
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../../packages/plugin-api
     devDependencies:
-      '@i0c/plugin-testkit':
+      '@nami/plugin-testkit':
         specifier: workspace:*
         version: link:../../../packages/plugin-testkit
       '@types/node':
@@ -739,14 +739,14 @@ importers:
 
   plugins/source/http:
     dependencies:
-      '@i0c/config':
+      '@nami/config':
         specifier: workspace:*
         version: link:../../../packages/config
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../../packages/plugin-api
     devDependencies:
-      '@i0c/plugin-testkit':
+      '@nami/plugin-testkit':
         specifier: workspace:*
         version: link:../../../packages/plugin-testkit
       '@types/node':
@@ -761,17 +761,17 @@ importers:
 
   plugins/store/d1:
     dependencies:
-      '@i0c/analytics-domain':
+      '@nami/analytics-domain':
         specifier: workspace:*
         version: link:../../../packages/analytics-domain
-      '@i0c/database-d1':
+      '@nami/database-d1':
         specifier: workspace:*
         version: link:../../../packages/database-d1
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../../packages/plugin-api
     devDependencies:
-      '@i0c/plugin-testkit':
+      '@nami/plugin-testkit':
         specifier: workspace:*
         version: link:../../../packages/plugin-testkit
       '@types/node':
@@ -786,17 +786,17 @@ importers:
 
   plugins/store/postgres:
     dependencies:
-      '@i0c/analytics-domain':
+      '@nami/analytics-domain':
         specifier: workspace:*
         version: link:../../../packages/analytics-domain
-      '@i0c/database-postgres':
+      '@nami/database-postgres':
         specifier: workspace:*
         version: link:../../../packages/database-postgres
-      '@i0c/plugin-api':
+      '@nami/plugin-api':
         specifier: workspace:*
         version: link:../../../packages/plugin-api
     devDependencies:
-      '@i0c/plugin-testkit':
+      '@nami/plugin-testkit':
         specifier: workspace:*
         version: link:../../../packages/plugin-testkit
       '@types/node':

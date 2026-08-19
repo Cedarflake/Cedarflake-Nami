@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/webui-fixture-external",
+  "name": "@nami/webui-fixture-external",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,8 +15,8 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
-    "@i0c/plugin-api": "workspace:*",
-    "@i0c/plugin-sdk": "workspace:*"
+    "@nami/plugin-api": "workspace:*",
+    "@nami/plugin-sdk": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

@@ -1,5 +1,5 @@
 {
-  "name": "i0c.cc-docs",
+  "name": "nami-docs",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,9 +10,10 @@
   },
   "homepage": "https://d.i0c.cc",
   "scripts": {
-    "dev": "vitepress dev .",
-    "check": "node scripts/check-locales.mjs && vitepress build .",
-    "build": "vitepress build .",
+    "assets:check": "pnpm --dir ../.. assets:check",
+    "dev": "pnpm assets:check && vitepress dev .",
+    "check": "pnpm assets:check && node scripts/check-locales.mjs && vitepress build .",
+    "build": "pnpm assets:check && vitepress build .",
     "preview": "vitepress preview ."
   },
   "devDependencies": {

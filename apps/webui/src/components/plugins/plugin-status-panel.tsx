@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useLocale } from "next-intl";
 
-import type { PluginInstanceConfig } from "@i0c/config";
-import type { PluginLocalizedText } from "@i0c/plugin-api";
+import type { PluginInstanceConfig } from "@nami/config";
+import type { PluginLocalizedText } from "@nami/plugin-api";
 
 import { PluginConfigurationEditor } from "@/components/settings/plugin-settings-editor";
 import { Button } from "@/components/ui/controls/button";

@@ -2,12 +2,12 @@
 layout: home
 
 hero:
-  name: i0c.cc
+  name: nami
   text: A personal edge redirect experiment for Revaea
   tagline: Manage rules in the WebUI and serve public requests through an edge Runtime. The project primarily serves Revaea and can also be self-deployed.
   image:
     src: /logo.webp
-    alt: i0c.cc
+    alt: nami
   actions:
     - theme: brand
       text: Learn about the project
@@ -15,7 +15,7 @@ hero:
 
 features:
   - title: Project scope
-    details: i0c.cc is neither a hosted link service nor an enterprise redirect platform.
+    details: nami is neither a hosted link service nor an enterprise redirect platform.
     link: /guide/getting-started
     linkText: Read the introduction
   - title: Deploy an instance

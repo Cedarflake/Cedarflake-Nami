@@ -3,12 +3,12 @@ import { readFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 import test from "node:test"
 
-import { SQLiteD1Database } from "@i0c/database-d1/testkit"
+import { SQLiteD1Database } from "@nami/database-d1/testkit"
 import {
   assertManagedDataRepositoryBehaviorContract,
   assertSchemaMigrationState,
   assertPluginManifest,
-} from "@i0c/plugin-testkit"
+} from "@nami/plugin-testkit"
 
 import { d1All } from "../src/d1"
 import { d1DataRepositoryManifest } from "../src/manifest"
@@ -157,7 +157,7 @@ test("rolls back a failed D1 data repository migration and version record", asyn
     assert.equal(
       (await d1All<{ count: number }>(database.prepare(`
         SELECT COUNT(*) AS count
-        FROM i0c_data_repository_migration
+        FROM nami_data_repository_migration
       `)))[0]?.count,
       0,
     )
@@ -191,12 +191,12 @@ test("rejects drift, gaps, and future D1 data repository migrations", async () =
     )
 
     database.database.prepare(`
-      UPDATE i0c_data_repository_migration
+      UPDATE nami_data_repository_migration
       SET checksum = ?
       WHERE id = '002_data_document_history.sql'
     `).run(await checksum(migrations[1]?.sql ?? ""))
     database.database.prepare(`
-      DELETE FROM i0c_data_repository_migration
+      DELETE FROM nami_data_repository_migration
       WHERE id = '001_data_documents.sql'
     `).run()
     await assert.rejects(
@@ -205,10 +205,10 @@ test("rejects drift, gaps, and future D1 data repository migrations", async () =
     )
 
     database.database.prepare(`
-      DELETE FROM i0c_data_repository_migration
+      DELETE FROM nami_data_repository_migration
     `).run()
     database.database.prepare(`
-      INSERT INTO i0c_data_repository_migration (id, checksum)
+      INSERT INTO nami_data_repository_migration (id, checksum)
       VALUES ('999_future.sql', 'future')
     `).run()
     await assert.rejects(

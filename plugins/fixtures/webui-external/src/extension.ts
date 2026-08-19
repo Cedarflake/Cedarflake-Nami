@@ -1,4 +1,4 @@
-import { defineWebUiExtension } from "@i0c/plugin-sdk/webui"
+import { defineWebUiExtension } from "@nami/plugin-sdk/webui"
 
 export const externalWebUiExtension = defineWebUiExtension({
   id: "@example/webui-external:settings",

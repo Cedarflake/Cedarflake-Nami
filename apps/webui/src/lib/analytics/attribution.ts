@@ -5,8 +5,8 @@ import {
   readAnalyticsSourceId,
 } from "./configuration";
 
-const ATTRIBUTION_PARAMETER = "_i0c_via";
-const ATTRIBUTION_KEY_CONTEXT = "i0c.cc/analytics-attribution/v1";
+const ATTRIBUTION_PARAMETER = "_nami_via";
+const ATTRIBUTION_KEY_CONTEXT = "nami/analytics-attribution/v1";
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const MAX_CAMPAIGN_LIFETIME_SECONDS = 365 * 24 * 60 * 60;
 

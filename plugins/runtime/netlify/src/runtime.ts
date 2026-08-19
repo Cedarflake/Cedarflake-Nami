@@ -2,7 +2,7 @@ import type {
   RuntimePlatformAdapter,
   RuntimePlatformPlugin,
   RuntimeRequestHandler,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import { netlifyRuntimeManifest } from "./manifest"
 

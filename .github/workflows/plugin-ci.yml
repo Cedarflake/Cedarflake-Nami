@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - .github/workflows/plugin-ci.yml
-      - i0c.runtime.config.ts
+      - nami.runtime.config.ts
       - packages/plugin-api/**
       - packages/plugin-catalog/**
       - packages/plugin-sdk/**
@@ -25,7 +25,7 @@ on:
       - main
     paths:
       - .github/workflows/plugin-ci.yml
-      - i0c.runtime.config.ts
+      - nami.runtime.config.ts
       - packages/plugin-api/**
       - packages/plugin-catalog/**
       - packages/plugin-sdk/**
@@ -54,18 +54,18 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
-      TEST_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/i0c_plugin_test
+      TEST_POSTGRES_URL: postgresql://postgres:postgres@localhost:5432/nami_plugin_test
     services:
       postgres:
         image: postgres:16.9-alpine
         env:
-          POSTGRES_DB: i0c_plugin_test
+          POSTGRES_DB: nami_plugin_test
           POSTGRES_PASSWORD: postgres
           POSTGRES_USER: postgres
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U postgres -d i0c_plugin_test"
+          --health-cmd "pg_isready -U postgres -d nami_plugin_test"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10

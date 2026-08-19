@@ -5,8 +5,8 @@ import type {
   AnalyticsRetentionScope,
   AnalyticsStoreDetailInput,
   AnalyticsStoreQueryInput,
-} from "@i0c/analytics-domain/store"
-import type { AnalyticsStoreTypes } from "@i0c/plugin-api"
+} from "@nami/analytics-domain/store"
+import type { AnalyticsStoreTypes } from "@nami/plugin-api"
 
 export type PostgresAnalyticsQueryInput = AnalyticsStoreQueryInput
 export type PostgresAnalyticsDetailInput = AnalyticsStoreDetailInput

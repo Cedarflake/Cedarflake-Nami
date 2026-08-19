@@ -5,8 +5,8 @@ import process from "node:process"
 import {
   validateDataConfig,
   validateRedirectsConfig,
-} from "@i0c/config"
-import { createPostgresClient } from "@i0c/database-postgres"
+} from "@nami/config"
+import { createPostgresClient } from "@nami/database-postgres"
 
 import {
   resolvePostgresDataRepositoryConnectionOptions,

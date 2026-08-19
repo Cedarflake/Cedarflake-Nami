@@ -1,10 +1,10 @@
-import type { DataConfig, PluginInstanceConfig } from "@i0c/config";
-import { installedPluginIds } from "@i0c/plugin-catalog";
-import { PluginError, StaticPluginRegistry } from "@i0c/plugin-api";
+import type { DataConfig, PluginInstanceConfig } from "@nami/config";
+import { installedPluginIds } from "@nami/plugin-catalog";
+import { PluginError, StaticPluginRegistry } from "@nami/plugin-api";
 import {
   webUiPluginDescriptors,
   webUiPluginManifests,
-} from "@i0c/webui-manifests";
+} from "@nami/webui-manifests";
 
 const webUiInstalledPluginRegistry = new StaticPluginRegistry(
   webUiPluginManifests,
@@ -21,7 +21,7 @@ export function resolveWebUiPlugins(config: DataConfig) {
   const result = webUiInstalledPluginRegistry.resolve("webui", declarations);
   if (result.status === "invalid") {
     throw new PluginError(
-      "@i0c/webui-host",
+      "@nami/webui-host",
       "PLUGIN_CONFIG_INVALID",
       result.issues.map((issue) => `${issue.path}: ${issue.message}`).join("\n")
     );

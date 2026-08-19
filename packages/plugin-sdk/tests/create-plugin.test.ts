@@ -22,7 +22,7 @@ const pluginKinds = [
 ] as const
 
 test("creates every supported plugin package shape", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "i0c-plugin-sdk-"))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "nami-plugin-sdk-"))
 
   try {
     for (const kind of pluginKinds) {
@@ -40,8 +40,8 @@ test("creates every supported plugin package shape", () => {
       ) as { dependencies: Record<string, string>; name: string }
 
       assert.equal(packageJson.name, result.packageName)
-      assert.equal(packageJson.dependencies["@i0c/plugin-api"], "workspace:*")
-      assert.equal(packageJson.dependencies["@i0c/plugin-sdk"], "workspace:*")
+      assert.equal(packageJson.dependencies["@nami/plugin-api"], "workspace:*")
+      assert.equal(packageJson.dependencies["@nami/plugin-sdk"], "workspace:*")
       assert.match(
         fs.readFileSync(manifestPath, "utf8"),
         /define[A-Za-z]+Manifest/,
@@ -77,7 +77,7 @@ test("generates type-safe source for every supported plugin kind", () => {
         options: {
           ...parsed.options,
           paths: {
-            "@i0c/plugin-testkit": [
+            "@nami/plugin-testkit": [
               path.join(
                 repositoryRoot,
                 "packages/plugin-testkit/src/index.ts",
@@ -101,7 +101,7 @@ test("generates type-safe source for every supported plugin kind", () => {
 })
 
 test("supports dry runs without changing the filesystem", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "i0c-plugin-sdk-"))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "nami-plugin-sdk-"))
 
   try {
     const result = createPluginPackage({
@@ -119,7 +119,7 @@ test("supports dry runs without changing the filesystem", () => {
 })
 
 test("rejects unsafe names and existing targets", () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "i0c-plugin-sdk-"))
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "nami-plugin-sdk-"))
 
   try {
     assert.throws(
@@ -163,7 +163,7 @@ test("parses the documented command shape", () => {
       kind: "feature",
       name: "request-sampler",
       root: undefined,
-      scope: "@i0c",
+      scope: "@nami",
     },
   )
 })

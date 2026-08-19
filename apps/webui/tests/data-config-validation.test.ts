@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { defaultDataConfig } from "@i0c/config";
+import { defaultDataConfig } from "@nami/config";
 import {
   webUiPluginDescriptors,
-} from "@i0c/webui-manifests";
+} from "@nami/webui-manifests";
 
 import { validateInstanceDataConfig } from "../src/lib/configuration/validation";
 import {
   runtimePluginDescriptors,
-} from "../../../i0c.runtime.manifests";
+} from "../../../nami.runtime.manifests";
 
 test("rejects a config that disables the Runtime data source", () => {
   const dataSourcePluginId =
@@ -39,7 +39,7 @@ test("allows a config that disables an installed Runtime platform", () => {
     ...defaultDataConfig,
     plugins: {
       ...defaultDataConfig.plugins,
-      "@i0c/runtime-cloudflare": { enabled: false },
+      "@nami/runtime-cloudflare": { enabled: false },
     },
   });
 

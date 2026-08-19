@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import type { DataDocumentRevision } from "@i0c/config";
+import type { DataDocumentRevision } from "@nami/config";
 
 import { createLineDiff } from "@/lib/data/line-diff";
 

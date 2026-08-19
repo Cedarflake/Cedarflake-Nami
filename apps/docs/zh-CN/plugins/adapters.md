@@ -1,6 +1,6 @@
 ---
 title: 编写适配器
-description: 为 i0c.cc 增加新的 Runtime 平台、规则数据库或统计数据库。
+description: 为 nami 增加新的 Runtime 平台、规则数据库或统计数据库。
 ---
 
 # 编写适配器
@@ -54,28 +54,28 @@ plugins/runtime/example-edge/
 `installation.ts` 告诉构建系统平台模块在哪里、哪些依赖要一起打包，以及输出文件名：
 
 ```ts
-import { defineRuntimePlatformInstallation } from "@i0c/plugin-sdk/runtime"
+import { defineRuntimePlatformInstallation } from "@nami/plugin-sdk/runtime"
 
 import { exampleEdgeManifest } from "./manifest"
 
 export const exampleEdgeInstallation = defineRuntimePlatformInstallation({
   key: "example-edge",
   manifest: exampleEdgeManifest,
-  runtimeModule: "@i0c/plugin-runtime-example-edge/runtime",
-  bundlePackages: ["@i0c/plugin-runtime-example-edge"],
+  runtimeModule: "@nami/plugin-runtime-example-edge/runtime",
+  bundlePackages: ["@nami/plugin-runtime-example-edge"],
   outputEntry: "platforms/example-edge",
 })
 ```
 
 然后完成两处注册：
 
-- `i0c.runtime.manifests.ts` 让校验器和 WebUI 状态页认识这个平台；
-- `i0c.runtime.config.ts` 让 Runtime 构建真正包含它。
+- `nami.runtime.manifests.ts` 让校验器和 WebUI 状态页认识这个平台；
+- `nami.runtime.config.ts` 让 Runtime 构建真正包含它。
 
 可以先单独构建新平台：
 
 ```sh
-pnpm --filter i0c-redirect-worker build:platform example-edge
+pnpm --filter nami-runtime build:platform example-edge
 ```
 
 平台专有的部署描述、输出整理和配置文件仍放在 Runtime 部署边界。共享处理器不应导入平台 SDK。
@@ -88,7 +88,7 @@ pnpm --filter i0c-redirect-worker build:platform example-edge
 pnpm plugin:create --kind data-repository --name example-database
 ```
 
-它要实现 `I0cDataRepository`。最重要的行为是：
+它要实现 `NamiDataRepository`。最重要的行为是：
 
 - 读取带版本号的设置或规则文档；
 - 写入时检查旧版本，避免两个页面静默覆盖彼此；
@@ -97,7 +97,7 @@ pnpm plugin:create --kind data-repository --name example-database
 
 数据库有自有表时，还要实现 `PluginSchemaMigrationProvider`。更新记录必须有顺序；数据库支持事务时，应让结构修改和版本记录一起成功或失败。
 
-在 `i0c.webui.manifests.ts` 注册 Manifest，再在 `i0c.webui.config.ts` 注册工厂。一个 WebUI 构建只选择一个活动的规则存储，编辑器和 API Route 不需要为新数据库增加分支。
+在 `nami.webui.manifests.ts` 注册 Manifest，再在 `nami.webui.config.ts` 注册工厂。一个 WebUI 构建只选择一个活动的规则存储，编辑器和 API Route 不需要为新数据库增加分支。
 
 ## 增加统计数据库
 
@@ -107,7 +107,7 @@ pnpm plugin:create --kind data-repository --name example-database
 pnpm plugin:create --kind analytics-store --name example-database
 ```
 
-它要实现 `I0cAnalyticsStore`，包括：
+它要实现 `NamiAnalyticsStore`，包括：
 
 - 幂等写入 Runtime 事件；
 - 查询总览、单条规则、入口域名和机器人流量；
@@ -115,7 +115,7 @@ pnpm plugin:create --kind analytics-store --name example-database
 - 返回可用状态和缺失配置；
 - 管理自己的数据库结构更新。
 
-Manifest 放进 `i0c.webui.manifests.ts` 的统计存储清单，工厂放进 `i0c.webui.config.ts`。构建可以包含多个统计存储，再由实例配置选择启用哪一个。
+Manifest 放进 `nami.webui.manifests.ts` 的统计存储清单，工厂放进 `nami.webui.config.ts`。构建可以包含多个统计存储，再由实例配置选择启用哪一个。
 
 如果同一种新数据库同时支持规则和统计，推荐这样组织：
 

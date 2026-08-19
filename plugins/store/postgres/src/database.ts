@@ -1,12 +1,12 @@
 import {
   createPostgresClient,
   type PostgresSql,
-} from "@i0c/database-postgres"
+} from "@nami/database-postgres"
 
 import type { PostgresAnalyticsStoreConfig } from "./config"
 
 interface AnalyticsDatabaseGlobal {
-  __i0cAnalyticsDatabase?: AnalyticsDatabaseState
+  __namiAnalyticsDatabase?: AnalyticsDatabaseState
 }
 
 interface AnalyticsDatabaseState {
@@ -78,7 +78,7 @@ export function getDatabase(): PostgresSql {
   }
 
   const developmentDatabase = isDevelopment
-    ? analyticsDatabaseGlobal.__i0cAnalyticsDatabase
+    ? analyticsDatabaseGlobal.__namiAnalyticsDatabase
     : undefined
   if (
     developmentDatabase
@@ -96,7 +96,7 @@ export function getDatabase(): PostgresSql {
   if (cachedDatabase?.connectionOptionsKey === connectionOptionsKey) {
     database = cachedDatabase
     if (isDevelopment) {
-      analyticsDatabaseGlobal.__i0cAnalyticsDatabase = cachedDatabase
+      analyticsDatabaseGlobal.__namiAnalyticsDatabase = cachedDatabase
     }
     return cachedDatabase.client
   }
@@ -114,7 +114,7 @@ export function getDatabase(): PostgresSql {
 
   database = nextDatabase
   if (isDevelopment) {
-    analyticsDatabaseGlobal.__i0cAnalyticsDatabase = nextDatabase
+    analyticsDatabaseGlobal.__namiAnalyticsDatabase = nextDatabase
   }
   if (cachedDatabase) {
     closeReplacedClient(cachedDatabase.client)
