@@ -4,7 +4,7 @@ This directory is the source of truth for checked-in nami brand images.
 
 | Source | Responsibility |
 | --- | --- |
-| `wordmark.webp` | General nami wordmark used by the repository and documentation |
+| `wordmark.webp` | General nami wordmark used by the repository README |
 | `webui-wordmark.webp` | WebUI-specific README wordmark |
 | `favicon.ico` | Canonical product icon used in application navigation, site favicons, and QR codes |
 

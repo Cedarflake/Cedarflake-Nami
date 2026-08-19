@@ -6,7 +6,7 @@ hero:
   text: A personal edge redirect experiment for Revaea
   tagline: Manage rules in the WebUI and serve public requests through an edge Runtime. The project primarily serves Revaea and can also be self-deployed.
   image:
-    src: /logo.webp
+    src: /favicon.ico
     alt: nami
   actions:
     - theme: brand

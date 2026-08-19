@@ -19,10 +19,6 @@ interface BinaryOutput {
 
 const binaryOutputs: readonly BinaryOutput[] = [
   {
-    destination: "apps/docs/public/logo.webp",
-    source: "wordmark",
-  },
-  {
     destination: "apps/docs/public/favicon.ico",
     source: "favicon",
   },
