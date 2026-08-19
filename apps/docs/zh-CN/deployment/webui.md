@@ -38,11 +38,12 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```text
 Root Directory: apps/webui
 Framework Preset: Next.js
+Function Region: Singapore (sin1)
 ```
 
 保持开启 **Include source files outside of the Root Directory in the Build Step**，否则 WebUI 无法读取仓库中的共享 Workspace 包。
 
-`apps/webui/vercel.json` 已经固定 pnpm 安装与构建命令，不需要在 Vercel 后台重新抄一遍。
+`apps/webui/vercel.json` 已经固定 pnpm 安装与构建命令，并让 WebUI Functions 固定在靠近默认 PostgreSQL 部署的新加坡区域，不需要在 Vercel 后台重新抄一遍。
 
 ## 4. 配置环境变量
 

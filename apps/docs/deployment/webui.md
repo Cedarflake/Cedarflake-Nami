@@ -38,11 +38,12 @@ Connect your Nami repository or fork and use these project settings:
 ```text
 Root Directory: apps/webui
 Framework Preset: Next.js
+Function Region: Singapore (sin1)
 ```
 
 Leave **Include source files outside of the Root Directory in the Build Step** enabled. The WebUI imports shared workspace packages from the rest of the monorepo.
 
-`apps/webui/vercel.json` already pins the pnpm install and build commands, so you do not need to copy them into the Vercel dashboard.
+`apps/webui/vercel.json` already pins the pnpm install and build commands and keeps WebUI Functions in Singapore, close to the default PostgreSQL deployment. You do not need to copy these settings into the Vercel dashboard.
 
 ## 4. Add environment variables
 

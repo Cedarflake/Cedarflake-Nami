@@ -142,9 +142,10 @@ Deploy this package from the monorepo with these Vercel settings:
 | Root Directory | `apps/webui` |
 | Install Command | `corepack pnpm -C ../.. install --frozen-lockfile` |
 | Build Command | `corepack pnpm build` |
+| Function Region | Singapore (`sin1`) |
 | Output Directory | Next.js default |
 
-The checked-in `vercel.json` owns the install and build commands so Vercel cannot fall back to npm when package-manager detection misses the repository-root lockfile. Keep **Include source files outside of the Root Directory in the Build Step** enabled so Vercel includes the shared workspace packages. Set the required deployment bindings from [.env.example](.env.example) in Vercel. The GitHub OAuth callback URL must be `https://<your-domain>/api/auth/callback/github`. Configure `NEXTAUTH_URL` only when the deployment origin cannot be inferred correctly.
+The checked-in `vercel.json` owns the install and build commands and keeps WebUI Functions in Singapore, close to the default PostgreSQL deployment. This prevents Vercel from falling back to npm when package-manager detection misses the repository-root lockfile. Keep **Include source files outside of the Root Directory in the Build Step** enabled so Vercel includes the shared workspace packages. Set the required deployment bindings from [.env.example](.env.example) in Vercel. The GitHub OAuth callback URL must be `https://<your-domain>/api/auth/callback/github`. Configure `NEXTAUTH_URL` only when the deployment origin cannot be inferred correctly.
 
 The WebUI does not read former non-sensitive environment variables as overrides or fallbacks. Values left in Vercel are ignored and can be removed after the versioned configuration deployment is verified.
 

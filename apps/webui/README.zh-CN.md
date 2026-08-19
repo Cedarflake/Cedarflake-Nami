@@ -137,9 +137,10 @@ Runtime 会发送匹配流量对应的配置规则路径、入口域名、平台
 | Root Directory | `apps/webui` |
 | Install Command | `corepack pnpm -C ../.. install --frozen-lockfile` |
 | Build Command | `corepack pnpm build` |
+| Function Region | Singapore (`sin1`) |
 | Output Directory | Next.js default |
 
-仓库内的 `vercel.json` 负责安装与构建命令，避免 Vercel 未识别仓库根锁文件时回退到 npm。保持开启 Vercel 的 **Include source files outside of the Root Directory in the Build Step**，让构建能够包含共享 workspace 包。将 [.env.example](.env.example) 中的必填部署绑定配置到 Vercel。GitHub OAuth callback URL 必须是 `https://<你的域名>/api/auth/callback/github`；仅当部署地址无法正确自动推断时才配置 `NEXTAUTH_URL`。
+仓库内的 `vercel.json` 负责安装与构建命令，并让 WebUI Functions 固定在靠近默认 PostgreSQL 部署的新加坡区域；同时避免 Vercel 未识别仓库根锁文件时回退到 npm。保持开启 Vercel 的 **Include source files outside of the Root Directory in the Build Step**，让构建能够包含共享 workspace 包。将 [.env.example](.env.example) 中的必填部署绑定配置到 Vercel。GitHub OAuth callback URL 必须是 `https://<你的域名>/api/auth/callback/github`；仅当部署地址无法正确自动推断时才配置 `NEXTAUTH_URL`。
 
 WebUI 不会把原有非敏感环境变量作为覆盖值或回退值读取。Vercel 中遗留的旧值会被忽略，确认版本化配置部署正常后即可删除。
 
