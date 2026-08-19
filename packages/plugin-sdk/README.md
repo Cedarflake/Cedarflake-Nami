@@ -1,6 +1,6 @@
 # Plugin SDK
 
-`@nami/plugin-sdk` is the internal authoring SDK for nami compile-time plugins. It reduces repeated manifest, configuration, installation, and host-wiring code while preserving explicit build-time composition.
+`@nami/plugin-sdk` is the internal authoring SDK for Nami compile-time plugins. It reduces repeated manifest, configuration, installation, and host-wiring code while preserving explicit build-time composition.
 
 The SDK is private to this workspace. It is not a dynamic loader, package marketplace, or compatibility promise for arbitrary third-party binaries. A plugin remains a normal workspace dependency that is selected in the relevant Runtime or WebUI installation configuration and bundled during the build.
 

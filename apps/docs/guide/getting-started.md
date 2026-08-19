@@ -1,11 +1,11 @@
 ---
 title: About this project
-description: Learn the purpose, components, scope, and next steps of nami.
+description: Learn the purpose, components, scope, and next steps of Nami.
 ---
 
 # About this project
 
-nami is a personal edge redirect experiment that serves Revaea. It combines a database-backed control plane, optional edge Runtimes, optional analytics, and compile-time extensions in one repository.
+Nami is a personal edge redirect experiment that serves Revaea. It combines a database-backed control plane, optional edge Runtimes, optional analytics, and compile-time extensions in one repository.
 
 It is not a hosted short-link service or an enterprise redirect platform. Its plugins and SDK serve this workspace and are not planned as public packages. This documentation describes the existing system and the steps required to deploy another instance.
 
@@ -39,7 +39,7 @@ Analytics is optional. When enabled, it shows matched requests, estimated human 
 
 ## Intended use
 
-nami primarily supports Revaea infrastructure and personal engineering experiments. It can also be studied or self-deployed by developers interested in the implementation.
+Nami primarily supports Revaea infrastructure and personal engineering experiments. It can also be studied or self-deployed by developers interested in the implementation.
 
 Each component must be deployed and configured by its operator. Plugins are selected at build time, and changing database providers does not migrate existing data.
 

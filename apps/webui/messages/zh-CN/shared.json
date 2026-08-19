@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "nami 配置控制台",
+    "title": "Nami 配置控制台",
     "description": "通过 WebUI 管理 redirects.json"
   },
   "auth": {
@@ -46,7 +46,7 @@
     "returnHome": "返回首页"
   },
   "header": {
-    "console": "nami 控制台",
+    "console": "Nami 控制台",
     "workspaceLabel": "重定向管理",
     "openNavigation": "展开导航",
     "closeNavigation": "关闭导航",

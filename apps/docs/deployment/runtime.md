@@ -23,7 +23,7 @@ to your own WebUI endpoint:
 https://your-webui.example.com/api/runtime/snapshot
 ```
 
-The checked-in default points to the public nami instance. A self-hosted Runtime left unchanged would not read the database you just initialized.
+The checked-in default points to the public Nami instance. A self-hosted Runtime left unchanged would not read the database you just initialized.
 
 Changing the snapshot source requires a Runtime rebuild. Later rule and instance-setting edits made in the WebUI do not.
 
@@ -80,7 +80,7 @@ pnpm runtime:deploy:nf
 
 Attach the planned `go.example.com` domain to this Runtime deployment. Do not point it at the WebUI.
 
-With an empty rule set, opening the domain should show the nami 404 page. That is a useful result: DNS, the provider deployment, and the Runtime handler are connected, but no rule matches the path yet.
+With an empty rule set, opening the domain should show the Nami 404 page. That is a useful result: DNS, the provider deployment, and the Runtime handler are connected, but no rule matches the path yet.
 
 If you see the provider's own 404, a 500, or Bad Gateway instead, check the project root, provider build command, `NAMI_SECRET`, and snapshot URL first.
 

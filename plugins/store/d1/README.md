@@ -1,6 +1,6 @@
 # D1 analytics Store plugin
 
-Cloudflare D1 implementation of the nami `AnalyticsStore` domain contract. It owns independent SQLite-compatible migrations and supports idempotent ingest, traffic and automation queries, hourly and daily aggregation, raw-event rebuild, 181-day raw retention, health, and capability reporting.
+Cloudflare D1 implementation of the Nami `AnalyticsStore` domain contract. It owns independent SQLite-compatible migrations and supports idempotent ingest, traffic and automation queries, hourly and daily aggregation, raw-event rebuild, 181-day raw retention, health, and capability reporting.
 
 D1 and PostgreSQL share the same analytics semantics, capability set, and behavior contract. Their SQL, transaction, and indexing strategies remain backend-specific.
 

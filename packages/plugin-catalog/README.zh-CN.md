@@ -1,6 +1,6 @@
 # @nami/plugin-catalog
 
-nami 宿主使用的静态已安装插件目录。它分别导出 Runtime 与 WebUI Manifest 投影，并根据已安装 Manifest、宿主支持、插件自有 Schema、Secret 声明和插槽冲突校验远程声明。
+Nami 宿主使用的静态已安装插件目录。它分别导出 Runtime 与 WebUI Manifest 投影，并根据已安装 Manifest、宿主支持、插件自有 Schema、Secret 声明和插槽冲突校验远程声明。
 
 这个包只进行编译期注册，不在运行时发现或加载包。
 

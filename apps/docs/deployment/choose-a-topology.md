@@ -5,7 +5,7 @@ description: Pick one WebUI, one database option, and one Runtime for the first 
 
 # Choose a setup
 
-nami supports several database and edge providers, but they are not a checklist you must complete. A first deployment needs three decisions: where the WebUI runs, where editable data lives, and which Runtime receives public traffic.
+Nami supports several database and edge providers, but they are not a checklist you must complete. A first deployment needs three decisions: where the WebUI runs, where editable data lives, and which Runtime receives public traffic.
 
 ::: tip Prefer fewer decisions?
 Deploy the WebUI on Vercel, use PostgreSQL, and choose whichever of Cloudflare, Vercel, or Netlify you already know best for the Runtime. The repository defaults are prepared for this path.
@@ -43,7 +43,7 @@ Support for three platforms is not a reason to deploy all three. Get one Runtime
 
 Several Runtimes can read the same snapshot and report into the same analytics source. The analytics UI can still separate them by entry domain and provider.
 
-nami does not route traffic between those deployments. DNS or another traffic layer decides which Runtime receives a request. Without that extra requirement, another deployment only adds another domain, secret binding, and failure point to maintain.
+Nami does not route traffic between those deployments. DNS or another traffic layer decides which Runtime receives a request. Without that extra requirement, another deployment only adds another domain, secret binding, and failure point to maintain.
 
 ## Write down the choice
 

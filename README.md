@@ -1,6 +1,6 @@
-# <img src="./assets/brand/wordmark.webp" alt="nami" width="420">
+# <img src="./assets/brand/wordmark.webp" alt="Nami" width="420">
 
-nami is a personal edge redirect playground with a database-backed control plane, provider-selectable Runtime, optional analytics, and compile-time extensions.
+Nami is a personal edge redirect playground with a database-backed control plane, provider-selectable Runtime, optional analytics, and compile-time extensions.
 
 It is maintained for personal use and engineering experiments. It is not a hosted URL-shortening service or an enterprise redirect platform.
 

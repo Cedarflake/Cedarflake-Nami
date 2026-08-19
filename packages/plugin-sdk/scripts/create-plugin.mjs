@@ -446,7 +446,7 @@ function toTitleCase(value) {
 }
 
 function printHelp() {
-  console.log(`Create a nami compile-time plugin package.
+  console.log(`Create a Nami compile-time plugin package.
 
 Usage:
   pnpm plugin:create --kind <kind> --name <kebab-name>

@@ -1,10 +1,10 @@
-<img src="../../assets/brand/webui-wordmark.webp" alt="nami" width="720">
+<img src="../../assets/brand/webui-wordmark.webp" alt="Nami" width="720">
 
 ## 项目简介
 
-nami WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OAuth 登录后在线编辑 `config.json` 与 `redirects.json`。仓库当前默认使用 PostgreSQL，实现即时乐观保存、原子快照、不可变版本历史与回滚。原有 GitHub Contents 流程保留为归档的构建期替代方案，默认不启用。
+Nami WebUI 是一个基于 Next.js 16 的管理面板，用于通过 GitHub OAuth 登录后在线编辑 `config.json` 与 `redirects.json`。仓库当前默认使用 PostgreSQL，实现即时乐观保存、原子快照、不可变版本历史与回滚。原有 GitHub Contents 流程保留为归档的构建期替代方案，默认不启用。
 
-这个 WebUI 服务于个人 [nami](https://github.com/Cedarflake/Cedarflake-Nami) 工作流，作为可选的管理界面维护，不定位为通用的企业级链接管理产品。
+这个 WebUI 服务于个人 [Nami](https://github.com/Cedarflake/Cedarflake-Nami) 工作流，作为可选的管理界面维护，不定位为通用的企业级链接管理产品。
 
 服务端 Data Repository 与 Analytics Store 工厂通过 [../../nami.webui.config.ts](../../nami.webui.config.ts) 在构建期安装。客户端安全的 UI Renderer 使用 [webui.extensions.ts](webui.extensions.ts)，确保它们留在客户端 Bundle。workspace fixture 会覆盖两条安装链，无需在 WebUI 宿主源码中增加工厂映射；生产 Renderer 清单目前有意保持为空。
 

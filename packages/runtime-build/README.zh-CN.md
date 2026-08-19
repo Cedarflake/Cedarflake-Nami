@@ -1,6 +1,6 @@
 # Runtime Build
 
-`@nami/runtime-build` 在构建期解析 Runtime 平台安装项，并通过虚拟模块提供给通用 nami Runtime 入口。平台包自行声明 Manifest、模块地址、Bundle 依赖和输出入口；`apps/runtime` 不再导入具体适配器。
+`@nami/runtime-build` 在构建期解析 Runtime 平台安装项，并通过虚拟模块提供给通用 Nami Runtime 入口。平台包自行声明 Manifest、模块地址、Bundle 依赖和输出入口；`apps/runtime` 不再导入具体适配器。
 
 外部适配器加入根级 Runtime 安装配置后即可构建，不需要在宿主中增加源码文件。
 

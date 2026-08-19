@@ -1,11 +1,11 @@
 ---
 title: Plugin architecture
-description: How nami keeps platform, database, and analytics implementations outside the application core.
+description: How Nami keeps platform, database, and analytics implementations outside the application core.
 ---
 
 # Plugin architecture
 
-nami uses a plugin layer to separate platform and storage implementations. The same routing code runs on Cloudflare, Vercel, and Netlify, while rules may live in PostgreSQL, D1, or GitHub. Wiring those implementations directly into the applications would require Runtime changes for every platform and WebUI changes for every database.
+Nami uses a plugin layer to separate platform and storage implementations. The same routing code runs on Cloudflare, Vercel, and Netlify, while rules may live in PostgreSQL, D1, or GitHub. Wiring those implementations directly into the applications would require Runtime changes for every platform and WebUI changes for every database.
 
 The applications now depend on a small set of stable contracts, and each implementation lives in its own workspace package. “Plugin” in this repository means one of those packages assembled at build time. It does not mean an extension downloaded from the WebUI.
 
@@ -73,6 +73,6 @@ For an existing extension point, add a package, register its manifest, add its f
 
 The application core should not learn another plugin ID. A genuinely new kind of extension, rather than another implementation of an existing one, still needs a protocol and host change.
 
-The current scope is source-level modularity within nami. It does not include a marketplace, runtime package loading, or an untrusted-code sandbox, and there is no plan to publish the SDK and plugins as public packages.
+The current scope is source-level modularity within Nami. It does not include a marketplace, runtime package loading, or an untrusted-code sandbox, and there is no plan to publish the SDK and plugins as public packages.
 
 Continue with the [plugin SDK](/plugins/sdk) when you are ready to write code. For a new platform or database, go directly to [write an adapter](/plugins/adapters).

@@ -1,6 +1,6 @@
 ---
 title: Write an adapter
-description: Add another Runtime platform, rules database, or analytics database to nami.
+description: Add another Runtime platform, rules database, or analytics database to Nami.
 ---
 
 # Write an adapter

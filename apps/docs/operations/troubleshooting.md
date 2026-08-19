@@ -11,7 +11,7 @@ The WebUI, Runtime, and database are deployed separately. When something fails, 
 
 | What you see | Check here first |
 | --- | --- |
-| The nami 404 page | The request reached the Runtime, but no rule matched |
+| The Nami 404 page | The request reached the Runtime, but no rule matched |
 | A Cloudflare, Vercel, or Netlify 404 page | Domain binding, project root, or provider routing |
 | A Runtime 500 or Bad Gateway | Runtime logs, snapshot loading, the adapter, and any proxy upstream |
 | A WebUI page or `/api/config` returns 500 | WebUI server logs and the database connection |
@@ -77,7 +77,7 @@ Platforms can share one analytics source ID while still recording separate entry
 
 ## GitHub sign-in fails after switching accounts
 
-Read the concrete Auth.js error in the WebUI server log. Verify the OAuth callback URL, and clear only the session for this nami instance. Browser warnings about GitHub's manifest icon are usually unrelated to the callback.
+Read the concrete Auth.js error in the WebUI server log. Verify the OAuth callback URL, and clear only the session for this Nami instance. Browser warnings about GitHub's manifest icon are usually unrelated to the callback.
 
 If the WebUI must access a repository protected by organization OAuth restrictions, approve the OAuth App in that organization. The default database-backed control plane only reads user identity and does not need repository content access.
 

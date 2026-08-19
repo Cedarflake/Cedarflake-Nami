@@ -5,7 +5,7 @@ description: Look up which values belong to the WebUI or Runtime environment and
 
 # Environment variables and secrets
 
-Early versions of nami kept several non-secret settings in environment variables, which made every edit a multi-provider chore. Only secrets and provider-injected values remain there; domains, cache intervals, access lists, and plugin switches live in the WebUI or startup config.
+Early versions of Nami kept several non-secret settings in environment variables, which made every edit a multi-provider chore. Only secrets and provider-injected values remain there; domains, cache intervals, access lists, and plugin switches live in the WebUI or startup config.
 
 For a value that changes regularly and is not a credential, add a settings or configuration surface instead of another environment variable.
 

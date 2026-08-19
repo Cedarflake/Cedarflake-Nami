@@ -1,4 +1,4 @@
-# nami Runtime
+# Nami Runtime
 
 Provider-selectable redirect runtime for fetch-compatible edge platforms: Cloudflare Workers, Vercel Edge Functions, and Netlify Edge Functions. It enforces HTTPS, serves a favicon, and loads non-sensitive instance settings plus redirect rules through the selected Data Source. Choose the adapter that fits the deployment; the three providers do not need to run together.
 

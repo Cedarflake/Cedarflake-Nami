@@ -1,10 +1,10 @@
-<img src="../../assets/brand/webui-wordmark.webp" alt="nami" width="720">
+<img src="../../assets/brand/webui-wordmark.webp" alt="Nami" width="720">
 
 ## Project Overview
 
-nami WebUI is a management panel based on Next.js 16, designed for online editing of `config.json` and `redirects.json` after logging in via GitHub OAuth. The checked-in deployment uses PostgreSQL for immediate, optimistic saves, atomic snapshots, immutable revision history, and rollback. The former GitHub Contents workflow remains an archived build-time alternative and is not enabled by default.
+Nami WebUI is a management panel based on Next.js 16, designed for online editing of `config.json` and `redirects.json` after logging in via GitHub OAuth. The checked-in deployment uses PostgreSQL for immediate, optimistic saves, atomic snapshots, immutable revision history, and rollback. The former GitHub Contents workflow remains an archived build-time alternative and is not enabled by default.
 
-This WebUI supports the personal [nami](https://github.com/Cedarflake/Cedarflake-Nami) workflow. It is maintained as an optional management surface rather than a general-purpose enterprise URL management product.
+This WebUI supports the personal [Nami](https://github.com/Cedarflake/Cedarflake-Nami) workflow. It is maintained as an optional management surface rather than a general-purpose enterprise URL management product.
 
 Server-side Data Repository and Analytics Store factories are installed at build time through [../../nami.webui.config.ts](../../nami.webui.config.ts). Client-safe UI renderers use [webui.extensions.ts](webui.extensions.ts) so they remain in the client bundle. Workspace fixtures exercise both installation paths without adding factory mappings to WebUI host source; the production renderer list is intentionally empty.
 

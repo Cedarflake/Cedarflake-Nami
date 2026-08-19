@@ -1,10 +1,10 @@
 # Brand assets
 
-This directory is the source of truth for checked-in nami brand images.
+This directory is the source of truth for checked-in Nami brand images.
 
 | Source | Responsibility |
 | --- | --- |
-| `wordmark.webp` | General nami wordmark used by the repository README |
+| `wordmark.webp` | General Nami wordmark used by the repository README |
 | `webui-wordmark.webp` | WebUI-specific README wordmark |
 | `favicon.webp` | High-resolution product artwork used by the documentation homepage |
 | `favicon.ico` | Canonical product icon used in application navigation, site favicons, and QR codes |

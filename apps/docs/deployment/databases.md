@@ -1,6 +1,6 @@
 ---
 title: Prepare the database
-description: Create PostgreSQL or D1 storage and initialize the tables nami needs before the first deployment.
+description: Create PostgreSQL or D1 storage and initialize the tables Nami needs before the first deployment.
 ---
 
 # Prepare the database

@@ -23,7 +23,7 @@ bootstrapConfig.data.source.snapshotUrl
 https://your-webui.example.com/api/runtime/snapshot
 ```
 
-仓库默认值指向公开的 nami 实例。自行部署时如果不改，Runtime 不会读取你刚初始化的数据库。
+仓库默认值指向公开的 Nami 实例。自行部署时如果不改，Runtime 不会读取你刚初始化的数据库。
 
 修改快照来源后需要重新构建 Runtime。以后在 WebUI 中修改普通规则或实例设置，则不需要重新构建。
 
@@ -80,7 +80,7 @@ pnpm runtime:deploy:nf
 
 把准备好的 `go.example.com` 绑定到刚部署的 Runtime。不要把这个域名指向 WebUI。
 
-新实例还没有规则时，直接打开该域名应该看到 nami 的 404 页面。这个结果不是故障：它说明 DNS、平台部署和 Runtime Handler 已经连通，只是当前快照没有匹配路径。
+新实例还没有规则时，直接打开该域名应该看到 Nami 的 404 页面。这个结果不是故障：它说明 DNS、平台部署和 Runtime Handler 已经连通，只是当前快照没有匹配路径。
 
 如果平台直接返回自己的 404、500 或 Bad Gateway，先检查项目根目录、平台构建命令、`NAMI_SECRET` 和快照 URL。
 

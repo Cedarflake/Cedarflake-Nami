@@ -218,7 +218,7 @@ const chineseSidebar = [
 ]
 
 export default defineConfig({
-  title: "nami Docs",
+  title: "Nami Docs",
   description: "Documentation for the personal edge redirect infrastructure used by Revaea.",
   vite: {
     build: {
@@ -246,7 +246,7 @@ export default defineConfig({
       label: "English",
       lang: "en-US",
       themeConfig: {
-        siteTitle: "nami Docs",
+        siteTitle: "Nami Docs",
         nav: englishNav,
         sidebar: englishSidebar,
         outlineTitle: "On this page",
@@ -276,9 +276,9 @@ export default defineConfig({
       label: "简体中文",
       lang: "zh-CN",
       link: "/zh-CN/",
-      title: "nami 文档",
+      title: "Nami 文档",
       themeConfig: {
-        siteTitle: "nami 文档",
+        siteTitle: "Nami 文档",
         nav: chineseNav,
         sidebar: chineseSidebar,
         outlineTitle: "本页内容",
@@ -314,7 +314,7 @@ export default defineConfig({
   themeConfig: {
     logo: {
       src: "/favicon.ico",
-      alt: "nami",
+      alt: "Nami",
     },
     search: {
       provider: "local",

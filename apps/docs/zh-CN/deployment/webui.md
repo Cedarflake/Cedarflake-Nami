@@ -33,7 +33,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 ## 3. 创建 Vercel 项目
 
-连接你的 nami 仓库或 Fork，并使用这些项目设置：
+连接你的 Nami 仓库或 Fork，并使用这些项目设置：
 
 ```text
 Root Directory: apps/webui

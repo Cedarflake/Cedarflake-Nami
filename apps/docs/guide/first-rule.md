@@ -22,7 +22,7 @@ Make sure these are already in place:
 - one Runtime is deployed and has a public domain;
 - the WebUI and Runtime use the same `NAMI_SECRET`.
 
-If the public domain currently shows the nami 404 page, that is a good starting point. The request already reaches the Runtime; it simply has no rule yet.
+If the public domain currently shows the Nami 404 page, that is a good starting point. The request already reaches the Runtime; it simply has no rule yet.
 
 ## 1. Open a rule group
 

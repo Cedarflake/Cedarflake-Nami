@@ -22,7 +22,7 @@ https://go.example.com/docs  →  https://docs.example.com
 - 一个 Runtime 已经部署，并绑定了公开域名；
 - WebUI 与 Runtime 使用相同的 `NAMI_SECRET`。
 
-如果公开域名现在显示 nami 的 404 页面，正适合继续。它说明请求已经进入 Runtime，只是还没有规则。
+如果公开域名现在显示 Nami 的 404 页面，正适合继续。它说明请求已经进入 Runtime，只是还没有规则。
 
 ## 1. 打开规则分组
 

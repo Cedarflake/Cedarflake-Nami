@@ -1,6 +1,6 @@
 # @nami/plugin-catalog
 
-Static installed-plugin catalog for nami hosts. It exposes Runtime- and WebUI-specific manifest projections and validates remote declarations against installed manifests, host support, plugin-owned Schemas, Secret declarations, and slot conflicts.
+Static installed-plugin catalog for Nami hosts. It exposes Runtime- and WebUI-specific manifest projections and validates remote declarations against installed manifests, host support, plugin-owned Schemas, Secret declarations, and slot conflicts.
 
 This package performs compile-time registration only. It does not discover or load packages at runtime.
 

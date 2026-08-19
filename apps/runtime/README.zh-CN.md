@@ -1,4 +1,4 @@
-# nami Runtime
+# Nami Runtime
 
 面向 Cloudflare Workers、Vercel Edge Functions、Netlify Edge Functions 等 fetch 兼容边缘平台的可选式重定向运行时。它会强制 HTTPS、返回 favicon，并通过所选 Data Source 加载非敏感实例配置与重定向规则。部署时选择适合的平台适配器即可，三个平台不要求同时运行。
 

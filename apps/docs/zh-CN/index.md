@@ -2,12 +2,12 @@
 layout: home
 
 hero:
-  name: nami
+  name: Nami
   text: Revaea 的个人边缘重定向实验
   tagline: 通过 WebUI 管理规则，由边缘 Runtime 处理公开请求。项目主要服务于 Revaea，也可自行部署。
   image:
     src: /favicon.webp
-    alt: nami
+    alt: Nami
   actions:
     - theme: brand
       text: 了解这个项目
@@ -15,7 +15,7 @@ hero:
 
 features:
   - title: 项目定位
-    details: nami 不是托管短链接服务，也不以企业级重定向平台为目标。
+    details: Nami 不是托管短链接服务，也不以企业级重定向平台为目标。
     link: /zh-CN/guide/getting-started
     linkText: 了解项目定位
   - title: 部署实例

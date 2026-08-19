@@ -1,6 +1,6 @@
-# nami 文档站
+# Nami 文档站
 
-nami 双语使用、部署、运维与扩展文档的 VitePress 源码。
+Nami 双语使用、部署、运维与扩展文档的 VitePress 源码。
 
 在仓库根目录运行：
 

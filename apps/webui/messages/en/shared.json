@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "nami Config Console",
+    "title": "Nami Config Console",
     "description": "Manage redirects.json via WebUI"
   },
   "auth": {
@@ -46,7 +46,7 @@
     "returnHome": "Return home"
   },
   "header": {
-    "console": "nami Console",
+    "console": "Nami Console",
     "workspaceLabel": "Redirect operations",
     "openNavigation": "Open navigation",
     "closeNavigation": "Close navigation",

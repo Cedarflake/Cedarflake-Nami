@@ -1,6 +1,6 @@
 ---
 title: 准备数据库
-description: 创建 PostgreSQL 或 D1 存储，并在第一次部署前初始化 nami 需要的表。
+description: 创建 PostgreSQL 或 D1 存储，并在第一次部署前初始化 Nami 需要的表。
 ---
 
 # 准备数据库

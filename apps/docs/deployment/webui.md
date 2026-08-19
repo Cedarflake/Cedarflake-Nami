@@ -33,7 +33,7 @@ Keep the result. It should be at least 32 characters, must never be committed, a
 
 ## 3. Create the Vercel project
 
-Connect your nami repository or fork and use these project settings:
+Connect your Nami repository or fork and use these project settings:
 
 ```text
 Root Directory: apps/webui

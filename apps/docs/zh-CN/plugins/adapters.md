@@ -1,6 +1,6 @@
 ---
 title: 编写适配器
-description: 为 nami 增加新的 Runtime 平台、规则数据库或统计数据库。
+description: 为 Nami 增加新的 Runtime 平台、规则数据库或统计数据库。
 ---
 
 # 编写适配器

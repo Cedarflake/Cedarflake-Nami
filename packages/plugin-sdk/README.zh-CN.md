@@ -1,6 +1,6 @@
 # 插件 SDK
 
-`@nami/plugin-sdk` 是 nami 编译期插件的仓库内部开发 SDK。它用于减少 Manifest、配置、安装和宿主装配中的重复代码，同时保留显式的构建期组合方式。
+`@nami/plugin-sdk` 是 Nami 编译期插件的仓库内部开发 SDK。它用于减少 Manifest、配置、安装和宿主装配中的重复代码，同时保留显式的构建期组合方式。
 
 SDK 目前仅供此 workspace 使用。它不是动态加载器、插件市场，也不承诺兼容任意第三方二进制包。插件仍是普通的 workspace 依赖，需要在对应的 Runtime 或 WebUI 安装配置中明确选择，并在构建时打包。
 

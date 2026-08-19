@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/Cedarflake/Cedarflake-Nami/main/packages/config/config.schema.json",
-  "title": "nami instance configuration",
+  "title": "Nami instance configuration",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "runtime", "analytics", "webui", "plugins"],
