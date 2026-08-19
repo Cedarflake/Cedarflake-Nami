@@ -1,11 +1,11 @@
 import "server-only";
 
-import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
 
 import { readInstanceSecret } from "@/lib/configuration/instance-secret";
 
-import { resolveTokenGitHubUserId } from "./token-authorization";
+import { authSessionCookie } from "./config";
+import { getSetupTokenGitHubUserId } from "./setup-token-authorization";
 
 export async function getSetupRequestGitHubUserId(
   request: NextRequest,
@@ -15,10 +15,9 @@ export async function getSetupRequestGitHubUserId(
     return null;
   }
 
-  try {
-    const token = await getToken({ req: request, secret });
-    return resolveTokenGitHubUserId(token) ?? null;
-  } catch {
-    return null;
-  }
+  return getSetupTokenGitHubUserId(
+    request,
+    secret,
+    authSessionCookie.name,
+  );
 }
