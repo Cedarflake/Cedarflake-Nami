@@ -1,7 +1,7 @@
 import {
   PLUGIN_API_VERSION,
   type PluginManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import {
   githubContentsRepositoryPluginConfigSchema,
@@ -9,7 +9,7 @@ import {
 } from "./config"
 
 export const githubRawSourceManifest = {
-  id: "@i0c/github-raw-source",
+  id: "@nami/github-raw-source",
   name: "GitHub Raw data source",
   version: "0.1.0",
   apiVersion: PLUGIN_API_VERSION,
@@ -36,7 +36,7 @@ export const githubRawSourceManifest = {
 } as const satisfies PluginManifest
 
 export const githubContentsRepositoryManifest = {
-  id: "@i0c/github-contents-repository",
+  id: "@nami/github-contents-repository",
   name: "GitHub Contents data repository",
   version: "0.1.0",
   apiVersion: PLUGIN_API_VERSION,

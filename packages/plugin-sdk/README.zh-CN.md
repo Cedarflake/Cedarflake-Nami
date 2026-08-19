@@ -1,6 +1,6 @@
 # 插件 SDK
 
-`@i0c/plugin-sdk` 是 i0c.cc 编译期插件的仓库内部开发 SDK。它用于减少 Manifest、配置、安装和宿主装配中的重复代码，同时保留显式的构建期组合方式。
+`@nami/plugin-sdk` 是 nami 编译期插件的仓库内部开发 SDK。它用于减少 Manifest、配置、安装和宿主装配中的重复代码，同时保留显式的构建期组合方式。
 
 SDK 目前仅供此 workspace 使用。它不是动态加载器、插件市场，也不承诺兼容任意第三方二进制包。插件仍是普通的 workspace 依赖，需要在对应的 Runtime 或 WebUI 安装配置中明确选择，并在构建时打包。
 
@@ -14,7 +14,7 @@ SDK 目前仅供此 workspace 使用。它不是动态加载器、插件市场�
 - 向插件作者暴露共享的数据仓库与统计存储契约
 - 提供生成统一插件包结构的 workspace 脚手架
 
-底层协议仍由 `@i0c/plugin-api` 负责；宿主行为仍属于 `@i0c/runtime-host`、`@i0c/runtime-build` 和 WebUI。编写插件时使用此 SDK，维护宿主基础设施时再直接使用底层包。
+底层协议仍由 `@nami/plugin-api` 负责；宿主行为仍属于 `@nami/runtime-host`、`@nami/runtime-build` 和 WebUI。编写插件时使用此 SDK，维护宿主基础设施时再直接使用底层包。
 
 ## 创建插件
 
@@ -35,7 +35,7 @@ analytics-store
 feature
 ```
 
-命令会在对应的 `plugins/<category>/` 目录创建插件包，但不会自动启用插件。仍需将生成的插件加入 `i0c.runtime.config.ts`、`i0c.webui.config.ts` 或对应的 WebUI 扩展注册表，让部署选择保持显式且便于审查。
+命令会在对应的 `plugins/<category>/` 目录创建插件包，但不会自动启用插件。仍需将生成的插件加入 `nami.runtime.config.ts`、`nami.webui.config.ts` 或对应的 WebUI 扩展注册表，让部署选择保持显式且便于审查。
 
 ## 编写适配器
 
@@ -44,12 +44,12 @@ feature
 1. 生成 `runtime-platform`、`data-repository` 或 `analytics-store` 插件包；
 2. 使用 pnpm 将其加入根 Workspace 依赖；
 3. 实现 SDK 契约和测试；
-4. 在 `i0c.runtime.manifests.ts` 或 `i0c.webui.manifests.ts` 注册 Manifest；
-5. 在 `i0c.runtime.config.ts` 或 `i0c.webui.config.ts` 注册平台 Descriptor 或工厂；
+4. 在 `nami.runtime.manifests.ts` 或 `nami.webui.manifests.ts` 注册 Manifest；
+5. 在 `nami.runtime.config.ts` 或 `nami.webui.config.ts` 注册平台 Descriptor 或工厂；
 6. 只有新增 Provider 标识时才扩展 Bootstrap 选择模型；
 7. 初始化自有表，重新构建 Host，再单独部署。
 
-Runtime Platform 负责把平台入口适配到 `RuntimeRequestHandler`；Data Repository 通过 `I0cDataRepository` 管理带版本的配置和规则文档；Analytics Store 通过 `I0cAnalyticsStore` 负责事件写入、查询、聚合重建和保留。数据库适配器可以通过 `PluginSchemaMigrationProvider` 提供首次初始化和后续 Schema 更新。
+Runtime Platform 负责把平台入口适配到 `RuntimeRequestHandler`；Data Repository 通过 `NamiDataRepository` 管理带版本的配置和规则文档；Analytics Store 通过 `NamiAnalyticsStore` 负责事件写入、查询、聚合重建和保留。数据库适配器可以通过 `PluginSchemaMigrationProvider` 提供首次初始化和后续 Schema 更新。
 
 具体注册点、命令和现有参考实现见双语文档页[编写适配器](https://d.i0c.cc/zh-CN/plugins/adapters)。
 
@@ -58,10 +58,10 @@ Runtime Platform 负责把平台入口适配到 `RuntimeRequestHandler`；Data R
 ```ts
 import {
   defineRuntimeFeatureManifest,
-} from "@i0c/plugin-sdk"
+} from "@nami/plugin-sdk"
 
 export const manifest = defineRuntimeFeatureManifest({
-  id: "@i0c/feature-request-sampler",
+  id: "@nami/feature-request-sampler",
   name: "Request sampler",
   version: "0.1.0",
   description: {
@@ -81,7 +81,7 @@ export const manifest = defineRuntimeFeatureManifest({
 ```ts
 import {
   definePluginConfiguration,
-} from "@i0c/plugin-sdk"
+} from "@nami/plugin-sdk"
 
 interface RequestSamplerConfig {
   rate: number
@@ -119,7 +119,7 @@ export const configuration = definePluginConfiguration<RequestSamplerConfig>({
 ```ts
 import {
   defineRuntimeFeaturePlugin,
-} from "@i0c/plugin-sdk/runtime"
+} from "@nami/plugin-sdk/runtime"
 
 import { manifest } from "./manifest"
 
@@ -148,7 +148,7 @@ Runtime 平台、数据源、统计投递器和 Feature 辅助函数会先确认
 ```ts
 import {
   defineWebUiAnalyticsStorePlugin,
-} from "@i0c/plugin-sdk/webui"
+} from "@nami/plugin-sdk/webui"
 
 import { manifest } from "./manifest"
 
@@ -168,8 +168,8 @@ WebUI 辅助函数覆盖数据仓库、统计存储和静态扩展项。插件�
 在仓库根目录运行：
 
 ```bash
-pnpm --filter @i0c/plugin-sdk check
-pnpm --filter @i0c/plugin-sdk test
+pnpm --filter @nami/plugin-sdk check
+pnpm --filter @nami/plugin-sdk test
 pnpm plugins:check
 ```
 

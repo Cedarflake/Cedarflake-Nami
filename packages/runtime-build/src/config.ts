@@ -1,8 +1,8 @@
-import type { RuntimePlatformManifest } from "@i0c/plugin-api"
+import type { RuntimePlatformManifest } from "@nami/plugin-api"
 import {
   arePluginManifestsEquivalent,
   validatePluginManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 const installationKeyPattern = /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?$/
 const outputEntryPattern = /^[a-zA-Z0-9._-]+(?:\/[a-zA-Z0-9._-]+)*$/

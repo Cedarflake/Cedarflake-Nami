@@ -2,13 +2,13 @@ import assert from "node:assert/strict"
 import { Buffer } from "node:buffer"
 import test from "node:test"
 
-import { defaultDataConfig, type DataConfig } from "@i0c/config"
-import type { PluginLogger } from "@i0c/plugin-api"
+import { defaultDataConfig, type DataConfig } from "@nami/config"
+import type { PluginLogger } from "@nami/plugin-api"
 import {
   assertPluginManifest,
   assertRuntimeDataSourceContract,
   assertVersionedDataRepositoryContract,
-} from "@i0c/plugin-testkit"
+} from "@nami/plugin-testkit"
 
 import {
   githubContentsRepositoryManifest,
@@ -265,7 +265,7 @@ test("attaches host cache tags to anonymous GitHub reads", async () => {
         assert.equal(init?.cache, undefined)
         assert.deepEqual(init?.next, {
           revalidate: 60,
-          tags: ["i0c:data-config"],
+          tags: ["nami:data-config"],
         })
         return Response.json({
           content: Buffer.from("{}", "utf8").toString("base64"),
@@ -277,7 +277,7 @@ test("attaches host cache tags to anonymous GitHub reads", async () => {
   )
 
   await repository.read("config", {
-    cacheTags: ["i0c:data-config"],
+    cacheTags: ["nami:data-config"],
   })
 })
 

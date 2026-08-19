@@ -10,7 +10,7 @@
  * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
  */
 
-import type { JsonObject } from "@i0c/plugin-api";
+import type { JsonObject } from "@nami/plugin-api";
 
 import { resolveRuntimePluginConfigurations } from "@/plugins/registry";
 
@@ -21,7 +21,7 @@ import {
 import { readRuntimeSecret } from "../configuration/env";
 import type { ResolvedRuntime } from "../core/types";
 
-const I0C_SECRET = "I0C_SECRET";
+const NAMI_SECRET = "NAMI_SECRET";
 const LEGACY_ANALYTICS_WRITE_KEY = "ANALYTICS_WRITE_KEY";
 const ANALYTICS_RUNTIME_SAMPLE_RATE = 0.1;
 
@@ -68,9 +68,9 @@ export async function resolveAnalyticsSettings(
   ).find((plugin) => plugin.manifest.kind === "analytics-sink");
   const configuredWriteKeyBinding = sinkPlugin?.declaration.secrets?.writeKey
     ?? sinkPlugin?.manifest.secrets.writeKey?.defaultBinding
-    ?? I0C_SECRET;
+    ?? NAMI_SECRET;
   const writeKeyBinding = configuredWriteKeyBinding === LEGACY_ANALYTICS_WRITE_KEY
-    ? I0C_SECRET
+    ? NAMI_SECRET
     : configuredWriteKeyBinding;
   const writeKey = readRuntimeSecret(
     runtime.envBindings,

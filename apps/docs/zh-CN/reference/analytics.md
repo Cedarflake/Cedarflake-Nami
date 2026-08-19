@@ -23,7 +23,7 @@ description: 查询统计页面中各项数字、时间范围、归因、抽样�
 ## 数据怎么走到图表里
 
 1. Runtime 完成跳转、反代或未匹配处理；
-2. Runtime 在本地提取有限字段，用 `I0C_SECRET` 对事件签名；
+2. Runtime 在本地提取有限字段，用 `NAMI_SECRET` 对事件签名；
 3. WebUI 的 Collector 验证签名、时间和正文，再写入所选统计存储；
 4. 已登录的 WebUI 查询聚合或保留的原始事件。
 
@@ -93,7 +93,7 @@ Runtime 系统结果包括 `not_found`、`proxy_exhausted`、`config_unavailable
 }
 ```
 
-返回链接中的 `_i0c_via` 会绑定统计来源、规则 ID、域名、路径和有效期，最长 365 天。Runtime 验证后会删除该参数，再通过短期安全 Cookie 完成后续无参数请求。无效 Token 会被移除，但不会写成有效渠道。
+返回链接中的 `_nami_via` 会绑定统计来源、规则 ID、域名、路径和有效期，最长 365 天。Runtime 验证后会删除该参数，再通过短期安全 Cookie 完成后续无参数请求。无效 Token 会被移除，但不会写成有效渠道。
 
 ### 受控短链接链
 
@@ -146,9 +146,9 @@ WordPress 探测、环境变量文件、管理路径、版本控制元数据和�
 }
 ```
 
-WebUI 与所有 Runtime 使用同一个 `I0C_SECRET`。PostgreSQL 统计存储还需要 `DATABASE_URL`；D1 使用启动配置中的 Account 与 Database ID，以及仅服务端可见的 `CLOUDFLARE_D1_API_TOKEN`。
+WebUI 与所有 Runtime 使用同一个 `NAMI_SECRET`。PostgreSQL 统计存储还需要 `DATABASE_URL`；D1 使用启动配置中的 Account 与 Database ID，以及仅服务端可见的 `CLOUDFLARE_D1_API_TOKEN`。
 
-轮换 `I0C_SECRET` 会让现有 WebUI Session 失效，并要求重新部署每一个 Runtime。新旧值混用时，快照认证、统计投递和短链接归因都会失败。
+轮换 `NAMI_SECRET` 会让现有 WebUI Session 失效，并要求重新部署每一个 Runtime。新旧值混用时，快照认证、统计投递和短链接归因都会失败。
 
 ## 数据库结构和保留期
 
@@ -170,7 +170,7 @@ pnpm database:update d1 analytics
 - 同一规则分别通过三个 Runtime 域名访问一次：总数为 3，各域名为 1；
 - 外部网页带 Referer 点击：记录来源域名；
 - 二维码、复制粘贴或 `noreferrer`：显示为 `direct`；
-- 签名渠道链接：记录渠道，路由请求不再包含 `_i0c_via`；
+- 签名渠道链接：记录渠道，路由请求不再包含 `_nami_via`；
 - A → B：两条规则各记录一次，但入口请求只增加一次；
 - 机器人访问未匹配路径：可以进入抽样 Runtime 与机器人分析；
 - Collector 不可用：跳转仍成功，但事件可能丢失。

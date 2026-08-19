@@ -1,4 +1,4 @@
-# @i0c/config
+# @nami/config
 
 Shared data contracts and bootstrap package for Runtime and WebUI configuration.
 

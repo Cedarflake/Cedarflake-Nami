@@ -3,7 +3,7 @@ import { readdir, readFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 import test from "node:test"
 
-import { assertPluginManifest } from "@i0c/plugin-testkit"
+import { assertPluginManifest } from "@nami/plugin-testkit"
 
 import { defaultPostgresAnalyticsStoreConfig } from "../src/config"
 import { postgresAnalyticsStoreManifest } from "../src/manifest"

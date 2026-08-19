@@ -3,7 +3,7 @@ import {
   defaultDataConfig,
   validateRedirectsConfig,
   type DataConfig,
-} from "@i0c/config";
+} from "@nami/config";
 
 import { parseDataConfig } from "@/lib/configuration/parse-data-config";
 
@@ -54,21 +54,21 @@ export function createInitialDocuments(
     managerGitHubUserIds: [input.managerGitHubUserId],
     blockedGitHubUserIds: [],
   };
-  setPluginEnabled(config, "@i0c/runtime-cloudflare", enabledProviders.has("cloudflare"));
-  setPluginEnabled(config, "@i0c/runtime-netlify", enabledProviders.has("netlify"));
-  setPluginEnabled(config, "@i0c/runtime-vercel", enabledProviders.has("vercel"));
-  setPluginEnabled(config, "@i0c/analytics-sink-http", input.analyticsEnabled);
+  setPluginEnabled(config, "@nami/runtime-cloudflare", enabledProviders.has("cloudflare"));
+  setPluginEnabled(config, "@nami/runtime-netlify", enabledProviders.has("netlify"));
+  setPluginEnabled(config, "@nami/runtime-vercel", enabledProviders.has("vercel"));
+  setPluginEnabled(config, "@nami/analytics-sink-http", input.analyticsEnabled);
   setPluginEnabled(
     config,
-    "@i0c/analytics-store-postgres",
+    "@nami/analytics-store-postgres",
     input.analyticsEnabled && bootstrapConfig.webui.analyticsStore.provider === "postgres",
   );
   setPluginEnabled(
     config,
-    "@i0c/analytics-store-d1",
+    "@nami/analytics-store-d1",
     input.analyticsEnabled && bootstrapConfig.webui.analyticsStore.provider === "d1",
   );
-  setPluginEnabled(config, "@i0c/feature-bot-classifier", input.analyticsEnabled);
+  setPluginEnabled(config, "@nami/feature-bot-classifier", input.analyticsEnabled);
 
   const configContent = `${JSON.stringify(config, null, 2)}\n`;
   const parsedConfig = parseDataConfig(configContent);

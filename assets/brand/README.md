@@ -1,0 +1,18 @@
+# Brand assets
+
+This directory is the source of truth for checked-in nami brand images.
+
+| Source | Responsibility |
+| --- | --- |
+| `wordmark.webp` | General nami wordmark used by the repository and documentation |
+| `webui-wordmark.webp` | WebUI-specific README wordmark |
+| `favicon.ico` | Canonical product icon used in application navigation, site favicons, and QR codes |
+
+Replace a source file without changing its filename, then run these commands from the repository root:
+
+```bash
+pnpm assets:sync
+pnpm assets:check
+```
+
+The sync command copies browser assets into the WebUI and documentation public directories and generates the Runtime favicon module. Generated destinations must not be edited directly.

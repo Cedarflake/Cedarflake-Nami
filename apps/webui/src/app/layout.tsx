@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "i0c.cc Config Console",
+  title: "nami Config Console",
   description: "Manage redirects.json via WebUI",
   robots: {
     index: false,

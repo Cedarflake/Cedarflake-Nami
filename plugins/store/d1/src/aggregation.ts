@@ -2,13 +2,13 @@ import {
   createSeriesBucketDates,
   resolveSeriesBucketStart,
   type QueryRange,
-} from "@i0c/analytics-domain/range"
+} from "@nami/analytics-domain/range"
 import {
   ANALYTICS_AUTOMATION_LINK_LIMIT,
   ANALYTICS_DIMENSION_LIMIT,
   ANALYTICS_LINK_SUMMARY_LIMIT,
-} from "@i0c/analytics-domain/store"
-import { createTrendComparison } from "@i0c/analytics-domain/trend"
+} from "@nami/analytics-domain/store"
+import { createTrendComparison } from "@nami/analytics-domain/trend"
 import type {
   AnalyticsAutomationDimensionPoint,
   AnalyticsAutomationLinkSummary,
@@ -19,7 +19,7 @@ import type {
   AnalyticsLinkSummary,
   AnalyticsMetricTotals,
   AnalyticsSeriesPoint,
-} from "@i0c/analytics-domain/types"
+} from "@nami/analytics-domain/types"
 
 export interface D1AnalyticsEventRecord {
   eventId: string
@@ -130,7 +130,7 @@ export function createTrafficDimensions(
   events: readonly D1AnalyticsEventRecord[],
   links: readonly D1AnalyticsLinkRecord[],
 ): Pick<
-  import("@i0c/analytics-domain/types").AnalyticsOverview,
+  import("@nami/analytics-domain/types").AnalyticsOverview,
   "countries" | "referrers" | "devices" | "providers" | "campaigns" | "upstreamLinks"
 > {
   const linkPaths = new Map(links.map((link) => [link.analyticsId, link.routePath]))

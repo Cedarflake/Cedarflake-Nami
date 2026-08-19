@@ -43,7 +43,7 @@ function createAnalyticsIdentitySeed(
   arrayIndex?: number,
 ): string {
   return JSON.stringify([
-    "i0c-analytics-id-v2",
+    "nami-analytics-id-v2",
     groupPath,
     key,
     arrayIndex ?? null,

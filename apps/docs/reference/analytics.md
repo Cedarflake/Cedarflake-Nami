@@ -23,7 +23,7 @@ An estimate never replaces its observed value. Automation views lead with the nu
 ## How data reaches a chart
 
 1. the Runtime finishes a redirect, proxy, or unmatched request;
-2. it extracts a limited set of fields and signs the event with `I0C_SECRET`;
+2. it extracts a limited set of fields and signs the event with `NAMI_SECRET`;
 3. the WebUI collector verifies the signature, time, and body, then writes through the selected analytics store;
 4. an authenticated WebUI query reads aggregates or retained raw events.
 
@@ -93,7 +93,7 @@ An authenticated client can create a signed campaign URL with `POST /api/analyti
 }
 ```
 
-The `_i0c_via` value binds the analytics source, rule ID, hostname, path, and expiry for at most 365 days. After verification, the Runtime removes it and uses a short-lived secure cookie for the parameter-free request. An invalid token is removed but never recorded as a valid campaign.
+The `_nami_via` value binds the analytics source, rule ID, hostname, path, and expiry for at most 365 days. After verification, the Runtime removes it and uses a short-lived secure cookie for the parameter-free request. An invalid token is removed but never recorded as a valid campaign.
 
 ### Controlled short-link chain
 
@@ -146,9 +146,9 @@ Instance settings hold the collector URL and source ID:
 }
 ```
 
-The WebUI and every Runtime share one `I0C_SECRET`. PostgreSQL analytics also needs `DATABASE_URL`; D1 uses Account and Database IDs from startup configuration plus the server-only `CLOUDFLARE_D1_API_TOKEN`.
+The WebUI and every Runtime share one `NAMI_SECRET`. PostgreSQL analytics also needs `DATABASE_URL`; D1 uses Account and Database IDs from startup configuration plus the server-only `CLOUDFLARE_D1_API_TOKEN`.
 
-Rotating `I0C_SECRET` invalidates existing WebUI sessions and requires every Runtime to be redeployed. Mixing old and new values breaks snapshot authentication, analytics delivery, and short-link attribution.
+Rotating `NAMI_SECRET` invalidates existing WebUI sessions and requires every Runtime to be redeployed. Mixing old and new values breaks snapshot authentication, analytics delivery, and short-link attribution.
 
 ## Database structure and retention
 
@@ -170,7 +170,7 @@ The 181-day window covers two full 90-day periods plus one day for timezone boun
 - Visit one rule through three Runtime domains: total 3, each domain 1.
 - Click from an external page with a Referer: record the source domain.
 - Use a QR code, pasted URL, or `noreferrer`: show `direct`.
-- Use a signed campaign URL: record the campaign and remove `_i0c_via` before routing.
+- Use a signed campaign URL: record the campaign and remove `_nami_via` before routing.
 - Follow A → B: both rules record a match, while entry requests increase once.
 - Let a bot request an unmatched path: it may enter sampled Runtime and automation analytics.
 - Make the collector unavailable: the redirect still succeeds, while the event may be lost.

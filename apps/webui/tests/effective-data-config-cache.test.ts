@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { defaultDataConfig } from "@i0c/config";
-import type { DataConfig } from "@i0c/config";
+import { defaultDataConfig } from "@nami/config";
+import type { DataConfig } from "@nami/config";
 
 import { EffectiveDataConfigCache } from "../src/lib/configuration/effective-data-config-cache";
 

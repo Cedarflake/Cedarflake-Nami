@@ -1,6 +1,6 @@
 import type { JWT } from "next-auth/jwt";
 
-import type { WebUiAccessMode } from "@i0c/config";
+import type { WebUiAccessMode } from "@nami/config";
 
 const githubUserIdPattern = /^[1-9]\d*$/;
 

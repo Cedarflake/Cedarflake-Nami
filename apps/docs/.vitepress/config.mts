@@ -9,7 +9,7 @@ const footerMessage = [
   ["Lab", "https://test.i0c.cc"],
 ]
   .map(([label, link]) => `<a href="${link}" target="_blank" rel="noopener noreferrer">${label}</a>`)
-  .join('<span class="i0c-footer-separator" aria-hidden="true"></span>')
+  .join('<span class="nami-footer-separator" aria-hidden="true"></span>')
 
 const englishNav = [
   {
@@ -218,7 +218,7 @@ const chineseSidebar = [
 ]
 
 export default defineConfig({
-  title: "i0c.cc Docs",
+  title: "nami Docs",
   description: "Documentation for the personal edge redirect infrastructure used by Revaea.",
   vite: {
     build: {
@@ -246,7 +246,7 @@ export default defineConfig({
       label: "English",
       lang: "en-US",
       themeConfig: {
-        siteTitle: "i0c.cc Docs",
+        siteTitle: "nami Docs",
         nav: englishNav,
         sidebar: englishSidebar,
         outlineTitle: "On this page",
@@ -260,7 +260,7 @@ export default defineConfig({
           text: "Edit this page on GitHub",
         },
         footer: {
-          message: `<span class="i0c-footer-links">${footerMessage}</span>`,
+          message: `<span class="nami-footer-links">${footerMessage}</span>`,
           copyright: "© 2025 – present Cedarflake",
         },
         notFound: {
@@ -276,9 +276,9 @@ export default defineConfig({
       label: "简体中文",
       lang: "zh-CN",
       link: "/zh-CN/",
-      title: "i0c.cc 文档",
+      title: "nami 文档",
       themeConfig: {
-        siteTitle: "i0c.cc 文档",
+        siteTitle: "nami 文档",
         nav: chineseNav,
         sidebar: chineseSidebar,
         outlineTitle: "本页内容",
@@ -292,7 +292,7 @@ export default defineConfig({
           text: "在 GitHub 上编辑此页",
         },
         footer: {
-          message: `<span class="i0c-footer-links">${footerMessage}</span>`,
+          message: `<span class="nami-footer-links">${footerMessage}</span>`,
           copyright: "© 2025 – present Cedarflake",
         },
         notFound: {
@@ -313,8 +313,8 @@ export default defineConfig({
   },
   themeConfig: {
     logo: {
-      src: "/logo.ico",
-      alt: "i0c.cc",
+      src: "/favicon.ico",
+      alt: "nami",
     },
     search: {
       provider: "local",

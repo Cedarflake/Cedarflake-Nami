@@ -8,7 +8,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@handlers/*": ["./src/lib/handlers/*"],
-      "@i0c/runtime-config": ["../../i0c.runtime.config.ts"]
+      "@nami/runtime-config": ["../../nami.runtime.config.ts"]
     },
     "allowJs": true,
     "checkJs": false,
@@ -23,7 +23,7 @@
     "src/**/*.js", 
     "api/**/*.ts",
     "tests/**/*.ts",
-    "../../i0c.runtime.config.ts"
+    "../../nami.runtime.config.ts"
   ],
   "exclude": ["node_modules"]
 }

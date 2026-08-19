@@ -1,4 +1,4 @@
-import type { AnalyticsSink } from "@i0c/plugin-api"
+import type { AnalyticsSink } from "@nami/plugin-api"
 
 import type { HttpAnalyticsSinkConfig } from "./config"
 import { httpAnalyticsSinkManifest } from "./manifest"

@@ -5,7 +5,7 @@ import {
   PLUGIN_API_VERSION,
   type RuntimePlatformManifest,
   type RuntimePlatformPlugin,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import { createRuntimeDeployment } from "../src/index"
 import {

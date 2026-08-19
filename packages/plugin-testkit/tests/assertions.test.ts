@@ -10,7 +10,7 @@ import {
   type RuntimeDataSource,
   type RuntimePlatformAdapter,
   type VersionedDataRepository,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import {
   assertAnalyticsSinkContract,
@@ -24,7 +24,7 @@ import {
 test("accepts a complete plugin manifest", () => {
   assert.doesNotThrow(() => {
     assertPluginManifest({
-      id: "@i0c/example-source",
+      id: "@nami/example-source",
       name: "Example source",
       version: "1.0.0",
       apiVersion: PLUGIN_API_VERSION,
@@ -73,7 +73,7 @@ test("rejects an incompatible plugin manifest", () => {
 
 test("resolves enabled plugins through a host-scoped static registry", () => {
   const registry = new StaticPluginRegistry([{
-    id: "@i0c/example-source",
+    id: "@nami/example-source",
     name: "Example source",
     version: "1.0.0",
     apiVersion: PLUGIN_API_VERSION,
@@ -96,7 +96,7 @@ test("resolves enabled plugins through a host-scoped static registry", () => {
   }])
 
   assert.deepEqual(registry.resolve("runtime", {
-    "@i0c/example-source": {
+    "@nami/example-source": {
       enabled: true,
       version: 1,
       config: { ttl: 60 },
@@ -116,7 +116,7 @@ test("resolves enabled plugins through a host-scoped static registry", () => {
 
 test("reports schema, missing plugin, and slot conflicts", () => {
   const sourceManifest = {
-    id: "@i0c/source-one",
+    id: "@nami/source-one",
     name: "Source one",
     version: "1.0.0",
     apiVersion: PLUGIN_API_VERSION,
@@ -136,12 +136,12 @@ test("reports schema, missing plugin, and slot conflicts", () => {
   }
   const registry = new StaticPluginRegistry([
     sourceManifest,
-    { ...sourceManifest, id: "@i0c/source-two", name: "Source two" },
+    { ...sourceManifest, id: "@nami/source-two", name: "Source two" },
   ])
   const result = registry.resolve("runtime", {
-    "@i0c/source-one": { enabled: true, config: { ttl: 0 } },
-    "@i0c/source-two": { enabled: true, config: { ttl: 1 } },
-    "@i0c/not-installed": { enabled: true },
+    "@nami/source-one": { enabled: true, config: { ttl: 0 } },
+    "@nami/source-two": { enabled: true, config: { ttl: 1 } },
+    "@nami/not-installed": { enabled: true },
   })
 
   assert.equal(result.status, "invalid")
@@ -154,7 +154,7 @@ test("reports schema, missing plugin, and slot conflicts", () => {
 
 test("ignores installed declarations owned by another host", () => {
   const registry = new StaticPluginRegistry([{
-    id: "@i0c/webui-only",
+    id: "@nami/webui-only",
     name: "WebUI only",
     version: "1.0.0",
     apiVersion: PLUGIN_API_VERSION,
@@ -167,13 +167,13 @@ test("ignores installed declarations owned by another host", () => {
   }])
 
   assert.deepEqual(registry.resolve("runtime", {
-    "@i0c/webui-only": { enabled: true },
+    "@nami/webui-only": { enabled: true },
   }), { status: "valid", plugins: [] })
 })
 
 test("ignores recognized plugins omitted from a host projection", () => {
   const registry = new StaticPluginRegistry([{
-    id: "@i0c/runtime-only",
+    id: "@nami/runtime-only",
     name: "Runtime only",
     version: "1.0.0",
     apiVersion: PLUGIN_API_VERSION,
@@ -184,18 +184,18 @@ test("ignores recognized plugins omitted from a host projection", () => {
     config: { version: 1 },
     secrets: {},
   }], {
-    recognizedPluginIds: ["@i0c/runtime-only", "@i0c/webui-only"],
+    recognizedPluginIds: ["@nami/runtime-only", "@nami/webui-only"],
   })
 
   assert.deepEqual(registry.resolve("runtime", {
-    "@i0c/webui-only": { enabled: true },
+    "@nami/webui-only": { enabled: true },
   }), {
     status: "valid",
     plugins: [],
   })
   assert.match(
     JSON.stringify(registry.resolve("runtime", {
-      "@i0c/not-installed": { enabled: false },
+      "@nami/not-installed": { enabled: false },
     })),
     /not installed/,
   )
@@ -293,7 +293,7 @@ test("checks Runtime platform responses", async () => {
 test("checks Runtime feature event transformations", async () => {
   await assertRuntimeFeatureEventContract({
     registration: {
-      id: "@i0c/example-feature",
+      id: "@nami/example-feature",
       order: 10,
       timeoutMs: 100,
       failurePolicy: "continue",
@@ -312,7 +312,7 @@ test("orders Runtime features and keeps non-critical failures open", async () =>
   const warnings: string[] = []
   const pipeline = new RuntimeFeaturePipeline<{ order: string[] }>([
     {
-      id: "@i0c/feature-second",
+      id: "@nami/feature-second",
       order: 20,
       timeoutMs: 100,
       failurePolicy: "continue",
@@ -323,7 +323,7 @@ test("orders Runtime features and keeps non-critical failures open", async () =>
       },
     },
     {
-      id: "@i0c/feature-failing",
+      id: "@nami/feature-failing",
       order: 10,
       timeoutMs: 100,
       failurePolicy: "continue",
@@ -350,7 +350,7 @@ test("orders Runtime features and keeps non-critical failures open", async () =>
 
 test("enforces Runtime feature timeouts", async () => {
   const pipeline = new RuntimeFeaturePipeline<{ reached: boolean }>([{
-    id: "@i0c/feature-timeout",
+    id: "@nami/feature-timeout",
     order: 10,
     timeoutMs: 1,
     failurePolicy: "continue",
@@ -370,21 +370,21 @@ test("orders and isolates WebUI extension slots", () => {
   const registry = new StaticWebUiExtensionRegistry([
     {
       id: "second",
-      pluginId: "@i0c/plugin-two",
+      pluginId: "@nami/plugin-two",
       slot: "analytics.overview.cards",
       order: 20,
       value: "second",
     },
     {
       id: "first",
-      pluginId: "@i0c/plugin-one",
+      pluginId: "@nami/plugin-one",
       slot: "analytics.overview.cards",
       order: 10,
       value: "first",
     },
     {
       id: "settings",
-      pluginId: "@i0c/plugin-one",
+      pluginId: "@nami/plugin-one",
       slot: "settings.plugins",
       order: 10,
       value: "settings",
@@ -405,14 +405,14 @@ test("rejects duplicate WebUI extension IDs", () => {
   assert.throws(() => new StaticWebUiExtensionRegistry([
     {
       id: "duplicate",
-      pluginId: "@i0c/plugin-one",
+      pluginId: "@nami/plugin-one",
       slot: "settings.plugins",
       order: 10,
       value: "first",
     },
     {
       id: "duplicate",
-      pluginId: "@i0c/plugin-two",
+      pluginId: "@nami/plugin-two",
       slot: "rule-editor.fields",
       order: 20,
       value: "second",

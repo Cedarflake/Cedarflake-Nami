@@ -14,7 +14,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import test from "node:test";
 
-import { defaultDataConfig } from "@i0c/config";
+import { defaultDataConfig } from "@nami/config";
 
 import { interLatinVariableFontPath } from "../../src/assets/inter-font";
 import { handleRedirectRequest } from "../../src/lib/handler";

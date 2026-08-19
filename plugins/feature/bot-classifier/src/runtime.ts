@@ -1,7 +1,7 @@
 import type {
   AnalyticsClassificationHookContext,
   AnalyticsRequestClassification,
-} from "@i0c/analytics-domain/classification"
+} from "@nami/analytics-domain/classification"
 import type {
   AnalyticsDeviceType,
   AnalyticsProbeCategory,
@@ -9,8 +9,8 @@ import type {
   AnalyticsTrafficClass,
   AnalyticsBotCategory,
   AnalyticsBotConfidence,
-} from "@i0c/analytics-domain/events"
-import type { RuntimeFeatureRegistration } from "@i0c/plugin-api"
+} from "@nami/analytics-domain/events"
+import type { RuntimeFeatureRegistration } from "@nami/plugin-api"
 
 import type { BotClassifierConfig } from "./config"
 import { BOT_CLASSIFIER_PLUGIN_ID } from "./manifest"

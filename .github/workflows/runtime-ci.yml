@@ -6,8 +6,8 @@ on:
       - main
     paths:
       - .github/workflows/runtime-ci.yml
-      - i0c.runtime.config.ts
-      - i0c.runtime.manifests.ts
+      - nami.runtime.config.ts
+      - nami.runtime.manifests.ts
       - apps/runtime/**
       - packages/config/**
       - packages/plugin-api/**
@@ -29,8 +29,8 @@ on:
       - main
     paths:
       - .github/workflows/runtime-ci.yml
-      - i0c.runtime.config.ts
-      - i0c.runtime.manifests.ts
+      - nami.runtime.config.ts
+      - nami.runtime.manifests.ts
       - apps/runtime/**
       - packages/config/**
       - packages/plugin-api/**
@@ -88,4 +88,4 @@ jobs:
         run: pnpm runtime:build
 
       - name: Build external Runtime fixture
-        run: pnpm --filter i0c-redirect-worker build:external-fixture
+        run: pnpm --filter nami-runtime build:external-fixture

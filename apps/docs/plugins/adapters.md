@@ -1,6 +1,6 @@
 ---
 title: Write an adapter
-description: Add another Runtime platform, rules database, or analytics database to i0c.cc.
+description: Add another Runtime platform, rules database, or analytics database to nami.
 ---
 
 # Write an adapter
@@ -54,28 +54,28 @@ plugins/runtime/example-edge/
 `installation.ts` tells the build system which module to load, which dependencies to bundle, and where to write the output:
 
 ```ts
-import { defineRuntimePlatformInstallation } from "@i0c/plugin-sdk/runtime"
+import { defineRuntimePlatformInstallation } from "@nami/plugin-sdk/runtime"
 
 import { exampleEdgeManifest } from "./manifest"
 
 export const exampleEdgeInstallation = defineRuntimePlatformInstallation({
   key: "example-edge",
   manifest: exampleEdgeManifest,
-  runtimeModule: "@i0c/plugin-runtime-example-edge/runtime",
-  bundlePackages: ["@i0c/plugin-runtime-example-edge"],
+  runtimeModule: "@nami/plugin-runtime-example-edge/runtime",
+  bundlePackages: ["@nami/plugin-runtime-example-edge"],
   outputEntry: "platforms/example-edge",
 })
 ```
 
 Register it in two places:
 
-- `i0c.runtime.manifests.ts` makes it visible to validation and the WebUI status page;
-- `i0c.runtime.config.ts` includes it in Runtime builds.
+- `nami.runtime.manifests.ts` makes it visible to validation and the WebUI status page;
+- `nami.runtime.config.ts` includes it in Runtime builds.
 
 Build the new platform on its own while developing:
 
 ```sh
-pnpm --filter i0c-redirect-worker build:platform example-edge
+pnpm --filter nami-runtime build:platform example-edge
 ```
 
 Provider-specific deployment wrappers, output preparation, and configuration stay at the Runtime deployment boundary. The shared handler should not import a provider SDK.
@@ -88,7 +88,7 @@ Scaffold a data repository:
 pnpm plugin:create --kind data-repository --name example-database
 ```
 
-Implement `I0cDataRepository`. Its important behavior is:
+Implement `NamiDataRepository`. Its important behavior is:
 
 - read a versioned settings or rules document;
 - reject a write based on an old version instead of silently overwriting another editor;
@@ -97,7 +97,7 @@ Implement `I0cDataRepository`. Its important behavior is:
 
 When the database owns tables, also implement `PluginSchemaMigrationProvider`. Its update history must be ordered; where transactions exist, the structural change and version record should succeed or fail together.
 
-Register the manifest in `i0c.webui.manifests.ts` and the factory in `i0c.webui.config.ts`. One WebUI build selects one active rules store. Editors and API routes should not gain a database-specific branch.
+Register the manifest in `nami.webui.manifests.ts` and the factory in `nami.webui.config.ts`. One WebUI build selects one active rules store. Editors and API routes should not gain a database-specific branch.
 
 ## Add an analytics database
 
@@ -107,7 +107,7 @@ Scaffold an analytics store:
 pnpm plugin:create --kind analytics-store --name example-database
 ```
 
-Implement `I0cAnalyticsStore`, including:
+Implement `NamiAnalyticsStore`, including:
 
 - idempotent Runtime event ingestion;
 - overview, single-rule, entry-domain, and automation queries;
@@ -115,7 +115,7 @@ Implement `I0cAnalyticsStore`, including:
 - health and missing-configuration status;
 - updates for the store's own database structure.
 
-Add the manifest to the analytics-store list in `i0c.webui.manifests.ts`, and add the factory to `i0c.webui.config.ts`. A build may contain several analytics stores, with instance configuration choosing which one is enabled.
+Add the manifest to the analytics-store list in `nami.webui.manifests.ts`, and add the factory to `nami.webui.config.ts`. A build may contain several analytics stores, with instance configuration choosing which one is enabled.
 
 When one new database product supports both uses, prefer this shape:
 

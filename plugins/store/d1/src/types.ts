@@ -1,5 +1,5 @@
-import type { AnalyticsDomainStoreShape } from "@i0c/analytics-domain/store"
-import type { AnalyticsStoreTypes } from "@i0c/plugin-api"
+import type { AnalyticsDomainStoreShape } from "@nami/analytics-domain/store"
+import type { AnalyticsStoreTypes } from "@nami/plugin-api"
 
 export type {
   D1Database,

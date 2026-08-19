@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { NextRequest } from "next/server";
 
-import { defaultDataConfig } from "@i0c/config";
+import { defaultDataConfig } from "@nami/config";
 
 import {
   createRuntimeSnapshotResponse,

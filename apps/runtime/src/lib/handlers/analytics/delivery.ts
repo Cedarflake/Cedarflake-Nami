@@ -10,7 +10,7 @@
  * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
  */
 
-import { PluginError } from "@i0c/plugin-api";
+import { PluginError } from "@nami/plugin-api";
 
 import type {
   ResolvedRuntime,
@@ -73,7 +73,7 @@ function getInstalledAnalyticsSink(
 ): RuntimeAnalyticsSink {
   if (!delivery) {
     throw new PluginError(
-      "@i0c/runtime-host",
+      "@nami/runtime-host",
       "PLUGIN_NOT_INSTALLED",
       "The Runtime analytics sink is not configured"
     );

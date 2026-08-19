@@ -1,4 +1,4 @@
-import { StaticPluginRegistry } from "@i0c/plugin-api"
+import { StaticPluginRegistry } from "@nami/plugin-api"
 
 import { runtimePluginManifests } from "./runtime"
 import { webUiPluginManifests } from "./webui"

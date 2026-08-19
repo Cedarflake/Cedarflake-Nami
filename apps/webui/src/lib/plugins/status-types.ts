@@ -2,7 +2,7 @@ import type {
   PluginDescriptionManifest,
   PluginHost,
   PluginKind,
-} from "@i0c/plugin-api";
+} from "@nami/plugin-api";
 
 export type PluginConfigurationState = "compatibility" | "configured" | "disabled";
 export type PluginStatusHealth =

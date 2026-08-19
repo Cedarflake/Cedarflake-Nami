@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/config",
+  "name": "@nami/config",
   "version": "0.1.0",
   "private": true,
   "type": "module",

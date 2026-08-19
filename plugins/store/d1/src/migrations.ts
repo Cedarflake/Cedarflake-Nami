@@ -2,11 +2,11 @@ import {
   createD1SchemaMigrationProvider as createSharedD1SchemaMigrationProvider,
   splitD1SchemaMigrationStatements as splitSharedD1SchemaMigrationStatements,
   type D1SchemaMigration,
-} from "@i0c/database-d1/migrations"
-import type { D1Database } from "@i0c/database-d1/types"
-import type { PluginSchemaMigrationProvider } from "@i0c/plugin-api"
+} from "@nami/database-d1/migrations"
+import type { D1Database } from "@nami/database-d1/types"
+import type { PluginSchemaMigrationProvider } from "@nami/plugin-api"
 
-export type { D1SchemaMigration } from "@i0c/database-d1/migrations"
+export type { D1SchemaMigration } from "@nami/database-d1/migrations"
 
 export function createD1SchemaMigrationProvider(
   database: D1Database,

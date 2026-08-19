@@ -1,4 +1,4 @@
-import type { JsonObject } from "@i0c/plugin-api"
+import type { JsonObject } from "@nami/plugin-api"
 
 export interface CloudflareRuntimeAdapterOptions {
   useDefaultCache: boolean

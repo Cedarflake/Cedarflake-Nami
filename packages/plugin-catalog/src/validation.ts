@@ -2,12 +2,12 @@ import type {
   PluginConfigurationDeclaration,
   PluginManifest,
   PluginRegistryIssue,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 import {
   arePluginManifestsEquivalent,
   StaticPluginRegistry,
   validatePluginManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import { installedPluginManifests } from "./catalog"
 

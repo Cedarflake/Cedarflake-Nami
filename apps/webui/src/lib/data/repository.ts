@@ -6,8 +6,8 @@ import type {
   DataRepositorySnapshot,
   DataRepositoryWriteInput,
   DataRepositoryWriteResult,
-} from "@i0c/config";
-import type { AtomicVersionedDataRepository } from "@i0c/plugin-api";
+} from "@nami/config";
+import type { AtomicVersionedDataRepository } from "@nami/plugin-api";
 
 export type AppDataRepository = AtomicVersionedDataRepository<
   DataDocumentKind,

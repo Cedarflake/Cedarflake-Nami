@@ -1,4 +1,4 @@
-import type { AnalyticsDomainStoreShape } from "@i0c/analytics-domain/store"
+import type { AnalyticsDomainStoreShape } from "@nami/analytics-domain/store"
 import type {
   DataDocument,
   DataDocumentKind,
@@ -7,20 +7,20 @@ import type {
   DataRepositorySnapshot,
   DataRepositoryWriteInput,
   DataRepositoryWriteResult,
-} from "@i0c/config"
+} from "@nami/config"
 import type {
   AnalyticsStore,
   AnalyticsStoreTypes,
   AtomicVersionedDataRepository,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
-export type I0cAnalyticsStore = AnalyticsStore<
+export type NamiAnalyticsStore = AnalyticsStore<
   AnalyticsDomainStoreShape & AnalyticsStoreTypes
 > & {
   readonly configured: boolean
 }
 
-export type I0cDataRepository = AtomicVersionedDataRepository<
+export type NamiDataRepository = AtomicVersionedDataRepository<
   DataDocumentKind,
   DataRepositoryReadOptions,
   DataRepositoryWriteInput,

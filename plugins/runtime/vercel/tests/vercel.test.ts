@@ -5,7 +5,7 @@ import {
   assertPluginManifest,
   assertRuntimePlatformContract,
   assertRuntimePlatformPlugin,
-} from "@i0c/plugin-testkit"
+} from "@nami/plugin-testkit"
 
 import { vercelRuntimeManifest } from "../src/manifest"
 import { createVercelAdapter, runtimePlatformPlugin } from "../src/runtime"
@@ -18,7 +18,7 @@ test("declares a valid manifest and adapts Vercel requests", async () => {
     async (_request, context) => {
       assert.equal(context.provider, "vercel")
       assert.equal(context.country, "CN")
-      assert.equal(context.readEnvironment?.("I0C_SECRET"), "test-key")
+      assert.equal(context.readEnvironment?.("NAMI_SECRET"), "test-key")
       return new Response("ok")
     },
     {

@@ -4,7 +4,7 @@ import type {
   DataRepositorySnapshot,
   RedirectsConfig,
   RuntimeDataSnapshot,
-} from "@i0c/config";
+} from "@nami/config";
 
 import { parseDataConfig } from "@/lib/configuration/parse-data-config";
 import { getAppDataSnapshot } from "@/lib/data/documents";

@@ -56,7 +56,7 @@ export default async function SetupPage({ params }: SetupPageProps) {
       <SetupStatePanel
         title={t("secretMissing")}
         description={t("secretMissingHelp")}
-        detail="I0C_SECRET"
+        detail="NAMI_SECRET"
       />
     );
   }
@@ -78,7 +78,7 @@ export default async function SetupPage({ params }: SetupPageProps) {
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.4em] text-muted">
               <span aria-hidden="true" className="h-1 w-8 rounded-full bg-accent" />
-              i0c.cc
+              nami
             </div>
             <LanguageSwitcher />
           </div>
@@ -127,7 +127,7 @@ function SetupStatePanel({
         <Card elevation="flat" padding="lg">
           <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.4em] text-muted">
             <span aria-hidden="true" className="h-1 w-8 rounded-full bg-accent" />
-            i0c.cc
+            nami
           </div>
           <h1 className="mt-6 text-2xl font-semibold text-ink">{title}</h1>
           <p className="mt-3 text-sm leading-6 text-muted">{description}</p>

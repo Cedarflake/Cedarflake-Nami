@@ -1,6 +1,6 @@
-# `@i0c/database-d1`
+# `@nami/database-d1`
 
-Shared Cloudflare D1 infrastructure for i0c plugins.
+Shared Cloudflare D1 infrastructure for nami plugins.
 
 The package exposes a small Binding-compatible database contract, checked operation helpers, an HTTP REST transport for non-Cloudflare hosts, and reusable migration mechanics. Domain tables and SQL remain owned by each Repository or Analytics Store plugin.
 

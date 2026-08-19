@@ -1,4 +1,4 @@
-import { createRuntimeDeployment } from "@i0c/runtime-host"
+import { createRuntimeDeployment } from "@nami/runtime-host"
 import {
   installedRuntimePlatformManifests,
   runtimePlatformPlugin,

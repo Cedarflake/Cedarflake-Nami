@@ -8,7 +8,7 @@ import {
   proxyOptionLimits,
   type ProxyHeaderDirection,
   type ProxyHeaderOverrides,
-} from "@i0c/config";
+} from "@nami/config";
 
 import { Button } from "@/components/ui/controls/button";
 import {

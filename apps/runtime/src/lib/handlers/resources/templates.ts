@@ -191,7 +191,7 @@ export const notFoundPageHtml = `<!doctype html>
           <div class="brand-row">
             <div class="brand">
               <span class="brand-mark" aria-hidden="true"></span>
-              i0c.cc
+              nami
             </div>
           </div>
 

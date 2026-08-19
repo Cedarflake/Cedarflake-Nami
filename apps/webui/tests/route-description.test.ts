@@ -11,7 +11,7 @@ import {
 
 test("resolves a favicon service URL from the target hostname", () => {
   assert.equal(
-    getTargetFaviconUrl("https://docs.example.com/guide?from=i0c"),
+    getTargetFaviconUrl("https://docs.example.com/guide?from=nami"),
     "https://unavatar.webp.se/docs.example.com?fallback=false",
   );
   assert.equal(getTargetFaviconUrl("/relative-target"), null);

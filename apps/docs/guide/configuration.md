@@ -56,12 +56,12 @@ Plugin settings store environment-variable names:
 ```json
 {
   "secrets": {
-    "writeKey": "I0C_SECRET"
+    "writeKey": "NAMI_SECRET"
   }
 }
 ```
 
-This means “read the secret from `I0C_SECRET` at runtime.” It does not store the secret value in the database. Actual values stay in the WebUI, Runtime, or database provider's environment settings.
+This means “read the secret from `NAMI_SECRET` at runtime.” It does not store the secret value in the database. Actual values stay in the WebUI, Runtime, or database provider's environment settings.
 
 ## Choices that are not editable here
 

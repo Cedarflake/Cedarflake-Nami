@@ -7,7 +7,7 @@ description: 用仓库内的 SDK 生成、实现、注册并检查一个 Runtime
 
 写插件最快的入口是根目录的生成器。本页以 `request-sampler` 为例，从生成包开始，一直做到 Runtime 能够安装它。
 
-生成器背后使用 `@i0c/plugin-sdk`。这个包把 Manifest、配置校验和宿主装配中重复的部分收在一起；具体功能仍由插件自己实现。它只服务当前仓库，插件也仍要跟 Runtime 或 WebUI 一起构建。
+生成器背后使用 `@nami/plugin-sdk`。这个包把 Manifest、配置校验和宿主装配中重复的部分收在一起；具体功能仍由插件自己实现。它只服务当前仓库，插件也仍要跟 Runtime 或 WebUI 一起构建。
 
 如果你要写的是新平台或新数据库，前面的 Manifest 和配置步骤仍然适用，具体接口则在[编写适配器](/zh-CN/plugins/adapters)中说明。
 
@@ -20,7 +20,7 @@ description: 用仓库内的 SDK 生成、实现、注册并检查一个 Runtime
 - 共享 Repository 与 Analytics Store 契约；
 - 生成统一插件包结构的 Workspace 脚手架。
 
-一般插件只需要 `@i0c/plugin-sdk`。`@i0c/plugin-api`、`@i0c/runtime-host` 与 `@i0c/runtime-build` 更靠近宿主和共享协议，不必为了完成普通插件而直接引用。
+一般插件只需要 `@nami/plugin-sdk`。`@nami/plugin-api`、`@nami/runtime-host` 与 `@nami/runtime-build` 更靠近宿主和共享协议，不必为了完成普通插件而直接引用。
 
 ## 1. 生成插件包
 
@@ -52,10 +52,10 @@ feature
 ```ts
 import {
   defineRuntimeFeatureManifest,
-} from "@i0c/plugin-sdk"
+} from "@nami/plugin-sdk"
 
 export const manifest = defineRuntimeFeatureManifest({
-  id: "@i0c/feature-request-sampler",
+  id: "@nami/feature-request-sampler",
   name: "Request sampler",
   version: "0.1.0",
   description: {
@@ -75,7 +75,7 @@ export const manifest = defineRuntimeFeatureManifest({
 ```ts
 import {
   definePluginConfiguration,
-} from "@i0c/plugin-sdk"
+} from "@nami/plugin-sdk"
 
 interface RequestSamplerConfig {
   rate: number
@@ -115,7 +115,7 @@ export const configuration = definePluginConfiguration<RequestSamplerConfig>({
 ```ts
 import {
   defineRuntimeFeaturePlugin,
-} from "@i0c/plugin-sdk/runtime"
+} from "@nami/plugin-sdk/runtime"
 
 import { manifest } from "./manifest"
 
@@ -146,7 +146,7 @@ Runtime 辅助函数会先确认 Manifest 属于预期扩展点，再让 Host �
 ```ts
 import {
   defineWebUiAnalyticsStorePlugin,
-} from "@i0c/plugin-sdk/webui"
+} from "@nami/plugin-sdk/webui"
 
 import { manifest } from "./manifest"
 
@@ -165,9 +165,9 @@ WebUI 辅助函数覆盖数据 Repository、统计 Store 与静态扩展注册�
 
 根据插件归属选择注册位置：
 
-- Runtime Installation：`i0c.runtime.config.ts`；
-- 配置校验使用的 Runtime Manifest：`i0c.runtime.manifests.ts`；
-- WebUI Installation：`i0c.webui.config.ts`；
+- Runtime Installation：`nami.runtime.config.ts`；
+- 配置校验使用的 Runtime Manifest：`nami.runtime.manifests.ts`；
+- WebUI Installation：`nami.webui.config.ts`；
 - WebUI Manifest 或静态扩展：对应的 WebUI 根注册表。
 
 使用 pnpm 把插件包加入根 Workspace 依赖。为现有扩展槽增加另一种实现时，不要再给 Host Core 增加 `switch`。
@@ -177,8 +177,8 @@ WebUI 辅助函数覆盖数据 Repository、统计 Store 与静态扩展注册�
 ## 7. 验证插件
 
 ```sh
-pnpm --filter @i0c/plugin-sdk check
-pnpm --filter @i0c/plugin-sdk test
+pnpm --filter @nami/plugin-sdk check
+pnpm --filter @nami/plugin-sdk test
 pnpm plugins:check
 ```
 
@@ -187,8 +187,8 @@ pnpm plugins:check
 ## 适配器专用契约
 
 - Runtime Platform 把平台入口适配到 `RuntimeRequestHandler`。
-- Data Repository 实现 `I0cDataRepository`，管理带版本的配置和规则文档。
-- Analytics Store 实现 `I0cAnalyticsStore`，负责事件写入、查询、聚合重建与保留。
+- Data Repository 实现 `NamiDataRepository`，管理带版本的配置和规则文档。
+- Analytics Store 实现 `NamiAnalyticsStore`，负责事件写入、查询、聚合重建与保留。
 - 数据库适配器可以暴露 `PluginSchemaMigrationProvider`，提供首次初始化与后续 Schema 更新。
 
 注册流程与当前参考实现见[编写适配器](/zh-CN/plugins/adapters)。

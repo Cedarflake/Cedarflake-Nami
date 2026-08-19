@@ -1,11 +1,11 @@
 import {
   PLUGIN_API_VERSION,
   type PluginManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import { d1AnalyticsStoreConfigSchema } from "./config"
 
-export const D1_ANALYTICS_STORE_PLUGIN_ID = "@i0c/analytics-store-d1"
+export const D1_ANALYTICS_STORE_PLUGIN_ID = "@nami/analytics-store-d1"
 
 export const d1AnalyticsStoreManifest = {
   id: D1_ANALYTICS_STORE_PLUGIN_ID,

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
-import type { JsonObject } from "@i0c/plugin-api"
+import type { JsonObject } from "@nami/plugin-api"
 
 import { definePluginConfiguration } from "../src/configuration"
 

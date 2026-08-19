@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { useTranslations } from "next-intl"
 
-import type { AnalyticsTrendComparison } from "@i0c/analytics-domain/types"
+import type { AnalyticsTrendComparison } from "@nami/analytics-domain/types"
 
 import { cardClassName } from "@/components/ui/surfaces/card"
 

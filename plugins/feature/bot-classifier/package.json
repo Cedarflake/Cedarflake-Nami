@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/plugin-feature-bot-classifier",
+  "name": "@nami/plugin-feature-bot-classifier",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -16,11 +16,11 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
-    "@i0c/analytics-domain": "workspace:*",
-    "@i0c/plugin-api": "workspace:*"
+    "@nami/analytics-domain": "workspace:*",
+    "@nami/plugin-api": "workspace:*"
   },
   "devDependencies": {
-    "@i0c/plugin-testkit": "workspace:*",
+    "@nami/plugin-testkit": "workspace:*",
     "@types/node": "^25.5.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"

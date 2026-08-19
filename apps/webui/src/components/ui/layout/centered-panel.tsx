@@ -18,7 +18,7 @@ export function CenteredPanel({ children, headerAction }: CenteredPanelProps) {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.4em] text-muted">
             <span aria-hidden="true" className="h-1 w-8 rounded-full bg-accent" />
-            i0c.cc
+            nami
           </div>
 
           {headerAction}

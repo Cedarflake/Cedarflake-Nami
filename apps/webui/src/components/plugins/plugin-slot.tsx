@@ -1,6 +1,6 @@
 "use client";
 
-import type { WebUiExtensionSlot } from "@i0c/plugin-api";
+import type { WebUiExtensionSlot } from "@nami/plugin-api";
 
 import { installedWebUiExtensions } from "./extension-registry";
 

@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/plugin-testkit",
+  "name": "@nami/plugin-testkit",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -21,8 +21,8 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
-    "@i0c/config": "workspace:*",
-    "@i0c/plugin-api": "workspace:*"
+    "@nami/config": "workspace:*",
+    "@nami/plugin-api": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

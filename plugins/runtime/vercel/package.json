@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/plugin-runtime-vercel",
+  "name": "@nami/plugin-runtime-vercel",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -17,12 +17,12 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
-    "@i0c/plugin-api": "workspace:*",
-    "@i0c/runtime-build": "workspace:*",
+    "@nami/plugin-api": "workspace:*",
+    "@nami/runtime-build": "workspace:*",
     "@vercel/functions": "^3.7.5"
   },
   "devDependencies": {
-    "@i0c/plugin-testkit": "workspace:*",
+    "@nami/plugin-testkit": "workspace:*",
     "@types/node": "^25.5.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"

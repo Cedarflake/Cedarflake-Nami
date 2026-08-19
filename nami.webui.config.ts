@@ -1,16 +1,16 @@
 import {
   assertBootstrapConfigCompatibility,
   bootstrapConfig,
-} from "@i0c/config"
-import type { D1Database } from "@i0c/database-d1"
-import { createD1RestDatabase } from "@i0c/database-d1/rest"
-import type { GitHubFetch } from "@i0c/plugin-github-data/webui"
+} from "@nami/config"
+import type { D1Database } from "@nami/database-d1"
+import { createD1RestDatabase } from "@nami/database-d1/rest"
+import type { GitHubFetch } from "@nami/plugin-github-data/webui"
 import {
   defineWebUiPluginInstallations,
   type WebUiDataRepositoryCreateContext,
-} from "@i0c/plugin-sdk/webui"
+} from "@nami/plugin-sdk/webui"
 
-import { webUiPluginDescriptors } from "./i0c.webui.manifests"
+import { webUiPluginDescriptors } from "./nami.webui.manifests"
 
 const webuiFetch: GitHubFetch = (input, init) => fetch(input, init)
 
@@ -29,8 +29,8 @@ export const webUiPluginInstallations = defineWebUiPluginInstallations({
           { resolvePostgresAnalyticsStoreConfig },
           { createPostgresAnalyticsStore },
         ] = await Promise.all([
-          import("@i0c/plugin-analytics-store-postgres/config"),
-          import("@i0c/plugin-analytics-store-postgres/store"),
+          import("@nami/plugin-analytics-store-postgres/config"),
+          import("@nami/plugin-analytics-store-postgres/store"),
         ])
         const databaseUrlBinding = declaration.secrets?.databaseUrl
           ?? webUiPluginDescriptors.analyticsStores[0].manifest
@@ -62,8 +62,8 @@ export const webUiPluginInstallations = defineWebUiPluginInstallations({
           { resolveD1AnalyticsStoreConfig },
           { createD1AnalyticsStore },
         ] = await Promise.all([
-          import("@i0c/plugin-analytics-store-d1/config"),
-          import("@i0c/plugin-analytics-store-d1/store"),
+          import("@nami/plugin-analytics-store-d1/config"),
+          import("@nami/plugin-analytics-store-d1/store"),
         ])
         return createD1AnalyticsStore(
           resolveD1AnalyticsStoreConfig(declaration.config),
@@ -80,7 +80,7 @@ async function createConfiguredDataRepository(
   const repository = bootstrapConfig.data.repository
   if (repository.provider === "postgres") {
     const { createPostgresDataRepository } = await import(
-      "@i0c/plugin-data-repository-postgres/repository"
+      "@nami/plugin-data-repository-postgres/repository"
     )
     const connectionString = context
       .readEnvironment(repository.databaseUrlBinding)
@@ -100,12 +100,12 @@ async function createConfiguredDataRepository(
       bootstrapConfig.webui.d1.databaseIds.dataRepository,
     )
     const { createD1DataRepository } = await import(
-      "@i0c/plugin-data-repository-d1/repository"
+      "@nami/plugin-data-repository-d1/repository"
     )
     return createD1DataRepository(database)
   }
   const { createGitHubContentsRepository } = await import(
-    "@i0c/plugin-github-data/webui"
+    "@nami/plugin-github-data/webui"
   )
   return createGitHubContentsRepository(
     {

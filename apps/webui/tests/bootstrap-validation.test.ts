@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   assertBootstrapConfigCompatibility,
   bootstrapConfig,
-} from "@i0c/config";
+} from "@nami/config";
 
 test("accepts native D1 bindings without REST identifiers", () => {
   const config = structuredClone(bootstrapConfig);

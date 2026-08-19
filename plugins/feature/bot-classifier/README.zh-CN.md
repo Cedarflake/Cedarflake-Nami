@@ -5,8 +5,8 @@
 远程声明可以设置 `hookTimeoutMs` 或关闭该 Feature。插件不会保留 IP、完整 User-Agent、查询参数、目标地址或原始未匹配路径。
 
 ```bash
-pnpm --filter @i0c/plugin-feature-bot-classifier check
-pnpm --filter @i0c/plugin-feature-bot-classifier test
+pnpm --filter @nami/plugin-feature-bot-classifier check
+pnpm --filter @nami/plugin-feature-bot-classifier test
 ```
 
 ---

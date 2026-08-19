@@ -13,21 +13,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { defaultDataConfig, type DataConfig } from "@i0c/config";
+import { defaultDataConfig, type DataConfig } from "@nami/config";
 import {
   resolveHttpSnapshotSourceBootstrapConfig
-} from "@i0c/plugin-http-snapshot-source/config";
+} from "@nami/plugin-http-snapshot-source/config";
 import {
   httpSnapshotSourceManifest
-} from "@i0c/plugin-http-snapshot-source/manifest";
+} from "@nami/plugin-http-snapshot-source/manifest";
 import {
   httpSnapshotSourcePlugin
-} from "@i0c/plugin-http-snapshot-source/runtime";
+} from "@nami/plugin-http-snapshot-source/runtime";
 import {
   runtimePlatformManifests,
   runtimePluginInstallations
-} from "@i0c/runtime-config";
-import type { RuntimePluginInstallations } from "@i0c/runtime-host/installations";
+} from "@nami/runtime-config";
+import type { RuntimePluginInstallations } from "@nami/runtime-host/installations";
 
 import {
   loadDataConfig,
@@ -119,7 +119,7 @@ test("keeps the safe default when remote configuration disables the required dat
         ...defaultDataConfig,
         plugins: {
           ...defaultDataConfig.plugins,
-          "@i0c/http-snapshot-source": { enabled: false }
+          "@nami/http-snapshot-source": { enabled: false }
         }
       }
     ))
@@ -137,7 +137,7 @@ test("keeps the safe default when remote configuration disables the active platf
       "https://config.example/disabled-platform.json"
     ),
     provider: "cloudflare",
-    platformPluginId: "@i0c/runtime-cloudflare",
+    platformPluginId: "@nami/runtime-cloudflare",
     runtimePlatformManifests,
     now: () => 0,
     fetchImpl: async () => Response.json(createSnapshot(
@@ -146,7 +146,7 @@ test("keeps the safe default when remote configuration disables the active platf
         ...defaultDataConfig,
         plugins: {
           ...defaultDataConfig.plugins,
-          "@i0c/runtime-cloudflare": { enabled: false }
+          "@nami/runtime-cloudflare": { enabled: false }
         }
       }
     ))
@@ -166,7 +166,7 @@ test("keeps the last valid configuration when a plugin-invalid update is publish
       "https://config.example/plugin-invalid-update.json"
     ),
     provider: "cloudflare",
-    platformPluginId: "@i0c/runtime-cloudflare",
+    platformPluginId: "@nami/runtime-cloudflare",
     runtimePlatformManifests,
     now: () => now,
     fetchImpl: async () => {
@@ -179,7 +179,7 @@ test("keeps the last valid configuration when a plugin-invalid update is publish
             ...defaultDataConfig,
             plugins: {
               ...defaultDataConfig.plugins,
-              "@i0c/runtime-cloudflare": { enabled: false }
+              "@nami/runtime-cloudflare": { enabled: false }
             }
           }
       ));
@@ -222,8 +222,8 @@ test("accepts a replaceable data source without using the remote fetch adapter",
 
 test("loads one atomic snapshot through an installed HTTP data source", async () => {
   const plugins = { ...defaultDataConfig.plugins };
-  delete plugins["@i0c/github-raw-source"];
-  plugins["@i0c/http-snapshot-source"] = {
+  delete plugins["@nami/github-raw-source"];
+  plugins["@nami/http-snapshot-source"] = {
     enabled: true,
     version: 1
   };

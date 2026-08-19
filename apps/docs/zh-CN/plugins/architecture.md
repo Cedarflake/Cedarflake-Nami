@@ -1,11 +1,11 @@
 ---
 title: 插件架构
-description: i0c.cc 的编译期插件如何隔开平台、数据库和统计实现。
+description: nami 的编译期插件如何隔开平台、数据库和统计实现。
 ---
 
 # 插件架构
 
-i0c.cc 使用插件层隔离平台和存储实现。同一套路由代码要运行在 Cloudflare、Vercel 和 Netlify 上，规则也可能保存在 PostgreSQL、D1 或 GitHub。若把这些实现直接写进应用，增加平台就要修改 Runtime，更换数据库也要修改 WebUI。
+nami 使用插件层隔离平台和存储实现。同一套路由代码要运行在 Cloudflare、Vercel 和 Netlify 上，规则也可能保存在 PostgreSQL、D1 或 GitHub。若把这些实现直接写进应用，增加平台就要修改 Runtime，更换数据库也要修改 WebUI。
 
 现在应用只认几份稳定契约，具体实现放在各自的 Workspace 包里。这里说的“插件”就是这些构建时装配的包，不是可以在网页上下载安装的扩展。
 
@@ -18,7 +18,7 @@ i0c.cc 使用插件层隔离平台和存储实现。同一套路由代码要运�
 拿 PostgreSQL 规则存储举例：
 
 1. `plugins/repository/postgres` 实现规则存储契约；
-2. `i0c.webui.config.ts` 把它装进 WebUI；
+2. `nami.webui.config.ts` 把它装进 WebUI；
 3. 启动配置选择 PostgreSQL；
 4. 部署环境提供 `DATABASE_URL`；
 5. WebUI 以后只通过共享接口读写规则，不需要在 API Route 里判断数据库类型。
@@ -49,7 +49,7 @@ Runtime 一侧有平台适配器、快照数据源、统计投递和受限的功
 
 有些选择在应用启动前就必须知道。例如 WebUI 要先知道去 PostgreSQL 还是 D1 读取实例文档，Runtime 也要先知道快照地址。这些内容放在启动配置中。
 
-应用成功打开实例文档后，缓存时间、访问名单、插件开关等设置才由 WebUI 编辑。真实密钥始终留在部署平台，文档中只写 `I0C_SECRET`、`DATABASE_URL` 这样的绑定名称。
+应用成功打开实例文档后，缓存时间、访问名单、插件开关等设置才由 WebUI 编辑。真实密钥始终留在部署平台，文档中只写 `NAMI_SECRET`、`DATABASE_URL` 这样的绑定名称。
 
 因此有三处各管一件事：
 
@@ -61,9 +61,9 @@ Runtime 一侧有平台适配器、快照数据源、统计投递和受限的功
 
 ## 写新插件时用哪些包
 
-一般从 `@i0c/plugin-sdk` 开始。它提供 Manifest、配置和 Runtime/WebUI 插件的类型化辅助函数。`@i0c/plugin-testkit` 用来检查实现是否遵守现有契约。
+一般从 `@nami/plugin-sdk` 开始。它提供 Manifest、配置和 Runtime/WebUI 插件的类型化辅助函数。`@nami/plugin-testkit` 用来检查实现是否遵守现有契约。
 
-`@i0c/plugin-api`、`@i0c/runtime-host` 和 `@i0c/runtime-build` 更靠近宿主。普通插件不应直接导入 `apps/runtime` 或 `apps/webui` 的内部文件；如果非这样不可，通常应该先补一项共享契约。
+`@nami/plugin-api`、`@nami/runtime-host` 和 `@nami/runtime-build` 更靠近宿主。普通插件不应直接导入 `apps/runtime` 或 `apps/webui` 的内部文件；如果非这样不可，通常应该先补一项共享契约。
 
 PostgreSQL 和 D1 各有一层小型数据库共享包，保存同类插件都要用的连接、事务和结构更新工具。规则与统计业务仍留在各自插件中。
 
@@ -73,6 +73,6 @@ PostgreSQL 和 D1 各有一层小型数据库共享包，保存同类插件都�
 
 应用核心不需要认识新的插件 ID。只有当你增加的是一种全新的扩展位置，而不是某个已有位置的另一种实现时，才需要修改共享协议和宿主。
 
-这套机制目前只服务 i0c.cc 自身的源码组织，不包含插件市场、运行时加载或不受信任代码沙箱，也没有将 SDK 和插件发布为公共包的计划。
+这套机制目前只服务 nami 自身的源码组织，不包含插件市场、运行时加载或不受信任代码沙箱，也没有将 SDK 和插件发布为公共包的计划。
 
 准备动手时继续看[插件 SDK](/zh-CN/plugins/sdk)。要接入新平台或数据库，直接去[编写适配器](/zh-CN/plugins/adapters)。

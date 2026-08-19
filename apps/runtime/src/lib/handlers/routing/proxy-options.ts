@@ -21,7 +21,7 @@ import {
   type ProxyHeaderOverrides,
   type ProxyOptions,
   type ProxyRedirectMode
-} from "@i0c/config";
+} from "@nami/config";
 
 export interface ResolvedProxyOptions {
   cookieMode: ProxyCookieMode;

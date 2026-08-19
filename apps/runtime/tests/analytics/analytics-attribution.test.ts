@@ -23,7 +23,7 @@ import {
   verifyAttributionToken
 } from "../../src/lib/handlers/analytics/attribution";
 
-const attributionContext = "i0c.cc/analytics-attribution/v1";
+const attributionContext = "nami/analytics-attribution/v1";
 const sourceId = "i0c.cc";
 const writeKey = "analytics-test-write-key-0123456789";
 const nowMilliseconds = Date.UTC(2026, 6, 20, 0, 0, 0);

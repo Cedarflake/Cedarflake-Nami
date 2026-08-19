@@ -1,4 +1,4 @@
-import type { PluginManifest } from "@i0c/plugin-api";
+import type { PluginManifest } from "@nami/plugin-api";
 
 interface DataRepositoryEditorCapabilities {
   usesManualSave: boolean;

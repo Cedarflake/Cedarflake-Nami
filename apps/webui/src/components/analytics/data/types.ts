@@ -1,4 +1,4 @@
-import type { AnalyticsTrendComparison } from "@i0c/analytics-domain/types"
+import type { AnalyticsTrendComparison } from "@nami/analytics-domain/types"
 
 export const analyticsRanges = [1, 7, 30, 90] as const
 

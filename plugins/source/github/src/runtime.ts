@@ -3,12 +3,12 @@ import {
   validateRedirectsConfig,
   type DataConfig,
   type RedirectsConfig,
-} from "@i0c/config"
+} from "@nami/config"
 import type {
   PluginLogger,
   RuntimeCache,
   RuntimeDataSource,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import type { GitHubRawSourceBootstrapConfig } from "./config"
 import { githubRawSourceManifest } from "./manifest"

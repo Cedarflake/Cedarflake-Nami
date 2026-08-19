@@ -60,7 +60,7 @@
   width: 100%;
 }
 
-.i0c-footer-links {
+.nami-footer-links {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
@@ -68,17 +68,17 @@
   row-gap: 8px;
 }
 
-.i0c-footer-links a {
+.nami-footer-links a {
   color: var(--vp-c-text-2);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
-.i0c-footer-links a:hover {
+.nami-footer-links a:hover {
   color: var(--vp-c-brand-1);
 }
 
-.i0c-footer-separator {
+.nami-footer-separator {
   width: 1px;
   height: 1em;
   margin: 0 12px;

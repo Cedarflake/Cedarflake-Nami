@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { validateRedirectsConfig } from "@i0c/config";
+import { validateRedirectsConfig } from "@nami/config";
 
 import { validateRedirectConfig } from "../src/lib/redirects/config-validation";
 

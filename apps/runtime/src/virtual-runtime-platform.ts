@@ -1,7 +1,7 @@
 import type {
   RuntimePlatformManifest,
   RuntimePlatformPlugin,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 export declare const installedRuntimePlatformManifests:
   readonly RuntimePlatformManifest[]

@@ -4,12 +4,12 @@ import {
   type DataConfig,
   type RedirectsConfig,
   type RuntimeDataSnapshot,
-} from "@i0c/config"
+} from "@nami/config"
 import type {
   PluginLogger,
   RuntimeCache,
   RuntimeDataSource,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import type { HttpSnapshotSourceBootstrapConfig } from "./config"
 import { httpSnapshotSourceManifest } from "./manifest"

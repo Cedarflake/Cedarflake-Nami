@@ -1,12 +1,12 @@
 import {
   PLUGIN_API_VERSION,
   type PluginManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import { d1DataRepositoryPluginConfigSchema } from "./config"
 
 export const d1DataRepositoryManifest = {
-  id: "@i0c/data-repository-d1",
+  id: "@nami/data-repository-d1",
   name: "Cloudflare D1 data repository",
   version: "0.1.0",
   apiVersion: PLUGIN_API_VERSION,

@@ -1,6 +1,6 @@
-# i0c.cc documentation
+# nami documentation
 
-VitePress source for the bilingual i0c.cc user, deployment, operations, and extension documentation.
+VitePress source for the bilingual nami user, deployment, operations, and extension documentation.
 
 Run commands from the repository root:
 

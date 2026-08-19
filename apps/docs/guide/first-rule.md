@@ -20,9 +20,9 @@ Make sure these are already in place:
 - the WebUI opens and you can reach the rules page;
 - the current GitHub account can edit;
 - one Runtime is deployed and has a public domain;
-- the WebUI and Runtime use the same `I0C_SECRET`.
+- the WebUI and Runtime use the same `NAMI_SECRET`.
 
-If the public domain currently shows the i0c.cc 404 page, that is a good starting point. The request already reaches the Runtime; it simply has no rule yet.
+If the public domain currently shows the nami 404 page, that is a good starting point. The request already reaches the Runtime; it simply has no rule yet.
 
 ## 1. Open a rule group
 

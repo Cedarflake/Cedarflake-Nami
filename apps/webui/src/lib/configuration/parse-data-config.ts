@@ -1,4 +1,4 @@
-import type { DataConfig } from "@i0c/config";
+import type { DataConfig } from "@nami/config";
 
 import { validateInstanceDataConfig } from "@/lib/configuration/validation";
 import { resolveWebUiPlugins } from "@/lib/plugins/registry";

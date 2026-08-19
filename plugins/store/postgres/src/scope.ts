@@ -1,10 +1,10 @@
-import { resolveQueryRange, type QueryRange } from "@i0c/analytics-domain/range"
-import { ANALYTICS_ENTRY_DOMAIN_LOOKBACK_DAYS } from "@i0c/analytics-domain/store"
+import { resolveQueryRange, type QueryRange } from "@nami/analytics-domain/range"
+import { ANALYTICS_ENTRY_DOMAIN_LOOKBACK_DAYS } from "@nami/analytics-domain/store"
 import type {
   AnalyticsEntryDomainOption,
   AnalyticsQueryScope,
   AnalyticsScope,
-} from "@i0c/analytics-domain/types"
+} from "@nami/analytics-domain/types"
 
 import { getDatabase } from "./database"
 

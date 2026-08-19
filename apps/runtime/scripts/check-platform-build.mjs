@@ -32,7 +32,7 @@ if (!allowAdditionalEntries && javaScriptEntries.length !== 1) {
 
 const source = fs.readFileSync(path.join(distRoot, expectedEntry), "utf8")
 const forbiddenMarkers = [
-  "@i0c/runtime-build/config",
+  "@nami/runtime-build/config",
   "from \"postgres\"",
   "from 'postgres'",
   "from \"zod\"",

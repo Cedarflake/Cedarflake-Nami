@@ -18,7 +18,7 @@ test("rejects invalid PostgreSQL client limits before connecting", () => {
 test("rejects unsafe migration table identifiers before connecting", () => {
   assert.throws(
     () => createPostgresSchemaMigrationProvider({
-      advisoryLockName: "i0c.test.migrations",
+      advisoryLockName: "nami.test.migrations",
       connectionString: "postgres://example",
       emptySchemaMigrationsMessage: "No migrations",
       migrationTable: "migration; DROP TABLE users",

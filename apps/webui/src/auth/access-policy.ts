@@ -2,7 +2,7 @@ import "server-only";
 
 import type { JWT } from "next-auth/jwt";
 
-import type { DataConfig, WebUiAccessMode } from "@i0c/config";
+import type { DataConfig, WebUiAccessMode } from "@nami/config";
 
 import { getAuthoritativeDataConfig } from "@/lib/configuration/data-config";
 import { getAppSetupState } from "@/lib/setup/setup-state";

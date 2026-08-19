@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "i0c.cc 配置控制台",
+    "title": "nami 配置控制台",
     "description": "通过 WebUI 管理 redirects.json"
   },
   "auth": {
@@ -15,7 +15,7 @@
     "title": "初始化此部署",
     "description": "在当前选择的数据 Repository 中创建第一份实例配置和空规则集。当前登录的 GitHub 账号将成为首位管理员。",
     "secret": "实例密钥",
-    "secretHelp": "输入 WebUI 与所有 Runtime 部署共用的 I0C_SECRET。",
+    "secretHelp": "输入 WebUI 与所有 Runtime 部署共用的 NAMI_SECRET。",
     "webUiOrigin": "WebUI 地址",
     "runtimeOrigin": "Runtime 地址",
     "runtimePlatforms": "已部署的 Runtime 平台",
@@ -38,7 +38,7 @@
     "unsupported": "无法进行初始化",
     "unsupportedHelp": "当前选择的数据 Repository 没有提供初始化能力。",
     "secretMissing": "尚未配置实例密钥",
-    "secretMissingHelp": "请在 WebUI 部署环境中添加至少 32 字符的 I0C_SECRET，然后重新加载此页面。"
+    "secretMissingHelp": "请在 WebUI 部署环境中添加至少 32 字符的 NAMI_SECRET，然后重新加载此页面。"
   },
   "notFound": {
     "title": "404 · 页面未找到",
@@ -46,7 +46,7 @@
     "returnHome": "返回首页"
   },
   "header": {
-    "console": "i0c.cc 控制台",
+    "console": "nami 控制台",
     "workspaceLabel": "重定向管理",
     "openNavigation": "展开导航",
     "closeNavigation": "关闭导航",

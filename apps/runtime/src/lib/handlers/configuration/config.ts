@@ -10,7 +10,7 @@
  * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
  */
 
-import { bootstrapConfig } from "@i0c/config";
+import { bootstrapConfig } from "@nami/config";
 
 const dataSource = bootstrapConfig.data.github;
 const CONFIG_REPO = `${dataSource.owner}/${dataSource.repository}`;

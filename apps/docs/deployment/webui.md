@@ -23,7 +23,7 @@ If the WebUI must access resources in an organization that restricts OAuth Apps,
 
 ## 2. Create the instance secret
 
-The WebUI and every Runtime must share one `I0C_SECRET`. Generate one with Node.js:
+The WebUI and every Runtime must share one `NAMI_SECRET`. Generate one with Node.js:
 
 ```sh
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
@@ -33,7 +33,7 @@ Keep the result. It should be at least 32 characters, must never be committed, a
 
 ## 3. Create the Vercel project
 
-Connect your i0c.cc repository or fork and use these project settings:
+Connect your nami repository or fork and use these project settings:
 
 ```text
 Root Directory: apps/webui
@@ -52,7 +52,7 @@ The default PostgreSQL deployment needs:
 DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
 GITHUB_CLIENT_ID="your-client-id"
 GITHUB_CLIENT_SECRET="your-client-secret"
-I0C_SECRET="the-secret-generated-above"
+NAMI_SECRET="the-secret-generated-above"
 ```
 
 Add this when using D1:

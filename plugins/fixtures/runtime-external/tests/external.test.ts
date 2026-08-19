@@ -1,9 +1,9 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
-import { assertRuntimePlatformPlugin } from "@i0c/plugin-testkit"
+import { assertRuntimePlatformPlugin } from "@nami/plugin-testkit"
 
-import { runtimePluginInstallations } from "../i0c.runtime.config"
+import { runtimePluginInstallations } from "../nami.runtime.config"
 import { externalRuntimeFeatureManifest } from "../src/feature"
 import { runtimePlatformPlugin } from "../src/runtime"
 

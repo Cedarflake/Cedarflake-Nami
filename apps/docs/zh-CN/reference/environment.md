@@ -5,7 +5,7 @@ description: 查询 WebUI 和 Runtime 分别需要哪些环境变量，以及哪
 
 # 环境变量与密钥
 
-i0c.cc 早期有不少非敏感设置也放在环境变量里，改一次配置就要去几个平台分别操作。现在只保留密钥和平台注入的值；域名、缓存时间、访问名单和插件开关交给 WebUI 或启动配置。
+nami 早期有不少非敏感设置也放在环境变量里，改一次配置就要去几个平台分别操作。现在只保留密钥和平台注入的值；域名、缓存时间、访问名单和插件开关交给 WebUI 或启动配置。
 
 所以，遇到一个会经常修改、又不是凭据的值时，先给它找设置页或配置文件，不要继续增加环境变量。
 
@@ -15,7 +15,7 @@ i0c.cc 早期有不少非敏感设置也放在环境变量里，改一次配置�
 | --- | --- | --- |
 | `GITHUB_CLIENT_ID` | 始终 | GitHub OAuth Client ID |
 | `GITHUB_CLIENT_SECRET` | 始终 | GitHub OAuth Client Secret |
-| `I0C_SECRET` | 始终 | Session、首次初始化、快照、统计和归因签名 |
+| `NAMI_SECRET` | 始终 | Session、首次初始化、快照、统计和归因签名 |
 | `DATABASE_URL` | 使用 PostgreSQL 保存规则或统计 | 仅服务端读取的 PostgreSQL 连接地址 |
 | `CLOUDFLARE_D1_API_TOKEN` | WebUI 通过 Cloudflare API 访问 D1 | 仅服务端读取的 D1 读写 Token |
 | `NEXTAUTH_URL` | Auth.js 无法正确判断公开地址 | 覆盖 WebUI 的公开 URL，通常不需要手动填写 |
@@ -26,7 +26,7 @@ WebUI 是唯一连接数据库的应用。不要把 `DATABASE_URL` 或 D1 Token 
 
 | 变量 | 是否必填 | 用途 |
 | --- | --- | --- |
-| `I0C_SECRET` | 是 | 验证 WebUI 快照，并签名统计和归因事件 |
+| `NAMI_SECRET` | 是 | 验证 WebUI 快照，并签名统计和归因事件 |
 
 Runtime 和 WebUI 的值必须完全相同，且至少 32 个字符。Cloudflare、Vercel 和 Netlify 若同时部署，也都使用同一个值。
 
@@ -59,7 +59,7 @@ Runtime 和 WebUI 的值必须完全相同，且至少 32 个字符。Cloudflare
 
 前四项可以在 WebUI 设置页修改。D1 ID 和数据库类型要在应用打开可编辑数据前确定，因此放在仓库启动配置中；它们不是密钥，但修改后需要重新构建。
 
-## 轮换 `I0C_SECRET`
+## 轮换 `NAMI_SECRET`
 
 把轮换当作一次完整维护，而不是只改 WebUI：
 

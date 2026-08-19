@@ -1,11 +1,11 @@
 import "server-only";
 
-import type { DataConfig } from "@i0c/config";
+import type { DataConfig } from "@nami/config";
 import {
   PluginError,
   type PluginConfigurationDeclaration
-} from "@i0c/plugin-api";
-import { webUiPluginInstallations } from "@i0c/webui-config";
+} from "@nami/plugin-api";
+import { webUiPluginInstallations } from "@nami/webui-config";
 
 import { getEffectiveDataConfig } from "@/lib/configuration/data-config";
 import type { WebUiAnalyticsStore } from "@/lib/plugins/installations";
@@ -115,7 +115,7 @@ function requireAnalyticsStore(
 ): WebUiAnalyticsStore {
   if (!store) {
     throw new PluginError(
-      "@i0c/webui-host",
+      "@nami/webui-host",
       "PLUGIN_NOT_INSTALLED",
       "The selected analytics store is unavailable"
     );

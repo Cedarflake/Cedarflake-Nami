@@ -1,9 +1,9 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
-import { defaultDataConfig } from "@i0c/config"
-import type { RuntimePlatformManifest } from "@i0c/plugin-api"
-import { runtimePluginInstallations } from "@i0c/runtime-config"
+import { defaultDataConfig } from "@nami/config"
+import type { RuntimePlatformManifest } from "@nami/plugin-api"
+import { runtimePluginInstallations } from "@nami/runtime-config"
 
 import { resolveRuntimePluginConfigurations } from "../../src/plugins/registry"
 

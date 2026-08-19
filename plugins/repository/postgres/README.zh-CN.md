@@ -5,7 +5,7 @@ PostgreSQL 文档。它提供乐观并发写入和原子快照读取，同时不
 直接依赖 PostgreSQL。
 
 插件负责文档表结构、事务与领域查询；共用的 PostgreSQL 客户端创建和迁移历史校验位于
-`@i0c/database-postgres`。
+`@nami/database-postgres`。
 
 ## 前置条件
 
@@ -19,11 +19,11 @@ PostgreSQL 文档。它提供乐观并发写入和原子快照读取，同时不
 ## 命令
 
 ```bash
-pnpm --filter @i0c/plugin-data-repository-postgres check
-pnpm --filter @i0c/plugin-data-repository-postgres test
+pnpm --filter @nami/plugin-data-repository-postgres check
+pnpm --filter @nami/plugin-data-repository-postgres test
 pnpm database:init
 pnpm database:update postgres repository
-pnpm --filter @i0c/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
+pnpm --filter @nami/plugin-data-repository-postgres seed -- --config <config.json> --redirects <redirects.json>
 ```
 
 初始化、Schema 更新与 seed 命令都会修改所配置的数据库，不得把它们当成验证命令运行。正常首次部署应先初始化 Schema，再由 WebUI 在 GitHub 身份认证和共享实例密钥校验后原子创建两份文档。seed 继续用于受控的非交互导入；它会先校验两份文件，再在同一个事务中仅创建缺失文档，不会覆盖已有内容。

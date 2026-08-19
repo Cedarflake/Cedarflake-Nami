@@ -1,16 +1,16 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
-import { DataRepositoryConflictError } from "@i0c/config"
+import { DataRepositoryConflictError } from "@nami/config"
 import {
   createPostgresClient,
   type PostgresSql,
-} from "@i0c/database-postgres"
+} from "@nami/database-postgres"
 import {
   assertManagedDataRepositoryBehaviorContract,
   assertPluginManifest,
   assertVersionedDataRepositoryContract,
-} from "@i0c/plugin-testkit"
+} from "@nami/plugin-testkit"
 
 import {
   resolvePostgresDataRepositoryConnectionOptions,
@@ -203,16 +203,16 @@ test(
     })
 
     try {
-      await sql`DELETE FROM i0c_data_document_revision`
-      await sql`DELETE FROM i0c_data_document`
+      await sql`DELETE FROM nami_data_document_revision`
+      await sql`DELETE FROM nami_data_document`
       const repository = createPostgresDataRepository(
         { connectionString },
         { sql },
       )
       await assertManagedDataRepositoryBehaviorContract(repository)
     } finally {
-      await sql`DELETE FROM i0c_data_document_revision`
-      await sql`DELETE FROM i0c_data_document`
+      await sql`DELETE FROM nami_data_document_revision`
+      await sql`DELETE FROM nami_data_document`
       await sql.end({ timeout: 5 })
     }
   },
@@ -252,13 +252,13 @@ function createMemorySql(): PostgresSql {
     ...values: readonly unknown[]
   ) => {
     const statement = strings.join("?").replace(/\s+/g, " ").trim()
-    if (statement.startsWith("SELECT TO_REGCLASS('i0c_data_document')")) {
+    if (statement.startsWith("SELECT TO_REGCLASS('nami_data_document')")) {
       return [{
         document_table_exists: true,
         revision_table_exists: true,
       }]
     }
-    if (statement.startsWith("INSERT INTO i0c_data_document_revision")) {
+    if (statement.startsWith("INSERT INTO nami_data_document_revision")) {
       const kind = values[0] as MemoryRow["kind"]
       const revision = Number(values[1])
       const current = revisions.get(kind) ?? new Map()
@@ -276,7 +276,7 @@ function createMemorySql(): PostgresSql {
       return []
     }
     if (
-      statement.startsWith("INSERT INTO i0c_data_document")
+      statement.startsWith("INSERT INTO nami_data_document")
       && statement.includes("'config'")
       && statement.includes("'redirects'")
     ) {
@@ -302,7 +302,7 @@ function createMemorySql(): PostgresSql {
       }
       return inserted.map((row) => ({ ...row }))
     }
-    if (statement.startsWith("INSERT INTO i0c_data_document")) {
+    if (statement.startsWith("INSERT INTO nami_data_document")) {
       const kind = values[0] as MemoryRow["kind"]
       if (rows.has(kind)) {
         return []
@@ -317,7 +317,7 @@ function createMemorySql(): PostgresSql {
       rows.set(kind, row)
       return [{ ...row }]
     }
-    if (statement.startsWith("UPDATE i0c_data_document")) {
+    if (statement.startsWith("UPDATE nami_data_document")) {
       const kind = values[2] as MemoryRow["kind"]
       const current = rows.get(kind)
       if (!current || current.revision !== Number(values[3])) {
@@ -334,15 +334,15 @@ function createMemorySql(): PostgresSql {
       return [{ ...row }]
     }
     if (
-      statement.startsWith("SELECT kind FROM i0c_data_document")
-      && statement.includes("FROM i0c_data_document")
+      statement.startsWith("SELECT kind FROM nami_data_document")
+      && statement.includes("FROM nami_data_document")
     ) {
       return [...rows.values()]
         .sort((left, right) => left.kind.localeCompare(right.kind))
         .map((row) => ({ kind: row.kind }))
     }
     if (
-      statement.includes("FROM i0c_data_document_revision")
+      statement.includes("FROM nami_data_document_revision")
       && statement.includes("ORDER BY revision DESC")
     ) {
       const kind = values[0] as MemoryRow["kind"]
@@ -357,7 +357,7 @@ function createMemorySql(): PostgresSql {
         .map((row) => ({ ...row }))
     }
     if (
-      statement.includes("FROM i0c_data_document_revision")
+      statement.includes("FROM nami_data_document_revision")
       && statement.includes("AND revision =")
     ) {
       const row = revisions
@@ -372,7 +372,7 @@ function createMemorySql(): PostgresSql {
     }
     if (
       statement.startsWith("SELECT revision")
-      && statement.includes("FROM i0c_data_document")
+      && statement.includes("FROM nami_data_document")
     ) {
       const row = rows.get(values[0] as MemoryRow["kind"])
       return row ? [{ revision: row.revision }] : []

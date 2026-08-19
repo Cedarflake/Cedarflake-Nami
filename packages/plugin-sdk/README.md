@@ -1,6 +1,6 @@
 # Plugin SDK
 
-`@i0c/plugin-sdk` is the internal authoring SDK for i0c.cc compile-time plugins. It reduces repeated manifest, configuration, installation, and host-wiring code while preserving explicit build-time composition.
+`@nami/plugin-sdk` is the internal authoring SDK for nami compile-time plugins. It reduces repeated manifest, configuration, installation, and host-wiring code while preserving explicit build-time composition.
 
 The SDK is private to this workspace. It is not a dynamic loader, package marketplace, or compatibility promise for arbitrary third-party binaries. A plugin remains a normal workspace dependency that is selected in the relevant Runtime or WebUI installation configuration and bundled during the build.
 
@@ -14,7 +14,7 @@ The SDK is private to this workspace. It is not a dynamic loader, package market
 - Shared repository and analytics store contracts for plugin authors
 - A workspace scaffolder for creating a consistent plugin package
 
-The lower-level protocol remains in `@i0c/plugin-api`. Host behavior remains in `@i0c/runtime-host`, `@i0c/runtime-build`, and the WebUI. Use this SDK when authoring a plugin; use the lower-level packages when implementing or maintaining host infrastructure.
+The lower-level protocol remains in `@nami/plugin-api`. Host behavior remains in `@nami/runtime-host`, `@nami/runtime-build`, and the WebUI. Use this SDK when authoring a plugin; use the lower-level packages when implementing or maintaining host infrastructure.
 
 ## Create a plugin
 
@@ -35,7 +35,7 @@ analytics-store
 feature
 ```
 
-The command creates a package under the matching `plugins/<category>/` directory. It does not activate the plugin automatically. Add the generated plugin to `i0c.runtime.config.ts`, `i0c.webui.config.ts`, or the relevant WebUI extension registry so deployment choices remain explicit and reviewable.
+The command creates a package under the matching `plugins/<category>/` directory. It does not activate the plugin automatically. Add the generated plugin to `nami.runtime.config.ts`, `nami.webui.config.ts`, or the relevant WebUI extension registry so deployment choices remain explicit and reviewable.
 
 ## Write an adapter
 
@@ -44,12 +44,12 @@ Self-authored adapters follow this compile-time flow:
 1. scaffold a `runtime-platform`, `data-repository`, or `analytics-store` package;
 2. add it to the root workspace dependencies with pnpm;
 3. implement the SDK contract and tests;
-4. register its manifest in `i0c.runtime.manifests.ts` or `i0c.webui.manifests.ts`;
-5. register its platform descriptor or factory in `i0c.runtime.config.ts` or `i0c.webui.config.ts`;
+4. register its manifest in `nami.runtime.manifests.ts` or `nami.webui.manifests.ts`;
+5. register its platform descriptor or factory in `nami.runtime.config.ts` or `nami.webui.config.ts`;
 6. extend bootstrap selection only when introducing a new provider identifier;
 7. initialize owned tables, rebuild the host, and deploy it separately.
 
-Runtime platforms adapt provider entrypoints to `RuntimeRequestHandler`. Data repositories implement `I0cDataRepository` for versioned configuration and redirect documents. Analytics stores implement `I0cAnalyticsStore` for ingestion, queries, aggregate rebuilds, and retention. Database-backed adapters can expose `PluginSchemaMigrationProvider` for initialization and later schema updates.
+Runtime platforms adapt provider entrypoints to `RuntimeRequestHandler`. Data repositories implement `NamiDataRepository` for versioned configuration and redirect documents. Analytics stores implement `NamiAnalyticsStore` for ingestion, queries, aggregate rebuilds, and retention. Database-backed adapters can expose `PluginSchemaMigrationProvider` for initialization and later schema updates.
 
 See the bilingual documentation page [Write an adapter](https://d.i0c.cc/plugins/adapters) for the exact registration points, commands, and current reference implementations.
 
@@ -58,10 +58,10 @@ See the bilingual documentation page [Write an adapter](https://d.i0c.cc/plugins
 ```ts
 import {
   defineRuntimeFeatureManifest,
-} from "@i0c/plugin-sdk"
+} from "@nami/plugin-sdk"
 
 export const manifest = defineRuntimeFeatureManifest({
-  id: "@i0c/feature-request-sampler",
+  id: "@nami/feature-request-sampler",
   name: "Request sampler",
   version: "0.1.0",
   description: {
@@ -81,7 +81,7 @@ The helper supplies the Plugin API version, kind, slot, and host invariants, the
 ```ts
 import {
   definePluginConfiguration,
-} from "@i0c/plugin-sdk"
+} from "@nami/plugin-sdk"
 
 interface RequestSamplerConfig {
   rate: number
@@ -119,7 +119,7 @@ The Schema is validated when the module loads. Defaults and every resolved confi
 ```ts
 import {
   defineRuntimeFeaturePlugin,
-} from "@i0c/plugin-sdk/runtime"
+} from "@nami/plugin-sdk/runtime"
 
 import { manifest } from "./manifest"
 
@@ -148,7 +148,7 @@ Runtime platform, data-source, analytics-sink, and feature helpers verify that t
 ```ts
 import {
   defineWebUiAnalyticsStorePlugin,
-} from "@i0c/plugin-sdk/webui"
+} from "@nami/plugin-sdk/webui"
 
 import { manifest } from "./manifest"
 
@@ -168,8 +168,8 @@ WebUI helpers cover data repositories, analytics stores, and static extension re
 Run the SDK checks from the repository root:
 
 ```bash
-pnpm --filter @i0c/plugin-sdk check
-pnpm --filter @i0c/plugin-sdk test
+pnpm --filter @nami/plugin-sdk check
+pnpm --filter @nami/plugin-sdk test
 pnpm plugins:check
 ```
 

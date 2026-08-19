@@ -24,35 +24,35 @@ test("creates valid database-backed documents for selected Runtime providers", (
     ["59095086"],
   );
   assert.equal(
-    result.config.plugins["@i0c/runtime-cloudflare"]?.enabled,
+    result.config.plugins["@nami/runtime-cloudflare"]?.enabled,
     true,
   );
   assert.equal(
-    result.config.plugins["@i0c/runtime-netlify"]?.enabled,
+    result.config.plugins["@nami/runtime-netlify"]?.enabled,
     false,
   );
   assert.equal(
-    result.config.plugins["@i0c/runtime-vercel"]?.enabled,
+    result.config.plugins["@nami/runtime-vercel"]?.enabled,
     true,
   );
   assert.equal(
-    result.config.plugins["@i0c/data-repository-postgres"]?.enabled,
+    result.config.plugins["@nami/data-repository-postgres"]?.enabled,
     true,
   );
   assert.equal(
-    result.config.plugins["@i0c/analytics-store-postgres"]?.enabled,
+    result.config.plugins["@nami/analytics-store-postgres"]?.enabled,
     true,
   );
   assert.equal(
-    result.config.plugins["@i0c/analytics-store-d1"]?.enabled,
+    result.config.plugins["@nami/analytics-store-d1"]?.enabled,
     false,
   );
   assert.equal(
-    result.config.plugins["@i0c/github-contents-repository"],
+    result.config.plugins["@nami/github-contents-repository"],
     undefined,
   );
   assert.equal(
-    result.config.plugins["@i0c/github-raw-source"],
+    result.config.plugins["@nami/github-raw-source"],
     undefined,
   );
   assert.deepEqual(JSON.parse(result.redirectsContent), {
@@ -73,19 +73,19 @@ test("disables the analytics pipeline when analytics is not selected", () => {
   });
 
   assert.equal(
-    result.config.plugins["@i0c/analytics-sink-http"]?.enabled,
+    result.config.plugins["@nami/analytics-sink-http"]?.enabled,
     false,
   );
   assert.equal(
-    result.config.plugins["@i0c/analytics-store-postgres"]?.enabled,
+    result.config.plugins["@nami/analytics-store-postgres"]?.enabled,
     false,
   );
   assert.equal(
-    result.config.plugins["@i0c/analytics-store-d1"]?.enabled,
+    result.config.plugins["@nami/analytics-store-d1"]?.enabled,
     false,
   );
   assert.equal(
-    result.config.plugins["@i0c/feature-bot-classifier"]?.enabled,
+    result.config.plugins["@nami/feature-bot-classifier"]?.enabled,
     false,
   );
   assert.equal(result.config.analytics.sourceId, "i0c.cc");

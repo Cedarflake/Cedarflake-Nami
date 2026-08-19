@@ -1,31 +1,31 @@
 import {
   resolveHttpAnalyticsSinkConfig,
-} from "@i0c/plugin-analytics-sink-http/config"
-import { httpAnalyticsSinkManifest } from "@i0c/plugin-analytics-sink-http/manifest"
-import { createHttpAnalyticsSink } from "@i0c/plugin-analytics-sink-http/runtime"
-import { resolveBotClassifierConfig } from "@i0c/plugin-feature-bot-classifier/config"
-import { botClassifierManifest } from "@i0c/plugin-feature-bot-classifier/manifest"
-import { createBotClassifierFeature } from "@i0c/plugin-feature-bot-classifier/runtime"
+} from "@nami/plugin-analytics-sink-http/config"
+import { httpAnalyticsSinkManifest } from "@nami/plugin-analytics-sink-http/manifest"
+import { createHttpAnalyticsSink } from "@nami/plugin-analytics-sink-http/runtime"
+import { resolveBotClassifierConfig } from "@nami/plugin-feature-bot-classifier/config"
+import { botClassifierManifest } from "@nami/plugin-feature-bot-classifier/manifest"
+import { createBotClassifierFeature } from "@nami/plugin-feature-bot-classifier/runtime"
 import {
   resolveGitHubRawSourceBootstrapConfig,
-} from "@i0c/plugin-github-data/config"
-import { githubRawSourcePlugin } from "@i0c/plugin-github-data/runtime"
+} from "@nami/plugin-github-data/config"
+import { githubRawSourcePlugin } from "@nami/plugin-github-data/runtime"
 import {
   defineRuntimeInstallationConfig,
   type RuntimeAnalyticsSinkContext,
   type RuntimeAnalyticsSinkEvent,
   type RuntimePluginInstallations,
-} from "@i0c/plugin-sdk/runtime"
+} from "@nami/plugin-sdk/runtime"
 
 import { externalRuntimeFeaturePlugin } from "./src/feature"
 import { externalRuntimeInstallation } from "./src/installation"
 
 export const runtimePluginInstallations = {
   bundlePackages: [
-    "@i0c/plugin-analytics-sink-http",
-    "@i0c/plugin-feature-bot-classifier",
-    "@i0c/plugin-github-data",
-    "@i0c/runtime-fixture-external",
+    "@nami/plugin-analytics-sink-http",
+    "@nami/plugin-feature-bot-classifier",
+    "@nami/plugin-github-data",
+    "@nami/runtime-fixture-external",
   ],
   dataSource: {
     bootstrapConfig: {

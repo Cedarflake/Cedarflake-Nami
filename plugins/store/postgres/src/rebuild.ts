@@ -1,5 +1,5 @@
-import type { PostgresSql } from "@i0c/database-postgres"
-import { PluginError } from "@i0c/plugin-api"
+import type { PostgresSql } from "@nami/database-postgres"
+import { PluginError } from "@nami/plugin-api"
 
 import type { PostgresAnalyticsStoreConfig } from "./config"
 import { getDatabase } from "./database"

@@ -1,4 +1,4 @@
-import type { PluginLogger } from "@i0c/plugin-api";
+import type { PluginLogger } from "@nami/plugin-api";
 
 export const runtimePluginLogger = {
   debug(message, metadata) {

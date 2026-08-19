@@ -2,8 +2,8 @@ import assert from "node:assert/strict"
 import { randomUUID } from "node:crypto"
 import test from "node:test"
 
-import type { CanonicalAnalyticsLinkEvent } from "@i0c/analytics-domain/events"
-import { assertAnalyticsStoreBehaviorContract } from "@i0c/plugin-testkit"
+import type { CanonicalAnalyticsLinkEvent } from "@nami/analytics-domain/events"
+import { assertAnalyticsStoreBehaviorContract } from "@nami/plugin-testkit"
 
 import { defaultPostgresAnalyticsStoreConfig } from "../src/config"
 import { getDatabase } from "../src/database"

@@ -69,8 +69,8 @@ export function AppHeader({
           ) : null}
           <div className="flex min-w-0 items-center gap-3">
             <Image
-              src="/logo.ico"
-              alt="i0c.cc"
+              src="/favicon.ico"
+              alt=""
               width={32}
               height={32}
               className="rounded-xl border border-line bg-panel"

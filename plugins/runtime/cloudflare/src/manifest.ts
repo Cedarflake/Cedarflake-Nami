@@ -1,12 +1,12 @@
 import {
   PLUGIN_API_VERSION,
   type RuntimePlatformManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import { cloudflareRuntimePluginConfigSchema } from "./config"
 
 export const cloudflareRuntimeManifest = {
-  id: "@i0c/runtime-cloudflare",
+  id: "@nami/runtime-cloudflare",
   name: "Cloudflare Runtime",
   version: "0.1.0",
   apiVersion: PLUGIN_API_VERSION,

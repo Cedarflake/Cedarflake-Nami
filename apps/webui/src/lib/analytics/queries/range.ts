@@ -1,1 +1,1 @@
-export * from "@i0c/analytics-domain/range";
+export * from "@nami/analytics-domain/range";

@@ -1,6 +1,6 @@
 import "server-only";
 
-export const instanceSecretEnvironmentKey = "I0C_SECRET";
+export const instanceSecretEnvironmentKey = "NAMI_SECRET";
 
 export function readInstanceSecret(): string | null {
   const secret = process.env[instanceSecretEnvironmentKey]?.trim();

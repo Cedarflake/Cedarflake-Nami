@@ -1,4 +1,4 @@
-CREATE TABLE i0c_data_document_revision (
+CREATE TABLE nami_data_document_revision (
   kind TEXT NOT NULL,
   revision INTEGER NOT NULL,
   content TEXT NOT NULL,
@@ -25,11 +25,11 @@ CREATE TABLE i0c_data_document_revision (
 );
 
 -- d1-statement-breakpoint
-CREATE INDEX i0c_data_document_revision_created_at_idx
-  ON i0c_data_document_revision (kind, created_at DESC);
+CREATE INDEX nami_data_document_revision_created_at_idx
+  ON nami_data_document_revision (kind, created_at DESC);
 
 -- d1-statement-breakpoint
-INSERT OR IGNORE INTO i0c_data_document_revision (
+INSERT OR IGNORE INTO nami_data_document_revision (
   kind,
   revision,
   content,
@@ -44,5 +44,5 @@ SELECT
   checksum,
   'migration',
   updated_at
-FROM i0c_data_document
+FROM nami_data_document
 ;

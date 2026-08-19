@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/database-d1",
+  "name": "@nami/database-d1",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -19,7 +19,7 @@
     "test": "tsx --test tests/**/*.test.ts"
   },
   "dependencies": {
-    "@i0c/plugin-api": "workspace:*"
+    "@nami/plugin-api": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

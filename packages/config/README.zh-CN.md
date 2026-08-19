@@ -1,4 +1,4 @@
-# @i0c/config
+# @nami/config
 
 Runtime 与 WebUI 共用的数据契约和启动配置包。
 

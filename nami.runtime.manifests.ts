@@ -1,11 +1,11 @@
-import { bootstrapConfig } from "@i0c/config"
-import { botClassifierManifest } from "@i0c/plugin-feature-bot-classifier/manifest"
-import { githubRawSourceManifest } from "@i0c/plugin-github-data/manifest"
-import { httpSnapshotSourceManifest } from "@i0c/plugin-http-snapshot-source/manifest"
-import { httpAnalyticsSinkManifest } from "@i0c/plugin-analytics-sink-http/manifest"
-import { cloudflareRuntimeManifest } from "@i0c/plugin-runtime-cloudflare/manifest"
-import { netlifyRuntimeManifest } from "@i0c/plugin-runtime-netlify/manifest"
-import { vercelRuntimeManifest } from "@i0c/plugin-runtime-vercel/manifest"
+import { bootstrapConfig } from "@nami/config"
+import { botClassifierManifest } from "@nami/plugin-feature-bot-classifier/manifest"
+import { githubRawSourceManifest } from "@nami/plugin-github-data/manifest"
+import { httpSnapshotSourceManifest } from "@nami/plugin-http-snapshot-source/manifest"
+import { httpAnalyticsSinkManifest } from "@nami/plugin-analytics-sink-http/manifest"
+import { cloudflareRuntimeManifest } from "@nami/plugin-runtime-cloudflare/manifest"
+import { netlifyRuntimeManifest } from "@nami/plugin-runtime-netlify/manifest"
+import { vercelRuntimeManifest } from "@nami/plugin-runtime-vercel/manifest"
 
 export const runtimePluginDescriptors = {
   dataSource: {

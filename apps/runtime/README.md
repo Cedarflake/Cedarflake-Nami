@@ -1,4 +1,4 @@
-# i0c.cc Runtime
+# nami Runtime
 
 Provider-selectable redirect runtime for fetch-compatible edge platforms: Cloudflare Workers, Vercel Edge Functions, and Netlify Edge Functions. It enforces HTTPS, serves a favicon, and loads non-sensitive instance settings plus redirect rules through the selected Data Source. Choose the adapter that fits the deployment; the three providers do not need to run together.
 
@@ -33,16 +33,16 @@ The package-level `pnpm build` command generates and retains all three provider 
 After deploying:
 
 - Save `config.json` or `redirects.json` through the selected WebUI Repository when non-sensitive settings or rules change. The default Git setup uses the `data` branch. Built-in Sources pick up valid updates after their configured cache TTL without a rebuild.
-- Set the same `I0C_SECRET` on every Runtime provider and the WebUI.
+- Set the same `NAMI_SECRET` on every Runtime provider and the WebUI.
 - Re-run the package build after updating shared redirect logic, then redeploy.
 
 ## Choose an adapter
 
 - Runtime host: [src/entry.ts](src/entry.ts)
-- Installed Runtime plugins and platforms: [../../i0c.runtime.config.ts](../../i0c.runtime.config.ts)
+- Installed Runtime plugins and platforms: [../../nami.runtime.config.ts](../../nami.runtime.config.ts)
 - Build assembly: [../../packages/runtime-build](../../packages/runtime-build)
 
-Need a custom platform or Runtime feature? Add a workspace package with its Manifest and typed factory or `./installation` entry, then add it to `i0c.runtime.config.ts`. The Runtime host source and official catalog do not need plugin-specific changes. The external fixture builds a custom platform and Feature and verifies the Feature marker in the emitted artifact. The current contract proves source-workspace integration; the shared plugin packages are not yet published as a public npm SDK. Programmatic consumers can still import `handleRedirectRequest` from [src/lib/handler.ts](src/lib/handler.ts). Stable plugin manifests and adapter contracts live in [../../packages/plugin-api](../../packages/plugin-api).
+Need a custom platform or Runtime feature? Add a workspace package with its Manifest and typed factory or `./installation` entry, then add it to `nami.runtime.config.ts`. The Runtime host source and official catalog do not need plugin-specific changes. The external fixture builds a custom platform and Feature and verifies the Feature marker in the emitted artifact. The current contract proves source-workspace integration; the shared plugin packages are not yet published as a public npm SDK. Programmatic consumers can still import `handleRedirectRequest` from [src/lib/handler.ts](src/lib/handler.ts). Stable plugin manifests and adapter contracts live in [../../packages/plugin-api](../../packages/plugin-api).
 
 Each build injects only the selected Runtime adapter and uses the same root installation configuration to assemble its Data Source, Analytics Sink, and Features. Remote declarations control optional enablement, configuration, and Secret binding names. Installed packages and the selected Source's initial connection settings remain bootstrap configuration because they are required before `config.json` can be read. See [../docs/plugins/architecture.md](../docs/plugins/architecture.md) for the package and failure boundaries.
 
@@ -86,13 +86,13 @@ When GitHub Raw is selected, programmatic consumers can override its URLs or inj
 
 Analytics delivery is disabled unless the versioned endpoint and source ID are valid and this secret is set:
 
-- `I0C_SECRET`: Shared instance secret used to sign analytics delivery. Use the same value on the WebUI and every Runtime provider.
+- `NAMI_SECRET`: Shared instance secret used to sign analytics delivery. Use the same value on the WebUI and every Runtime provider.
 
 Copy [.env.example](.env.example) for the local placeholder. No other built-in Runtime setting is read from the environment.
 
 Matched redirect and proxy events are sent at full rate. Unmatched and system outcomes are sampled at 10% so arbitrary bot and probe traffic can be analyzed without sending every 404. Cloudflare, Vercel, and Netlify use their platform background-execution mechanism; collector failures are logged and never change the redirect response. Delivery is best effort and currently has no retry queue. Each request is signed with HMAC-SHA256 in `X-Analytics-Signature`; the signed timestamp is sent in `X-Analytics-Timestamp`.
 
-The event records the actual entry hostname and adapter provider separately. Entry hostnames must be the configured source hostname or one of its subdomains; other hosts become `unknown`. Browser referrer hostnames, signed campaign IDs, and verified internal short-link sources remain separate attribution dimensions. Controlled short-link hops use a short-lived signed `_i0c_via` token that is removed before rule processing.
+The event records the actual entry hostname and adapter provider separately. Entry hostnames must be the configured source hostname or one of its subdomains; other hosts become `unknown`. Browser referrer hostnames, signed campaign IDs, and verified internal short-link sources remain separate attribution dimensions. Controlled short-link hops use a short-lived signed `_nami_via` token that is removed before rule processing.
 
 Classification locally derives bounded traffic, bot, confidence, resource, device, match, outcome, and probe categories. This makes robots that request paths outside `redirects.json` visible in sampled Runtime analysis. Events never send IP addresses, full User-Agent strings, full referrer URLs, query strings, destination URLs, or raw unmatched paths. Matched events contain only the configured rule path and stable analytics ID. Existing rules without an `analyticsId` receive a deterministic legacy identifier at runtime. Explicit object rules saved through the WebUI persist a UUID for future aggregation; string shortcuts continue using their legacy identifier until converted to object form.
 

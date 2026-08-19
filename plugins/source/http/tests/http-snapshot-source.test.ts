@@ -5,12 +5,12 @@ import {
   defaultDataConfig,
   type DataConfig,
   type RuntimeDataSnapshot,
-} from "@i0c/config"
-import type { PluginLogger } from "@i0c/plugin-api"
+} from "@nami/config"
+import type { PluginLogger } from "@nami/plugin-api"
 import {
   assertPluginManifest,
   assertRuntimeDataSourceContract,
-} from "@i0c/plugin-testkit"
+} from "@nami/plugin-testkit"
 
 import { httpSnapshotSourceManifest } from "../src/manifest"
 import { createHttpSnapshotDataSource } from "../src/runtime"

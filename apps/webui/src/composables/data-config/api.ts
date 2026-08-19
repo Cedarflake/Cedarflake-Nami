@@ -3,7 +3,7 @@
 import type {
   DataDocument,
   DataRepositoryWriteResult,
-} from "@i0c/config";
+} from "@nami/config";
 
 interface DataConfigResponse {
   document: DataDocument;

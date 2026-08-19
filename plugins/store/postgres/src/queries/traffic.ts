@@ -3,13 +3,13 @@ import type {
   AnalyticsLinkSummary,
   AnalyticsMetricTotals,
   AnalyticsSeriesPoint,
-} from "@i0c/analytics-domain/types"
-import { resolveSeriesBucket } from "@i0c/analytics-domain/range"
+} from "@nami/analytics-domain/types"
+import { resolveSeriesBucket } from "@nami/analytics-domain/range"
 import {
   ANALYTICS_DIMENSION_LIMIT,
   ANALYTICS_LINK_SUMMARY_LIMIT,
-} from "@i0c/analytics-domain/store"
-import { createTrendComparison } from "@i0c/analytics-domain/trend"
+} from "@nami/analytics-domain/store"
+import { createTrendComparison } from "@nami/analytics-domain/trend"
 
 import { getDatabase } from "../database"
 import type { ResolvedQueryScope } from "../scope"

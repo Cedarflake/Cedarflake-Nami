@@ -1,22 +1,22 @@
 import {
   validateDataConfig,
   type DataConfigValidationResult,
-} from "@i0c/config";
+} from "@nami/config";
 import {
   validateInstalledPluginDeclarations,
   validateRuntimeRequiredPluginDeclarations,
   validateWebUiRequiredPluginDeclarations,
-} from "@i0c/plugin-catalog";
+} from "@nami/plugin-catalog";
 import {
   webUiPluginDescriptors,
   webUiPluginManifests,
-} from "@i0c/webui-manifests";
+} from "@nami/webui-manifests";
 
 import {
   runtimePlatformManifests,
   runtimePluginManifests,
   runtimePluginDescriptors,
-} from "../../../../../i0c.runtime.manifests";
+} from "../../../../../nami.runtime.manifests";
 
 export const installedInstancePluginManifests = [
   ...runtimePluginManifests,

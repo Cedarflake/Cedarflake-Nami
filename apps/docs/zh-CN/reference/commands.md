@@ -69,8 +69,8 @@ description: 查找仓库用于开发、校验、数据库设置和部署的 pnp
 | --- | --- |
 | `pnpm plugin:create --kind <kind> --name <name>` | 生成 Workspace 插件 |
 | `pnpm plugins:boundaries` | 检查依赖边界 |
-| `pnpm --filter @i0c/plugin-sdk check` | SDK 类型检查 |
-| `pnpm --filter @i0c/plugin-sdk test` | SDK 测试 |
+| `pnpm --filter @nami/plugin-sdk check` | SDK 类型检查 |
+| `pnpm --filter @nami/plugin-sdk test` | SDK 测试 |
 
 ## 文档站
 

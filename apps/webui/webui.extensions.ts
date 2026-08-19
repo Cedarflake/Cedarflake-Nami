@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 
-import type { WebUiExtensionRegistration } from "@i0c/plugin-api"
+import type { WebUiExtensionRegistration } from "@nami/plugin-api"
 
 export type WebUiExtensionRenderer = (context: unknown) => ReactNode
 

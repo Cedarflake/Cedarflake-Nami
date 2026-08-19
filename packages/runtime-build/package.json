@@ -1,5 +1,5 @@
 {
-  "name": "@i0c/runtime-build",
+  "name": "@nami/runtime-build",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@esbuild-plugins/tsconfig-paths": "^0.1.2",
-    "@i0c/plugin-api": "workspace:*",
+    "@nami/plugin-api": "workspace:*",
     "esbuild": "^0.28.1",
     "tsup": "^8.5.1"
   },

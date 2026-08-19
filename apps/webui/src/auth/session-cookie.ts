@@ -21,7 +21,7 @@ export function createAuthSessionCookie(
   const securePrefix = isSecure ? "__Secure-" : "";
 
   return {
-    name: `${securePrefix}i0c.session-token.${fingerprint}`,
+    name: `${securePrefix}nami.session-token.${fingerprint}`,
     options: {
       httpOnly: true,
       sameSite: "lax",

@@ -1,5 +1,5 @@
 {
-  "name": "i0c-redirect-worker",
+  "name": "nami-runtime",
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
@@ -9,10 +9,11 @@
   },
   "homepage": "https://i0c.cc",
   "scripts": {
+    "assets:check": "pnpm --dir ../.. assets:check",
     "check": "tsc --noEmit",
     "build": "pnpm build:cf && pnpm build:platform vercel --preserve-output && node scripts/prepare-vercel-output.mjs && node scripts/check-platform-build.mjs vercel api/index.js --allow-additional && pnpm build:platform netlify --preserve-output && node scripts/prepare-netlify-output.mjs && node scripts/check-platform-build.mjs netlify platforms/netlify-edge.js --allow-additional",
-    "build:platform": "tsx scripts/build-platform.ts",
-    "build:external-fixture": "pnpm build:platform external --config ../../plugins/fixtures/runtime-external/i0c.runtime.config.ts && node scripts/check-platform-build.mjs external platforms/external.js @example/runtime-feature-external",
+    "build:platform": "pnpm assets:check && tsx scripts/build-platform.ts",
+    "build:external-fixture": "pnpm build:platform external --config ../../plugins/fixtures/runtime-external/nami.runtime.config.ts && node scripts/check-platform-build.mjs external platforms/external.js @example/runtime-feature-external",
     "build:cf": "pnpm build:platform cloudflare && node scripts/check-platform-build.mjs cloudflare platforms/cloudflare.js",
     "build:cf:watch": "pnpm build:platform cloudflare --watch",
     "test": "tsx --test tests/**/*.test.ts",
@@ -33,16 +34,16 @@
     "wrangler": "^4.78.0"
   },
   "dependencies": {
-    "@i0c/analytics-domain": "workspace:*",
-    "@i0c/config": "workspace:*",
-    "@i0c/plugin-analytics-sink-http": "workspace:*",
-    "@i0c/plugin-api": "workspace:*",
-    "@i0c/plugin-catalog": "workspace:*",
-    "@i0c/plugin-feature-bot-classifier": "workspace:*",
-    "@i0c/plugin-github-data": "workspace:*",
-    "@i0c/plugin-http-snapshot-source": "workspace:*",
-    "@i0c/plugin-sdk": "workspace:*",
-    "@i0c/runtime-build": "workspace:*",
-    "@i0c/runtime-host": "workspace:*"
+    "@nami/analytics-domain": "workspace:*",
+    "@nami/config": "workspace:*",
+    "@nami/plugin-analytics-sink-http": "workspace:*",
+    "@nami/plugin-api": "workspace:*",
+    "@nami/plugin-catalog": "workspace:*",
+    "@nami/plugin-feature-bot-classifier": "workspace:*",
+    "@nami/plugin-github-data": "workspace:*",
+    "@nami/plugin-http-snapshot-source": "workspace:*",
+    "@nami/plugin-sdk": "workspace:*",
+    "@nami/runtime-build": "workspace:*",
+    "@nami/runtime-host": "workspace:*"
   }
 }

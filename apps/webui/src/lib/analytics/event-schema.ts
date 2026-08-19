@@ -1,1 +1,1 @@
-export * from "@i0c/analytics-domain/events";
+export * from "@nami/analytics-domain/events";

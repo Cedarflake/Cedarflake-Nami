@@ -7,7 +7,7 @@ description: Put one Cloudflare, Vercel, or Netlify Runtime in front of public t
 
 The Runtime is the public entry point. Visitor requests for short links arrive here, not at the WebUI.
 
-Choose one of the three providers below. Before starting, finish the WebUI initialization and keep the exact same `I0C_SECRET` available for the Runtime environment.
+Choose one of the three providers below. Before starting, finish the WebUI initialization and keep the exact same `NAMI_SECRET` available for the Runtime environment.
 
 ## 1. Point the Runtime at your WebUI snapshot
 
@@ -23,7 +23,7 @@ to your own WebUI endpoint:
 https://your-webui.example.com/api/runtime/snapshot
 ```
 
-The checked-in default points to the public i0c.cc instance. A self-hosted Runtime left unchanged would not read the database you just initialized.
+The checked-in default points to the public nami instance. A self-hosted Runtime left unchanged would not read the database you just initialized.
 
 Changing the snapshot source requires a Runtime rebuild. Later rule and instance-setting edits made in the WebUI do not.
 
@@ -38,7 +38,7 @@ Build command: pnpm build:cf
 Entry file: dist/platforms/cloudflare.js
 ```
 
-Add `I0C_SECRET` as a Worker secret, then deploy. The equivalent repository-root commands are:
+Add `NAMI_SECRET` as a Worker secret, then deploy. The equivalent repository-root commands are:
 
 ```sh
 pnpm runtime:build:cf
@@ -58,7 +58,7 @@ Build command: pnpm build:vc
 Output directory: .vercel/output
 ```
 
-Add `I0C_SECRET` to the project environment. You can also build and deploy from the repository root with:
+Add `NAMI_SECRET` to the project environment. You can also build and deploy from the repository root with:
 
 ```sh
 pnpm runtime:build:vc
@@ -69,7 +69,7 @@ pnpm runtime:deploy:vc
 
 Create a Netlify Site with `apps/runtime` as the Base directory. The included `netlify.toml` runs `pnpm build:nf` and maps the generated Edge Function to every path.
 
-Add `I0C_SECRET` to the Site environment. The matching repository-root commands are:
+Add `NAMI_SECRET` to the Site environment. The matching repository-root commands are:
 
 ```sh
 pnpm runtime:build:nf
@@ -80,9 +80,9 @@ pnpm runtime:deploy:nf
 
 Attach the planned `go.example.com` domain to this Runtime deployment. Do not point it at the WebUI.
 
-With an empty rule set, opening the domain should show the i0c.cc 404 page. That is a useful result: DNS, the provider deployment, and the Runtime handler are connected, but no rule matches the path yet.
+With an empty rule set, opening the domain should show the nami 404 page. That is a useful result: DNS, the provider deployment, and the Runtime handler are connected, but no rule matches the path yet.
 
-If you see the provider's own 404, a 500, or Bad Gateway instead, check the project root, provider build command, `I0C_SECRET`, and snapshot URL first.
+If you see the provider's own 404, a 500, or Bad Gateway instead, check the project root, provider build command, `NAMI_SECRET`, and snapshot URL first.
 
 <!-- Real screenshot needed: one successfully deployed Runtime provider showing the domain and environment setting location, without a secret value. -->
 

@@ -7,13 +7,13 @@ import type {
   JsonObject,
   JsonValue,
   PluginInstanceConfig,
-} from "@i0c/config";
+} from "@nami/config";
 import type {
   PluginConfigurationFieldUi,
   PluginLocalizedText,
   PluginManifest,
   PluginSecretRequirement,
-} from "@i0c/plugin-api";
+} from "@nami/plugin-api";
 
 import { DropdownSelect } from "@/components/ui/controls/dropdown-select";
 import {

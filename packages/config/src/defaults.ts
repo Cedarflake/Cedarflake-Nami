@@ -5,11 +5,11 @@ function resolveDataRepositoryPluginId(
 ): string {
   switch (repository.provider) {
     case "d1":
-      return "@i0c/data-repository-d1"
+      return "@nami/data-repository-d1"
     case "github":
-      return "@i0c/github-contents-repository"
+      return "@nami/github-contents-repository"
     case "postgres":
-      return "@i0c/data-repository-postgres"
+      return "@nami/data-repository-postgres"
   }
 }
 
@@ -76,8 +76,8 @@ export const defaultDataConfig: DataConfig = {
   },
   plugins: {
     [bootstrapConfig.data.source.provider === "http"
-      ? "@i0c/http-snapshot-source"
-      : "@i0c/github-raw-source"]: {
+      ? "@nami/http-snapshot-source"
+      : "@nami/github-raw-source"]: {
       enabled: true,
       version: 1,
     },
@@ -85,19 +85,19 @@ export const defaultDataConfig: DataConfig = {
       enabled: true,
       version: 1,
     },
-    "@i0c/runtime-cloudflare": {
+    "@nami/runtime-cloudflare": {
       enabled: true,
       version: 1,
     },
-    "@i0c/runtime-vercel": {
+    "@nami/runtime-vercel": {
       enabled: true,
       version: 1,
     },
-    "@i0c/runtime-netlify": {
+    "@nami/runtime-netlify": {
       enabled: true,
       version: 1,
     },
-    "@i0c/analytics-sink-http": {
+    "@nami/analytics-sink-http": {
       enabled: true,
       version: 1,
       config: {
@@ -105,17 +105,17 @@ export const defaultDataConfig: DataConfig = {
         requestTimeoutMs: 5_000,
       },
       secrets: {
-        writeKey: "I0C_SECRET",
+        writeKey: "NAMI_SECRET",
       },
     },
-    "@i0c/feature-bot-classifier": {
+    "@nami/feature-bot-classifier": {
       enabled: true,
       version: 1,
       config: {
         hookTimeoutMs: 20,
       },
     },
-    "@i0c/analytics-store-postgres": {
+    "@nami/analytics-store-postgres": {
       enabled: bootstrapConfig.webui.analyticsStore.provider === "postgres",
       version: 1,
       config: {
@@ -129,7 +129,7 @@ export const defaultDataConfig: DataConfig = {
         databaseUrl: "DATABASE_URL",
       },
     },
-    "@i0c/analytics-store-d1": {
+    "@nami/analytics-store-d1": {
       enabled: bootstrapConfig.webui.analyticsStore.provider === "d1",
       version: 1,
     },

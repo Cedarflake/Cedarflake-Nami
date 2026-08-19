@@ -4,13 +4,13 @@ import {
   type PluginConfigurationDeclaration,
   type PluginManifest,
   type WebUiExtensionRegistration,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
-import type { I0cAnalyticsStore, I0cDataRepository } from "./contracts"
+import type { NamiAnalyticsStore, NamiDataRepository } from "./contracts"
 
-export { StaticWebUiExtensionRegistry } from "@i0c/plugin-api"
+export { StaticWebUiExtensionRegistry } from "@nami/plugin-api"
 
-export type WebUiAnalyticsStore = I0cAnalyticsStore
+export type WebUiAnalyticsStore = NamiAnalyticsStore
 
 export interface WebUiAnalyticsStoreCreateContext {
   bindings: ReadonlyMap<string, unknown>
@@ -29,7 +29,7 @@ export interface WebUiDataRepositoryInstallation {
   manifest: PluginManifest<"data-repository", "webui">
   create(
     context: WebUiDataRepositoryCreateContext,
-  ): I0cDataRepository | Promise<I0cDataRepository>
+  ): NamiDataRepository | Promise<NamiDataRepository>
 }
 
 export interface WebUiAnalyticsStoreInstallation {

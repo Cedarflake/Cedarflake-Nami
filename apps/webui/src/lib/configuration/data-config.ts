@@ -1,7 +1,7 @@
 import "server-only";
 
-import { defaultDataConfig } from "@i0c/config";
-import type { DataConfig, DataDocument } from "@i0c/config";
+import { defaultDataConfig } from "@nami/config";
+import type { DataConfig, DataDocument } from "@nami/config";
 
 import {
   getAppDataConfigDocument,

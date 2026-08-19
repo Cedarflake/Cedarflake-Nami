@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import { Buffer } from "node:buffer";
 import test from "node:test";
 
-import { bootstrapConfig } from "@i0c/config";
+import { bootstrapConfig } from "@nami/config";
 import {
   createGitHubContentsRepository,
-} from "@i0c/plugin-github-data/webui";
+} from "@nami/plugin-github-data/webui";
 
 const repositoryConfig = {
   ...bootstrapConfig.data.github,

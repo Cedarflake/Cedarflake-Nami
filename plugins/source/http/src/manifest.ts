@@ -1,12 +1,12 @@
 import {
   PLUGIN_API_VERSION,
   type PluginManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import { httpSnapshotSourcePluginConfigSchema } from "./config"
 
 export const httpSnapshotSourceManifest = {
-  id: "@i0c/http-snapshot-source",
+  id: "@nami/http-snapshot-source",
   name: "HTTP snapshot data source",
   version: "0.1.0",
   apiVersion: PLUGIN_API_VERSION,

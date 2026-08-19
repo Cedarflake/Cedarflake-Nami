@@ -1,4 +1,4 @@
-import type { DataConfig } from "@i0c/config";
+import type { DataConfig } from "@nami/config";
 
 export interface EffectiveDataConfigValue {
   config: DataConfig;

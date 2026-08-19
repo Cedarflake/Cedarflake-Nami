@@ -134,7 +134,7 @@ export function AppShell({
             <div className="flex h-[4.5rem] shrink-0 items-center justify-between border-b border-line px-5 sm:px-6">
               <div className="flex min-w-0 items-center gap-3">
                 <Image
-                  src="/logo.ico"
+                  src="/favicon.ico"
                   alt=""
                   width={32}
                   height={32}

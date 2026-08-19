@@ -10,8 +10,8 @@
  * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
  */
 
-import { defaultDataConfig } from "@i0c/config";
-import type { RobotsPolicy } from "@i0c/config";
+import { defaultDataConfig } from "@nami/config";
+import type { RobotsPolicy } from "@nami/config";
 
 import { buildCompiledList } from "../routing/matcher";
 import type { RouteValueEntry } from "../core/types";

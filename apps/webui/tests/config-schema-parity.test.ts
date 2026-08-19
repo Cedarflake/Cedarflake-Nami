@@ -3,7 +3,7 @@ import fs from "node:fs"
 import path from "node:path"
 import test from "node:test"
 
-import { defaultDataConfig, validateDataConfig } from "@i0c/config"
+import { defaultDataConfig, validateDataConfig } from "@nami/config"
 import Ajv2020, { type AnySchema } from "ajv/dist/2020.js"
 import addFormats from "ajv-formats"
 

@@ -3,13 +3,13 @@ import { readFile } from "node:fs/promises"
 import { fileURLToPath } from "node:url"
 import test from "node:test"
 
-import type { CanonicalAnalyticsLinkEvent } from "@i0c/analytics-domain/events"
-import { SQLiteD1Database } from "@i0c/database-d1/testkit"
+import type { CanonicalAnalyticsLinkEvent } from "@nami/analytics-domain/events"
+import { SQLiteD1Database } from "@nami/database-d1/testkit"
 import {
   assertAnalyticsStoreBehaviorContract,
   assertSchemaMigrationState,
   assertPluginManifest,
-} from "@i0c/plugin-testkit"
+} from "@nami/plugin-testkit"
 
 import {
   defaultD1AnalyticsStoreConfig,

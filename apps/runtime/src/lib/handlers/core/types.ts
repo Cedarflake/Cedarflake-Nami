@@ -12,16 +12,16 @@
  * @see {@link https://github.com/Revaea/i0c.cc} for repository info.
  */
 
-import type { AnalyticsProvider as AnalyticsProviderType } from "@i0c/analytics-domain";
+import type { AnalyticsProvider as AnalyticsProviderType } from "@nami/analytics-domain";
 import type {
   AnalyticsClassificationHookContext
-} from "@i0c/analytics-domain/classification";
+} from "@nami/analytics-domain/classification";
 import type {
   DataConfig,
   ProxyOptions,
   RedirectsConfig as SharedRedirectsConfig,
   SlotBranch as SharedSlotBranch
-} from "@i0c/config";
+} from "@nami/config";
 import type {
   AnalyticsSink,
   RuntimeCache,
@@ -29,9 +29,9 @@ import type {
   RuntimeFeaturePipeline,
   RuntimeFeatureRegistration,
   RuntimePlatformManifest
-} from "@i0c/plugin-api";
+} from "@nami/plugin-api";
 
-import type { RuntimePluginInstallations } from "@i0c/runtime-host/installations";
+import type { RuntimePluginInstallations } from "@nami/runtime-host/installations";
 
 export type RouteType = "prefix" | "exact" | "proxy";
 export type AnalyticsProvider = AnalyticsProviderType;

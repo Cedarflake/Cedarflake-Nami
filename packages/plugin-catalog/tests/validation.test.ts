@@ -6,7 +6,7 @@ import {
   type PluginConfigurationDeclaration,
   type PluginManifest,
   type RuntimePlatformManifest,
-} from "@i0c/plugin-api"
+} from "@nami/plugin-api"
 
 import {
   installedPluginIds,
@@ -25,10 +25,10 @@ test("keeps the recognized plugin ID list synchronized with manifests", () => {
 
 test("keeps D1 and PostgreSQL analytics capabilities aligned", () => {
   const postgres = installedPluginManifests.find(
-    (manifest) => manifest.id === "@i0c/analytics-store-postgres",
+    (manifest) => manifest.id === "@nami/analytics-store-postgres",
   )
   const d1 = installedPluginManifests.find(
-    (manifest) => manifest.id === "@i0c/analytics-store-d1",
+    (manifest) => manifest.id === "@nami/analytics-store-d1",
   )
 
   assert.ok(postgres)
@@ -49,9 +49,9 @@ test("keeps installed plugin descriptions available for the WebUI", () => {
 
 test("allows all Runtime platform declarations across separate deployment hosts", () => {
   assert.deepEqual(validateInstalledPluginDeclarations({
-    "@i0c/runtime-cloudflare": { enabled: true },
-    "@i0c/runtime-vercel": { enabled: true },
-    "@i0c/runtime-netlify": { enabled: true },
+    "@nami/runtime-cloudflare": { enabled: true },
+    "@nami/runtime-vercel": { enabled: true },
+    "@nami/runtime-netlify": { enabled: true },
   }), [])
 })
 
@@ -77,7 +77,7 @@ test("accepts an installed platform outside the official catalog", () => {
 
 test("rejects an external platform that reuses an installed plugin ID", () => {
   const conflictingManifest = {
-    id: "@i0c/github-raw-source",
+    id: "@nami/github-raw-source",
     name: "Conflicting Runtime",
     version: "1.0.0",
     apiVersion: 1,
@@ -99,7 +99,7 @@ test("rejects an external platform that reuses an installed plugin ID", () => {
 
 test("rejects an external platform that shadows an official platform manifest", () => {
   const conflictingManifest = {
-    id: "@i0c/runtime-cloudflare",
+    id: "@nami/runtime-cloudflare",
     name: "Conflicting Cloudflare Runtime",
     version: "1.0.0",
     apiVersion: 1,
@@ -121,7 +121,7 @@ test("rejects an external platform that shadows an official platform manifest", 
 
 test("validates plugin-owned configuration schemas", () => {
   const issues = validateInstalledPluginDeclarations({
-    "@i0c/feature-bot-classifier": {
+    "@nami/feature-bot-classifier": {
       enabled: true,
       version: 1,
       config: { hookTimeoutMs: 0 },
@@ -188,12 +188,12 @@ test("rejects empty plugin localized text metadata", () => {
 
 test("rejects bootstrap-only settings in remote plugin configuration", () => {
   const issues = validateInstalledPluginDeclarations({
-    "@i0c/runtime-cloudflare": {
+    "@nami/runtime-cloudflare": {
       enabled: true,
       version: 1,
       config: { useDefaultCache: false },
     },
-    "@i0c/github-raw-source": {
+    "@nami/github-raw-source": {
       enabled: true,
       version: 1,
       config: { redirectsConfigUrl: "https://example.com/redirects.json" },
@@ -208,8 +208,8 @@ test("rejects bootstrap-only settings in remote plugin configuration", () => {
 
 test("rejects analytics store slot conflicts", () => {
   const issues = validateInstalledPluginDeclarations({
-    "@i0c/analytics-store-postgres": { enabled: true },
-    "@i0c/analytics-store-d1": { enabled: true },
+    "@nami/analytics-store-postgres": { enabled: true },
+    "@nami/analytics-store-d1": { enabled: true },
   })
 
   assert.match(issues.map((issue) => issue.message).join("\n"), /already occupied/)
@@ -217,7 +217,7 @@ test("rejects analytics store slot conflicts", () => {
 
 test("rejects declarations for plugins not installed in the catalog", () => {
   const issues = validateInstalledPluginDeclarations({
-    "@i0c/not-installed": { enabled: false },
+    "@nami/not-installed": { enabled: false },
   })
 
   assert.match(issues.map((issue) => issue.message).join("\n"), /not installed/)
@@ -238,31 +238,31 @@ test("rejects explicitly disabled Runtime deployment requirements", () => {
     provider: "external-edge",
   } as const satisfies RuntimePlatformManifest
   const issues = validateRuntimeRequiredPluginDeclarations({
-    "@i0c/github-raw-source": { enabled: false },
+    "@nami/github-raw-source": { enabled: false },
     "@example/runtime-external": { enabled: false },
   }, {
-    dataSourcePluginId: "@i0c/github-raw-source",
+    dataSourcePluginId: "@nami/github-raw-source",
     runtimePlatformManifests: [externalManifest],
   })
 
   assert.deepEqual(issues.map((issue) => issue.path), [
-    "/plugins/@i0c~1github-raw-source/enabled",
+    "/plugins/@nami~1github-raw-source/enabled",
     "/plugins/@example~1runtime-external/enabled",
   ])
 })
 
 test("keeps omitted Runtime deployment requirements compatibility-enabled", () => {
   assert.deepEqual(validateRuntimeRequiredPluginDeclarations({}, {
-    dataSourcePluginId: "@i0c/github-raw-source",
+    dataSourcePluginId: "@nami/github-raw-source",
     runtimePlatformManifests: [],
   }), [])
 })
 
 test("rejects an explicitly disabled WebUI data repository", () => {
   assert.deepEqual(validateWebUiRequiredPluginDeclarations({
-    "@i0c/github-contents-repository": { enabled: false },
-  }, "@i0c/github-contents-repository").map((issue) => issue.path), [
-    "/plugins/@i0c~1github-contents-repository/enabled",
+    "@nami/github-contents-repository": { enabled: false },
+  }, "@nami/github-contents-repository").map((issue) => issue.path), [
+    "/plugins/@nami~1github-contents-repository/enabled",
   ])
 })
 

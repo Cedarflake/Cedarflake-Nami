@@ -2,21 +2,21 @@ import path from "node:path"
 import { pathToFileURL } from "node:url"
 import process from "node:process"
 
-import { buildRuntimePlatform } from "@i0c/runtime-build"
+import { buildRuntimePlatform } from "@nami/runtime-build"
 import {
   assertRuntimePlatformModuleMatchesInstallation,
   defineRuntimeInstallationConfig,
   parseRuntimeInstallationConfig,
   resolveRuntimePlatformInstallation,
-} from "@i0c/runtime-build/config"
+} from "@nami/runtime-build/config"
 import {
   installedPluginManifests,
   validateInstalledPluginDeclarations,
-} from "@i0c/plugin-catalog"
+} from "@nami/plugin-catalog"
 import {
   listRuntimePluginManifests,
   type RuntimePluginInstallations,
-} from "@i0c/runtime-host/installations"
+} from "@nami/runtime-host/installations"
 
 async function main(): Promise<void> {
   const platformKey = process.argv[2]
@@ -31,7 +31,7 @@ async function main(): Promise<void> {
   const configArgumentIndex = process.argv.indexOf("--config")
   const configPath = configArgumentIndex >= 0
     ? process.argv[configArgumentIndex + 1]
-    : path.join(workspaceRoot, "i0c.runtime.config.ts")
+    : path.join(workspaceRoot, "nami.runtime.config.ts")
   if (!configPath) {
     throw new TypeError("The --config option requires a file path")
   }
@@ -79,13 +79,13 @@ async function main(): Promise<void> {
 
   await buildRuntimePlatform({
     baseBundlePackages: [
-      "@i0c/analytics-domain",
-      "@i0c/config",
-      "@i0c/plugin-api",
-      "@i0c/plugin-catalog",
-      "@i0c/plugin-sdk",
-      "@i0c/runtime-build",
-      "@i0c/runtime-host",
+      "@nami/analytics-domain",
+      "@nami/config",
+      "@nami/plugin-api",
+      "@nami/plugin-catalog",
+      "@nami/plugin-sdk",
+      "@nami/runtime-build",
+      "@nami/runtime-host",
       "zod",
       ...runtimeInstallationConfig.platforms.flatMap(
         (installation) => installation.bundlePackages,

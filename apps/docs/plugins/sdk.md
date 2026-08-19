@@ -7,7 +7,7 @@ description: Use the repository SDK to scaffold, implement, register, and check 
 
 The quickest way to start a plugin is the generator at the repository root. This page uses `request-sampler` as an example and follows it from a new package to a Runtime installation.
 
-The generator uses `@i0c/plugin-sdk`, which collects the repeated parts of manifests, configuration checks, and host assembly. The plugin still owns its actual behavior and is still built together with the Runtime or WebUI.
+The generator uses `@nami/plugin-sdk`, which collects the repeated parts of manifests, configuration checks, and host assembly. The plugin still owns its actual behavior and is still built together with the Runtime or WebUI.
 
 For a new platform or database, the manifest and configuration steps here still apply; [write an adapter](/plugins/adapters) covers the specific contracts.
 
@@ -20,7 +20,7 @@ For a new platform or database, the manifest and configuration steps here still 
 - shared Repository and Analytics Store contracts;
 - a workspace scaffolder for a consistent package structure.
 
-An ordinary plugin should need only `@i0c/plugin-sdk`. `@i0c/plugin-api`, `@i0c/runtime-host`, and `@i0c/runtime-build` sit closer to the host and shared protocol and are not required just to finish a normal implementation.
+An ordinary plugin should need only `@nami/plugin-sdk`. `@nami/plugin-api`, `@nami/runtime-host`, and `@nami/runtime-build` sit closer to the host and shared protocol and are not required just to finish a normal implementation.
 
 ## 1. Scaffold a package
 
@@ -52,10 +52,10 @@ This example creates a Runtime Feature that can sample analytics events:
 ```ts
 import {
   defineRuntimeFeatureManifest,
-} from "@i0c/plugin-sdk"
+} from "@nami/plugin-sdk"
 
 export const manifest = defineRuntimeFeatureManifest({
-  id: "@i0c/feature-request-sampler",
+  id: "@nami/feature-request-sampler",
   name: "Request sampler",
   version: "0.1.0",
   description: {
@@ -75,7 +75,7 @@ The helper supplies the fixed Plugin API version, kind, slot, and host invariant
 ```ts
 import {
   definePluginConfiguration,
-} from "@i0c/plugin-sdk"
+} from "@nami/plugin-sdk"
 
 interface RequestSamplerConfig {
   rate: number
@@ -115,7 +115,7 @@ Installed Manifest metadata also drives the WebUI's generic settings editor. The
 ```ts
 import {
   defineRuntimeFeaturePlugin,
-} from "@i0c/plugin-sdk/runtime"
+} from "@nami/plugin-sdk/runtime"
 
 import { manifest } from "./manifest"
 
@@ -146,7 +146,7 @@ For a WebUI-owned extension such as an Analytics Store:
 ```ts
 import {
   defineWebUiAnalyticsStorePlugin,
-} from "@i0c/plugin-sdk/webui"
+} from "@nami/plugin-sdk/webui"
 
 import { manifest } from "./manifest"
 
@@ -165,9 +165,9 @@ WebUI helpers cover data repositories, analytics stores, and static extension re
 
 Choose the registration point that owns the plugin:
 
-- Runtime installations: `i0c.runtime.config.ts`;
-- Runtime Manifests used by configuration validation: `i0c.runtime.manifests.ts`;
-- WebUI installations: `i0c.webui.config.ts`;
+- Runtime installations: `nami.runtime.config.ts`;
+- Runtime Manifests used by configuration validation: `nami.runtime.manifests.ts`;
+- WebUI installations: `nami.webui.config.ts`;
 - WebUI Manifests or static extension registrations: the matching WebUI root registry.
 
 Add the plugin package to the root workspace dependencies with pnpm. Do not add a host-core `switch` for another implementation of an existing extension slot.
@@ -177,8 +177,8 @@ When creating a new provider identifier rather than another implementation of an
 ## 7. Validate the plugin
 
 ```sh
-pnpm --filter @i0c/plugin-sdk check
-pnpm --filter @i0c/plugin-sdk test
+pnpm --filter @nami/plugin-sdk check
+pnpm --filter @nami/plugin-sdk test
 pnpm plugins:check
 ```
 
@@ -187,8 +187,8 @@ After activating a plugin, also run the owning host check and build. A Runtime p
 ## Adapter-specific contracts
 
 - A Runtime Platform adapts its provider entrypoint to `RuntimeRequestHandler`.
-- A Data Repository implements `I0cDataRepository` for versioned configuration and redirect documents.
-- An Analytics Store implements `I0cAnalyticsStore` for ingestion, queries, aggregate rebuilds, and retention.
+- A Data Repository implements `NamiDataRepository` for versioned configuration and redirect documents.
+- An Analytics Store implements `NamiAnalyticsStore` for ingestion, queries, aggregate rebuilds, and retention.
 - A database-backed adapter can expose `PluginSchemaMigrationProvider` for first-time initialization and later Schema updates.
 
 Continue with [write an adapter](/plugins/adapters) for the registration flow and current reference implementations.

@@ -4,7 +4,7 @@ import test from "node:test"
 import {
   assertAnalyticsSinkContract,
   assertPluginManifest,
-} from "@i0c/plugin-testkit"
+} from "@nami/plugin-testkit"
 
 import {
   defaultHttpAnalyticsSinkConfig,

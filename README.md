@@ -1,6 +1,6 @@
-# <img src="./logo.webp" alt="i0c.cc" width="420">
+# <img src="./assets/brand/wordmark.webp" alt="nami" width="420">
 
-i0c.cc is a personal edge redirect playground with a database-backed control plane, provider-selectable Runtime, optional analytics, and compile-time extensions.
+nami is a personal edge redirect playground with a database-backed control plane, provider-selectable Runtime, optional analytics, and compile-time extensions.
 
 It is maintained for personal use and engineering experiments. It is not a hosted URL-shortening service or an enterprise redirect platform.
 
@@ -51,6 +51,13 @@ pnpm database:init
 ```
 
 Run `pnpm check` for the full workspace suite, or use the owner-specific commands documented below. Database initialization, schema updates, and provider deploys are explicit external operations and are not part of builds or checks.
+
+Brand image sources live in [`assets/brand`](assets/brand). After replacing a source file, synchronize and verify its Runtime, WebUI, and documentation outputs:
+
+```bash
+pnpm assets:sync
+pnpm assets:check
+```
 
 ## Documentation
 
