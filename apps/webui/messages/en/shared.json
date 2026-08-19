@@ -14,8 +14,8 @@
   "setup": {
     "title": "Initialize this deployment",
     "description": "Create the first instance configuration and an empty rule set in the selected data repository. Your signed-in GitHub account becomes the first manager.",
-    "secret": "Instance secret",
-    "secretHelp": "Enter the shared NAMI_SECRET configured in this WebUI and every Runtime deployment.",
+    "secret": "Confirm instance secret",
+    "secretHelp": "Re-enter the NAMI_SECRET configured in the WebUI environment and shared by every Runtime. It is only used to authorize setup and is not stored.",
     "webUiOrigin": "WebUI origin",
     "runtimeOrigin": "Runtime origin",
     "runtimePlatforms": "Deployed Runtime platforms",
