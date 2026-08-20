@@ -95,7 +95,7 @@ export function QRCodeButton({ pathKey, domain }: { pathKey: string; domain?: st
     if (showIcon) {
       const img = new window.Image();
       img.crossOrigin = "anonymous";
-      img.src = "/favicon.ico";
+      img.src = "/individuation.webp";
       
       img.onload = () => {
         const size = sourceCanvas.width;
@@ -262,8 +262,8 @@ export function QRCodeButton({ pathKey, domain }: { pathKey: string; domain?: st
           {showIcon && (
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
               <Image
-                src="/favicon.ico"
-                alt={t('faviconAlt')}
+                src="/individuation.webp"
+                alt={t('individuationAlt')}
                 width={32}
                 height={32}
                 className="rounded-lg border-2 border-white bg-white shadow-sm"
@@ -281,7 +281,7 @@ export function QRCodeButton({ pathKey, domain }: { pathKey: string; domain?: st
         <div className="h-px w-full bg-line" />
 
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs font-medium text-muted">{t('faviconLabel')}</span>
+          <span className="text-xs font-medium text-muted">{t('individuationLabel')}</span>
           <button
             type="button"
             onClick={() => setShowIcon(!showIcon)}

@@ -9,6 +9,7 @@
  */
 
 import { interLatinVariableFontPath } from "@/assets/inter-font";
+import { base64Individuation } from "@/assets/individuation";
 
 export const notFoundPageHtml = `<!doctype html>
 <html lang="en">
@@ -17,6 +18,7 @@ export const notFoundPageHtml = `<!doctype html>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#ffffff">
+    <link rel="icon" href="/favicon.ico?v=nami-2" type="image/x-icon">
     <title>404 · Page not found</title>
     <style>
       @font-face {
@@ -95,11 +97,11 @@ export const notFoundPageHtml = `<!doctype html>
         text-transform: uppercase;
       }
 
-      .brand-mark {
-        width: 2rem;
-        height: 0.25rem;
-        border-radius: 9999px;
-        background: var(--accent);
+      .brand-image {
+        width: 2.5rem;
+        height: 2.5rem;
+        flex: none;
+        object-fit: contain;
       }
 
       .home-link svg {
@@ -190,7 +192,7 @@ export const notFoundPageHtml = `<!doctype html>
         <section class="panel" aria-labelledby="not-found-title">
           <div class="brand-row">
             <div class="brand">
-              <span class="brand-mark" aria-hidden="true"></span>
+              <img class="brand-image" src="${base64Individuation}" width="64" height="64" alt="">
               Nami
             </div>
           </div>

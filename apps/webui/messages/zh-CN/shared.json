@@ -80,8 +80,8 @@
   },
   "qrCode": {
     "openQRCode": "生成二维码",
-    "faviconAlt": "网站图标",
-    "faviconLabel": "Favicon 图标",
+    "individuationAlt": "个性化图像",
+    "individuationLabel": "个性化图像",
     "download": "保存图片"
   }
 }

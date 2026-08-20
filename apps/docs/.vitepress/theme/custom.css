@@ -1,18 +1,18 @@
 :root {
-  --nami-hero-image-glow:
-    drop-shadow(0 0 18px rgb(109 138 240 / 38%))
-    drop-shadow(0 0 44px rgb(197 174 255 / 24%));
+  --nami-hero-image-shadow:
+    drop-shadow(0 1px 1px rgb(66 22 150 / 22%))
+    drop-shadow(0 10px 18px rgb(78 46 243 / 18%));
   --vp-home-hero-name-color: transparent;
-  --vp-home-hero-name-background: linear-gradient(120deg, #3157d5 20%, #6d8af0 80%);
+  --vp-home-hero-name-background: linear-gradient(120deg, #d490ff 15%, #722ef1 55%, #4e2ef3 90%);
   --vp-font-family-base: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 :root:not(.dark) {
   color-scheme: light;
-  --vp-c-brand-1: #3157d5;
-  --vp-c-brand-2: #2545b8;
-  --vp-c-brand-3: #1f3b9c;
-  --vp-c-brand-soft: #edf1ff;
+  --vp-c-brand-1: #722ef1;
+  --vp-c-brand-2: #5520c2;
+  --vp-c-brand-3: #421696;
+  --vp-c-brand-soft: #f3edff;
   --vp-c-bg: #ffffff;
   --vp-c-bg-alt: #f8f9fb;
   --vp-c-bg-soft: #f8f9fb;
@@ -20,23 +20,23 @@
   --vp-c-border: #cbd2dc;
   --vp-c-text-1: #172033;
   --vp-c-text-2: #667085;
-  --vp-button-brand-border: #3157d5;
-  --vp-button-brand-bg: #3157d5;
-  --vp-button-brand-hover-border: #2545b8;
-  --vp-button-brand-hover-bg: #2545b8;
-  --vp-button-brand-active-border: #1f3b9c;
-  --vp-button-brand-active-bg: #1f3b9c;
+  --vp-button-brand-border: #722ef1;
+  --vp-button-brand-bg: #722ef1;
+  --vp-button-brand-hover-border: #5520c2;
+  --vp-button-brand-hover-bg: #5520c2;
+  --vp-button-brand-active-border: #421696;
+  --vp-button-brand-active-bg: #421696;
 }
 
 .dark {
   color-scheme: dark;
-  --nami-hero-image-glow:
-    drop-shadow(0 0 20px rgb(168 177 255 / 58%))
-    drop-shadow(0 0 52px rgb(109 138 240 / 38%));
-  --vp-c-brand-1: #a8b1ff;
-  --vp-c-brand-2: #5c73e7;
-  --vp-c-brand-3: #3e63dd;
-  --vp-c-brand-soft: rgb(100 108 255 / 16%);
+  --nami-hero-image-shadow:
+    drop-shadow(0 1px 1px rgb(212 144 255 / 22%))
+    drop-shadow(0 10px 20px rgb(114 46 241 / 28%));
+  --vp-c-brand-1: #c1a9ff;
+  --vp-c-brand-2: #a578ff;
+  --vp-c-brand-3: #8c2ff8;
+  --vp-c-brand-soft: rgb(114 46 241 / 22%);
 }
 
 .VPButton,
@@ -57,9 +57,23 @@
 }
 
 .VPHero .image-src {
-  max-width: 320px;
-  max-height: 180px;
-  filter: var(--nami-hero-image-glow);
+  max-width: min(52vw, 184px);
+  max-height: min(52vw, 184px);
+  filter: var(--nami-hero-image-shadow);
+}
+
+@media (min-width: 640px) {
+  .VPHero .image-src {
+    max-width: 250px;
+    max-height: 250px;
+  }
+}
+
+@media (min-width: 960px) {
+  .VPHero .image-src {
+    max-width: 300px;
+    max-height: 300px;
+  }
 }
 
 .vp-doc table {

@@ -80,8 +80,8 @@
   },
   "qrCode": {
     "openQRCode": "Generate QR code",
-    "faviconAlt": "Favicon",
-    "faviconLabel": "Favicon Logo",
+    "individuationAlt": "Personalized image",
+    "individuationLabel": "Personalized image",
     "download": "Download QR code"
   }
 }

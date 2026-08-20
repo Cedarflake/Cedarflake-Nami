@@ -14,6 +14,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Nami Config Console",
   description: "Manage redirects.json via WebUI",
+  icons: {
+    icon: [{ url: "/nami-favicon.ico", type: "image/x-icon" }],
+  },
   robots: {
     index: false,
     follow: false,

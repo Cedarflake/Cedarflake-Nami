@@ -6,7 +6,7 @@ hero:
   text: Revaea 的个人边缘重定向实验
   tagline: 通过 WebUI 管理规则，由边缘 Runtime 处理公开请求。项目主要服务于 Revaea，也可自行部署。
   image:
-    src: /favicon.webp
+    src: /nami-favicon.webp
     alt: Nami
   actions:
     - theme: brand

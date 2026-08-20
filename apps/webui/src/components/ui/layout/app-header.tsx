@@ -69,7 +69,7 @@ export function AppHeader({
           ) : null}
           <div className="flex min-w-0 items-center gap-3">
             <Image
-              src="/favicon.ico"
+              src="/nami-favicon.webp"
               alt=""
               width={32}
               height={32}

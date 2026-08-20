@@ -238,8 +238,8 @@ export default defineConfig({
     hostname: "https://d.i0c.cc",
   },
   head: [
-    ["link", { rel: "icon", href: "/favicon.ico", type: "image/x-icon" }],
-    ["meta", { name: "theme-color", content: "#3157d5" }],
+    ["link", { rel: "icon", href: "/nami-favicon.ico", type: "image/x-icon" }],
+    ["meta", { name: "theme-color", content: "#722ef1" }],
   ],
   locales: {
     root: {
@@ -313,7 +313,7 @@ export default defineConfig({
   },
   themeConfig: {
     logo: {
-      src: "/favicon.ico",
+      src: "/nami-favicon.webp",
       alt: "Nami",
     },
     search: {
