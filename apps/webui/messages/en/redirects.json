@@ -1,6 +1,6 @@
 {
   "groups": {
-    "manager": "Group manager",
+    "manager": "Group",
     "addGroup": "New group",
     "root": "Root",
     "rootTitle": "Root (rules written directly under slots)",
