@@ -44,7 +44,7 @@ export const authOptions = {
         }
       },
       httpOptions: {
-        timeout: 10_000,
+        timeout: 30_000,
       }
     })
   ],
