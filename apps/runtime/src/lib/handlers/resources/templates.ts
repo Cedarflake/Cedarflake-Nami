@@ -9,7 +9,6 @@
  */
 
 import { interLatinVariableFontPath } from "@/assets/inter-font";
-import { base64Individuation } from "@/assets/individuation";
 
 export const notFoundPageHtml = `<!doctype html>
 <html lang="en">
@@ -17,7 +16,7 @@ export const notFoundPageHtml = `<!doctype html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#ffffff">
+    <meta name="theme-color" content="#722ef1">
     <link rel="icon" href="/favicon.ico?v=nami-2" type="image/x-icon">
     <title>404 · Page not found</title>
     <style>
@@ -36,8 +35,8 @@ export const notFoundPageHtml = `<!doctype html>
         --ink: #172033;
         --muted: #667085;
         --line: #e1e5eb;
-        --accent: #3157d5;
-        --accent-strong: #2545b8;
+        --accent: #722ef1;
+        --accent-strong: #5520c2;
         font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
@@ -97,11 +96,11 @@ export const notFoundPageHtml = `<!doctype html>
         text-transform: uppercase;
       }
 
-      .brand-image {
-        width: 2.5rem;
-        height: 2.5rem;
-        flex: none;
-        object-fit: contain;
+      .brand-mark {
+        width: 2rem;
+        height: 0.25rem;
+        border-radius: 9999px;
+        background: var(--accent);
       }
 
       .home-link svg {
@@ -192,7 +191,7 @@ export const notFoundPageHtml = `<!doctype html>
         <section class="panel" aria-labelledby="not-found-title">
           <div class="brand-row">
             <div class="brand">
-              <img class="brand-image" src="${base64Individuation}" width="64" height="64" alt="">
+              <span class="brand-mark" aria-hidden="true"></span>
               Nami
             </div>
           </div>
