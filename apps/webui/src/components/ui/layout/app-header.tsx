@@ -73,7 +73,7 @@ export function AppHeader({
               alt=""
               width={32}
               height={32}
-              className="rounded-xl border border-line bg-panel"
+              className="rounded-xl bg-panel"
               priority
             />
             <div className="min-w-0">
