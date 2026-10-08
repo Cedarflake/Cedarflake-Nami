@@ -1,0 +1,133 @@
+diff --git a/lib/compile.js b/lib/compile.js
+index dce69be..9058a44 100644
+--- a/lib/compile.js
++++ b/lib/compile.js
+@@ -2,9 +2,15 @@
+ 
+ const fill = require('fill-range');
+ const utils = require('./utils');
++const { MAX_DEPTH } = require('./constants');
+ 
+ const compile = (ast, options = {}) => {
+-  const walk = (node, parent = {}) => {
++  const walk = (node, parent = {}, depth = 0) => {
++    // Guard callers that pass an AST directly instead of using parse().
++    if (node.nodes && depth > MAX_DEPTH) {
++      throw new SyntaxError(`Nesting depth exceeds max depth (${MAX_DEPTH})`);
++    }
++
+     const invalidBlock = utils.isInvalidBrace(parent);
+     const invalidNode = node.invalid === true && options.escapeInvalid === true;
+     const invalid = invalidBlock === true || invalidNode === true;
+@@ -47,7 +53,7 @@ const compile = (ast, options = {}) => {
+ 
+     if (node.nodes) {
+       for (const child of node.nodes) {
+-        output += walk(child, node);
++        output += walk(child, node, depth + 1);
+       }
+     }
+ 
+diff --git a/lib/constants.js b/lib/constants.js
+index 2bb3b88..494ce39 100644
+--- a/lib/constants.js
++++ b/lib/constants.js
+@@ -2,6 +2,8 @@
+ 
+ module.exports = {
+   MAX_LENGTH: 10000,
++  // Bound recursive walkers, including mixed brace/parenthesis nesting.
++  MAX_DEPTH: 100,
+ 
+   // Digits
+   CHAR_0: '0', /* 0 */
+diff --git a/lib/expand.js b/lib/expand.js
+index 35b2c41..7e77fdb 100644
+--- a/lib/expand.js
++++ b/lib/expand.js
+@@ -3,6 +3,7 @@
+ const fill = require('fill-range');
+ const stringify = require('./stringify');
+ const utils = require('./utils');
++const { MAX_DEPTH } = require('./constants');
+ 
+ const append = (queue = '', stash = '', enclose = false) => {
+   const result = [];
+@@ -33,7 +34,12 @@ const append = (queue = '', stash = '', enclose = false) => {
+ const expand = (ast, options = {}) => {
+   const rangeLimit = options.rangeLimit === undefined ? 1000 : options.rangeLimit;
+ 
+-  const walk = (node, parent = {}) => {
++  const walk = (node, parent = {}, depth = 0) => {
++    // Guard callers that pass an AST directly instead of using parse().
++    if (node.nodes && depth > MAX_DEPTH) {
++      throw new SyntaxError(`Nesting depth exceeds max depth (${MAX_DEPTH})`);
++    }
++
+     node.queue = [];
+ 
+     let p = parent;
+@@ -100,7 +106,7 @@ const expand = (ast, options = {}) => {
+       }
+ 
+       if (child.nodes) {
+-        walk(child, node);
++        walk(child, node, depth + 1);
+       }
+     }
+ 
+diff --git a/lib/parse.js b/lib/parse.js
+index 3a6988e..8f1cb61 100644
+--- a/lib/parse.js
++++ b/lib/parse.js
+@@ -8,6 +8,7 @@ const stringify = require('./stringify');
+ 
+ const {
+   MAX_LENGTH,
++  MAX_DEPTH,
+   CHAR_BACKSLASH, /* \ */
+   CHAR_BACKTICK, /* ` */
+   CHAR_COMMA, /* , */
+@@ -138,6 +139,12 @@ const parse = (input, options = {}) => {
+       continue;
+     }
+ 
++    // Check the actual parser stack, since parentheses also create AST nodes.
++    // Escaped, quoted and bracketed delimiters remain literal and do not count.
++    if ((value === CHAR_LEFT_PARENTHESES || value === CHAR_LEFT_CURLY_BRACE) && stack.length > MAX_DEPTH) {
++      throw new SyntaxError(`Nesting depth exceeds max depth (${MAX_DEPTH})`);
++    }
++
+     /**
+      * Parentheses
+      */
+diff --git a/lib/stringify.js b/lib/stringify.js
+index 8bcf872..589eaa8 100644
+--- a/lib/stringify.js
++++ b/lib/stringify.js
+@@ -1,9 +1,15 @@
+ 'use strict';
+ 
+ const utils = require('./utils');
++const { MAX_DEPTH } = require('./constants');
+ 
+ module.exports = (ast, options = {}) => {
+-  const stringify = (node, parent = {}) => {
++  const stringify = (node, parent = {}, depth = 0) => {
++    // Guard callers that pass an AST directly instead of using parse().
++    if (node.nodes && depth > MAX_DEPTH) {
++      throw new SyntaxError(`Nesting depth exceeds max depth (${MAX_DEPTH})`);
++    }
++
+     const invalidBlock = options.escapeInvalid && utils.isInvalidBrace(parent);
+     const invalidNode = node.invalid === true && options.escapeInvalid === true;
+     let output = '';
+@@ -21,7 +27,7 @@ module.exports = (ast, options = {}) => {
+ 
+     if (node.nodes) {
+       for (const child of node.nodes) {
+-        output += stringify(child);
++        output += stringify(child, {}, depth + 1);
+       }
+     }
+     return output;

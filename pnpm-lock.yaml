@@ -36,6 +36,9 @@ overrides:
   browserslist: 4.28.7
   source-map-js: 1.2.2
 
+patchedDependencies:
+  braces@3.0.3: a2c8042db9784629633f8d5f392cf63fb8b68376c4308ba5b67290a3cd349565
+
 importers:
 
   .:
@@ -6042,7 +6045,7 @@ snapshots:
     dependencies:
       balanced-match: 4.0.4
 
-  braces@3.0.3:
+  braces@3.0.3(patch_hash=a2c8042db9784629633f8d5f392cf63fb8b68376c4308ba5b67290a3cd349565):
     dependencies:
       fill-range: 7.1.1
 
@@ -7215,7 +7218,7 @@ snapshots:
 
   micromatch@4.0.8:
     dependencies:
-      braces: 3.0.3
+      braces: 3.0.3(patch_hash=a2c8042db9784629633f8d5f392cf63fb8b68376c4308ba5b67290a3cd349565)
       picomatch: 2.3.2
 
   mimic-fn@2.1.0: {}
