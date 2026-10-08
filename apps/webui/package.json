@@ -9,9 +9,9 @@
   },
   "homepage": "https://u.i0c.cc",
   "scripts": {
-    "assets:check": "pnpm --dir ../.. assets:check",
-    "dev": "pnpm assets:check && next dev",
-    "build": "pnpm assets:check && next build",
+    "assets:check": "corepack pnpm --dir ../.. assets:check",
+    "dev": "corepack pnpm assets:check && next dev",
+    "build": "corepack pnpm assets:check && next build",
     "start": "next start",
     "test": "tsx --test tests/**/*.test.ts",
     "lint": "eslint && node scripts/validate-messages.mjs",

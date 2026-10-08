@@ -21,6 +21,7 @@ on:
       - plugins/runtime/**
       - plugins/sink/http/**
       - plugins/source/**
+      - scripts/runtime/**
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
@@ -44,6 +45,7 @@ on:
       - plugins/runtime/**
       - plugins/sink/http/**
       - plugins/source/**
+      - scripts/runtime/**
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
@@ -86,6 +88,11 @@ jobs:
 
       - name: Build Cloudflare through the repository-root compatibility command
         run: pnpm build:cf
+
+      - name: Validate repository-root Wrangler discovery without uploading
+        run: node apps/runtime/node_modules/wrangler/bin/wrangler.js deploy --dry-run --outdir /tmp/nami-root-wrangler
+        env:
+          WRANGLER_SEND_METRICS: "false"
 
       - name: Build Runtime providers
         run: pnpm runtime:build

@@ -59,7 +59,7 @@ pnpm assets:sync
 pnpm assets:check
 ```
 
-For existing Cloudflare build integrations that run from the repository root, `pnpm build:cf` is a compatibility alias for `pnpm runtime:build:cf`. It writes the Runtime output under `apps/runtime/dist`; the canonical command remains preferred for new configurations.
+For existing Cloudflare build integrations that run from the repository root, `pnpm build:cf` is a compatibility alias for `pnpm runtime:build:cf`. It writes the Runtime output under `apps/runtime/dist`; the canonical command remains preferred for new configurations. The compatibility build also generates `.wrangler/deploy/config.json`, directing root-level Wrangler commands to the existing `apps/runtime/wrangler.toml` without duplicating Worker configuration.
 
 ## Documentation
 

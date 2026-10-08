@@ -168,6 +168,8 @@ The WebUI does not read former non-sensitive environment variables as overrides 
 - Repository OAuth permissions and public-target limitations apply only when the archived GitHub Repository is deliberately re-enabled.
 - For production deployment, make sure to configure the credentials in `.env.local` into the environment variable management of the respective platform.
 
+Nested package-manager calls also use Corepack, so a hosting provider’s globally installed pnpm cannot override the repository’s pinned version.
+
 ---
 
 English · [简体中文](README.zh-CN.md)

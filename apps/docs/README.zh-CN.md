@@ -21,6 +21,8 @@ pnpm docs:preview
 
 确认部署健康后再绑定 `d.i0c.cc`。创建项目、部署、绑定域名与修改 DNS 仍属于需要明确执行的外部操作。
 
+嵌套的包管理器调用同样使用 Corepack，避免托管平台全局安装的 pnpm 覆盖仓库固定版本。
+
 ---
 
 [English](README.md) · 简体中文

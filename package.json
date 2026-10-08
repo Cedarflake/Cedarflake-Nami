@@ -45,7 +45,7 @@
     "data:validate:config": "tsx scripts/validation/validate-data-config.ts",
     "data:validate:redirects": "tsx scripts/validation/validate-redirects.ts",
     "scripts:check": "tsc -p scripts/tsconfig.json && node scripts/validation/check-braces-security.cjs && node --test scripts/validation/build-commands.test.mjs",
-    "build:cf": "pnpm runtime:build:cf"
+    "build:cf": "pnpm runtime:build:cf && node scripts/runtime/prepare-cloudflare-root.mjs"
   },
   "devDependencies": {
     "@nami/analytics-domain": "workspace:*",

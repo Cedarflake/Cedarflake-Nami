@@ -51,7 +51,7 @@ description: 查找仓库用于开发、校验、数据库设置和部署的 pnp
 | `pnpm runtime:dev:vc` | 启动 Vercel 开发工具 |
 | `pnpm runtime:dev:nf` | 启动 Netlify 开发工具 |
 
-对于在仓库根目录执行构建的已有 Cloudflare 集成，`pnpm build:cf` 是 `pnpm runtime:build:cf` 的兼容别名，产物位于 `apps/runtime/dist`。新配置仍建议使用规范命令。
+对于在仓库根目录执行构建的已有 Cloudflare 集成，`pnpm build:cf` 是 `pnpm runtime:build:cf` 的兼容别名，产物位于 `apps/runtime/dist`。新配置仍建议使用规范命令。兼容构建还会生成 `.wrangler/deploy/config.json`，让根目录中的 Wrangler 命令读取现有的 `apps/runtime/wrangler.toml`，不重复维护 Worker 配置。
 
 `runtime:deploy:cf`、`runtime:deploy:vc` 和 `runtime:deploy:nf` 会写入外部平台。执行前还要确认当前登录账号和目标环境。
 

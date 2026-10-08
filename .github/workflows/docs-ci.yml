@@ -7,6 +7,7 @@ on:
     paths:
       - "apps/docs/**"
       - ".github/workflows/docs-ci.yml"
+      - "scripts/validation/check-corepack-build.mjs"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -14,6 +15,7 @@ on:
     paths:
       - "apps/docs/**"
       - ".github/workflows/docs-ci.yml"
+      - "scripts/validation/check-corepack-build.mjs"
       - "package.json"
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
@@ -48,4 +50,4 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Check and build documentation
-        run: pnpm docs:check
+        run: node scripts/validation/check-corepack-build.mjs apps/docs check
