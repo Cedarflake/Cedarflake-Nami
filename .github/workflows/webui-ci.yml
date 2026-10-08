@@ -24,6 +24,7 @@ on:
       - plugins/store/**
       - plugins/**/src/manifest.ts
       - plugins/runtime/**/src/installation.ts
+      - scripts/validation/check-corepack-build.mjs
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
@@ -50,6 +51,7 @@ on:
       - plugins/store/**
       - plugins/**/src/manifest.ts
       - plugins/runtime/**/src/installation.ts
+      - scripts/validation/check-corepack-build.mjs
       - package.json
       - pnpm-lock.yaml
       - pnpm-workspace.yaml
@@ -96,4 +98,4 @@ jobs:
         run: pnpm webui:lint
 
       - name: Build WebUI
-        run: pnpm webui:build
+        run: node scripts/validation/check-corepack-build.mjs apps/webui build

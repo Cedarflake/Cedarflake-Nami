@@ -51,6 +51,8 @@ A command containing `deploy` writes to an external provider. Do not use one as 
 | `pnpm runtime:dev:vc` | Start Vercel development tools |
 | `pnpm runtime:dev:nf` | Start Netlify development tools |
 
+For existing Cloudflare build integrations that run from the repository root, `pnpm build:cf` is a compatibility alias for `pnpm runtime:build:cf`. It writes the Runtime output under `apps/runtime/dist`; the canonical command remains preferred for new configurations. The compatibility build also generates `.wrangler/deploy/config.json`, directing root-level Wrangler commands to the existing `apps/runtime/wrangler.toml` without duplicating Worker configuration.
+
 `runtime:deploy:cf`, `runtime:deploy:vc`, and `runtime:deploy:nf` write to external providers. Confirm the signed-in account and target environment before running one.
 
 ## Database initialization and schema updates

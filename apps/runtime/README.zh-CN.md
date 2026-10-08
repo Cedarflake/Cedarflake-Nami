@@ -30,6 +30,8 @@
 
 包目录中的 `pnpm build` 会一次生成并保留三个平台的产物。需要单独构建或部署某个平台时，仍可使用对应的平台专用命令。
 
+对于在仓库根目录执行构建的已有 Cloudflare 集成，`pnpm build:cf` 是 `pnpm runtime:build:cf` 的兼容别名，产物位于 `apps/runtime/dist`。新配置仍建议使用规范命令。兼容构建还会生成 `.wrangler/deploy/config.json`，让根目录中的 Wrangler 命令读取现有的 `apps/runtime/wrangler.toml`，不重复维护 Worker 配置。
+
 部署完成后：
 
 - 非敏感配置或规则变化时，通过所选 WebUI Repository 保存 `config.json` 或 `redirects.json`。默认 Git 方案使用 `data` 分支；内置 Source 会在对应缓存时间结束后获取有效更新，不需要重新构建。

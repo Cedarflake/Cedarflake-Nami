@@ -21,6 +21,8 @@ Create a separate Vercel project with `apps/docs` as its Root Directory. The che
 
 Attach `d.i0c.cc` only after the deployment is healthy. Project creation, deployment, domain attachment, and DNS changes remain explicit external operations.
 
+Nested package-manager calls also use Corepack, so a hosting provider’s globally installed pnpm cannot override the repository’s pinned version.
+
 ---
 
 English · [简体中文](README.zh-CN.md)
