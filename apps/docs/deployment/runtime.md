@@ -45,6 +45,8 @@ pnpm runtime:build:cf
 pnpm runtime:deploy:cf
 ```
 
+For existing Cloudflare build integrations that run from the repository root, `pnpm build:cf` is a compatibility alias for `pnpm runtime:build:cf`. It writes the Runtime output under `apps/runtime/dist`; the canonical command remains preferred for new configurations.
+
 The deploy command writes to the active Wrangler account, so run it only after confirming the intended account and environment.
 
 ### Vercel Edge Functions

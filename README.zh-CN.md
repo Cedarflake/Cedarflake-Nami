@@ -59,6 +59,8 @@ pnpm assets:sync
 pnpm assets:check
 ```
 
+对于在仓库根目录执行构建的已有 Cloudflare 集成，`pnpm build:cf` 是 `pnpm runtime:build:cf` 的兼容别名，产物位于 `apps/runtime/dist`。新配置仍建议使用规范命令。
+
 ## 文档
 
 - [了解这个项目](apps/docs/zh-CN/guide/getting-started.md)

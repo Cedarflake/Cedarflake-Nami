@@ -45,6 +45,8 @@ pnpm runtime:build:cf
 pnpm runtime:deploy:cf
 ```
 
+对于在仓库根目录执行构建的已有 Cloudflare 集成，`pnpm build:cf` 是 `pnpm runtime:build:cf` 的兼容别名，产物位于 `apps/runtime/dist`。新配置仍建议使用规范命令。
+
 部署命令会写入当前 Wrangler 账号，只在确认目标账号和环境后执行。
 
 ### Vercel Edge Functions

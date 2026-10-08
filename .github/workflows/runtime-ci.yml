@@ -84,6 +84,9 @@ jobs:
       - name: Test Runtime
         run: pnpm runtime:test
 
+      - name: Build Cloudflare through the repository-root compatibility command
+        run: pnpm build:cf
+
       - name: Build Runtime providers
         run: pnpm runtime:build
 

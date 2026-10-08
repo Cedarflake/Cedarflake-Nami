@@ -30,6 +30,8 @@ Build from a full monorepo checkout. On Vercel, keep **Include source files outs
 
 The package-level `pnpm build` command generates and retains all three provider outputs in one pass. The provider-specific commands remain available for targeted builds and deployments.
 
+For existing Cloudflare build integrations that run from the repository root, `pnpm build:cf` is a compatibility alias for `pnpm runtime:build:cf`. It writes the Runtime output under `apps/runtime/dist`; the canonical command remains preferred for new configurations.
+
 After deploying:
 
 - Save `config.json` or `redirects.json` through the selected WebUI Repository when non-sensitive settings or rules change. The default Git setup uses the `data` branch. Built-in Sources pick up valid updates after their configured cache TTL without a rebuild.
