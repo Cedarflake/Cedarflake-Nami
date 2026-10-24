@@ -13,6 +13,8 @@ pnpm docs:preview
 
 English pages live at the documentation root. Every user-facing page has a matching Chinese page under `zh-CN`. `pnpm docs:check` verifies this route parity before building the site.
 
+The check also validates the security-patched Markdown parser through VitePress's actual renderer. The local integration patch and its removal criteria are documented in [Dependency patches](../../patches/README.md).
+
 The generated `.vitepress/dist` directory is local build output and must not be edited or committed. Publishing the site, configuring `d.i0c.cc`, or changing DNS remains a separate external operation.
 
 ## Vercel deployment

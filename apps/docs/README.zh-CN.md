@@ -15,6 +15,8 @@ pnpm docs:preview
 
 生成的 `.vitepress/dist` 属于本地构建产物，不应直接编辑或提交。发布站点、配置 `d.i0c.cc` 或修改 DNS 均属于独立的外部操作。
 
+该检查还通过 VitePress 实际渲染器验证已修补的 Markdown 解析器。本地集成补丁及其移除条件见[依赖补丁说明](../../patches/README.md)。
+
 ## Vercel 部署
 
 创建独立的 Vercel 项目，并把 Root Directory 设为 `apps/docs`。仓库内的 [vercel.json](vercel.json) 使用 Corepack 管理的 pnpm 从仓库根安装工作区、执行 `corepack pnpm build`，并发布 `.vitepress/dist`。文档站不需要在仓库根目录放置 Vercel 配置。

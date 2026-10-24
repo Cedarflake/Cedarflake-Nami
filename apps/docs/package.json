@@ -12,7 +12,7 @@
   "scripts": {
     "assets:check": "corepack pnpm --dir ../.. assets:check",
     "dev": "corepack pnpm assets:check && vitepress dev .",
-    "check": "corepack pnpm assets:check && node scripts/check-locales.mjs && vitepress build .",
+    "check": "corepack pnpm assets:check && node scripts/check-locales.mjs && node --test scripts/markdown-security.test.mjs && vitepress build .",
     "build": "corepack pnpm assets:check && vitepress build .",
     "preview": "vitepress preview ."
   },
