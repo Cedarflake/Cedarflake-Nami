@@ -1,0 +1,12 @@
+diff --git a/dist/node/chunk-D3CUZ4fa.js b/dist/node/chunk-D3CUZ4fa.js
+--- a/dist/node/chunk-D3CUZ4fa.js
++++ b/dist/node/chunk-D3CUZ4fa.js
+@@ -1,2 +1,3 @@
+ import { webcrypto, createHash } from 'node:crypto';
++import PatchedMarkdownIt from 'markdown-it';
+ import { createRequire } from 'node:module';
+@@ -35722,3 +35723,3 @@
+   _disposeHighlighter = dispose;
+-  md = MarkdownIt({ html: true, linkify: true, highlight: highlight$1, ...options });
++  md = PatchedMarkdownIt({ html: true, linkify: true, highlight: highlight$1, ...options });
+   md.linkify.set({ fuzzyLink: false });
