@@ -30,7 +30,6 @@ Runtime 与 WebUI 插件在构建前显式选择。远程实例配置可以配�
 - Vercel Runtime：https://vc.i0c.cc
 - Netlify Runtime：https://nf.i0c.cc
 - WebUI：https://u.i0c.cc
-- 文档站：https://d.i0c.cc
 
 ## 本地设置
 

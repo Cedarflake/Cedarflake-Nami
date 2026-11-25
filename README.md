@@ -30,7 +30,6 @@ Runtime and WebUI plugins are selected explicitly before build. Remote instance 
 - Vercel Runtime: https://vc.i0c.cc
 - Netlify Runtime: https://nf.i0c.cc
 - WebUI: https://u.i0c.cc
-- Documentation: https://d.i0c.cc
 
 ## Local setup
 
